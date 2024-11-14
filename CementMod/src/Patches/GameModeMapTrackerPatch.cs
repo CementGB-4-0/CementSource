@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
 using CementGB.Mod.Utilities;
 using HarmonyLib;
 using Il2CppGB.Gamemodes;
+using System;
+using System.Collections.Generic;
 using UnityEngine.ResourceManagement.ResourceProviders;
 
 namespace CementGB.Mod.Patches;
@@ -37,7 +37,7 @@ internal static class GameModeMapTrackerPatch
                         if (SceneNameAlreadyExists(__instance, mapLocation.PrimaryKey)) continue;
                         ExtendedStringLoader.Register($"STAGE_{mapLocation.PrimaryKey.ToUpper()}", mapLocation.PrimaryKey);
 
-                        var newMapStatus = new ModeMapStatus(mapLocation.PrimaryKey, true)
+                        ModeMapStatus newMapStatus = new(mapLocation.PrimaryKey, true)
                         {
                             AllowedModesLocal = GameModeEnum.Melee,
                             AllowedModesOnline = GameModeEnum.Melee // TODO: support additional gamemodes

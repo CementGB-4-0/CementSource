@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using CementGB.Mod.Utilities;
-using MelonLoader;
+﻿using CementGB.Mod.Utilities;
+using System.Collections.Generic;
 
 namespace Tungsten;
 public class ErrorManager
@@ -19,17 +18,18 @@ public class ErrorManager
         }
     }
 
-    private List<string> lines = new();
+    private readonly List<string> lines = new();
     private string currentLine = "";
 
-    private List<ErrorInfo> unresolvedErrors = new();
+    private readonly List<ErrorInfo> unresolvedErrors = new();
 
-    public ErrorManager() 
+    public ErrorManager()
     {
         HadError = false;
     }
 
-    public bool HadError {
+    public bool HadError
+    {
         get;
         private set;
     }
@@ -49,10 +49,10 @@ public class ErrorManager
 
     private void ResolveUnhandeledErrors()
     {
-        ErrorInfo[] errors = unresolvedErrors.ToArray();
+        var errors = unresolvedErrors.ToArray();
         unresolvedErrors.Clear();
 
-        foreach (ErrorInfo error in errors)
+        foreach (var error in errors)
         {
             RaiseSyntaxError(error.lineIdx, error.charIdx, error.message);
         }
@@ -71,21 +71,21 @@ public class ErrorManager
         }
         else
         {
-            string line = lines[lineIdx];
+            var line = lines[lineIdx];
 
-            string errorMessage = $"TungstenSyntaxError[ln {lineIdx + 1}]: {message}\n";
+            var errorMessage = $"TungstenSyntaxError[ln {lineIdx + 1}]: {message}\n";
 
-            string lineIdxString = (lineIdx + 1).ToString();
-            int digits = lineIdxString.Length;
+            var lineIdxString = (lineIdx + 1).ToString();
+            var digits = lineIdxString.Length;
             errorMessage += $"{lineIdxString} | {line}\n";
 
-            string pointerLine = "";
-            for (int _ = 0; _ < digits; ++_)
+            var pointerLine = "";
+            for (var _ = 0; _ < digits; ++_)
                 pointerLine += " ";
 
             pointerLine += " | ";
 
-            for (int _ = 0; _ < charIdx; ++_)
+            for (var _ = 0; _ < charIdx; ++_)
                 pointerLine += " ";
 
             pointerLine += "^";
@@ -105,8 +105,8 @@ public class ErrorManager
             return;
         }
 
-        string errorMessage = $"TungstenRuntimeError[ln {lineIdx + 1}]: {message}\n";
-        string line = lines[lineIdx];
+        var errorMessage = $"TungstenRuntimeError[ln {lineIdx + 1}]: {message}\n";
+        var line = lines[lineIdx];
 
         errorMessage += $"{lineIdx + 1} | {line}";
 

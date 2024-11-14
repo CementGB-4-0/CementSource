@@ -3,25 +3,30 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 
+    <TargetFramework>net6</TargetFramework>
+
     <RootNamespace>CementGB.Mod</RootNamespace>
-    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>CementGB</AssemblyName>
+    
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-
-    <Nullable>disable</Nullable>
-    <OutputType>Library</OutputType>
+    <LangVersion>latest</LangVersion>
     <DefineConstants>$(DefineConstants);MELONLOADER</DefineConstants>
-    <LangVersion>10.0</LangVersion>
-	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-  </PropertyGroup>
+    <Nullable>disable</Nullable>
+    <Optimize>false</Optimize>
 
+    <OutputType>Library</OutputType>
+    
+    <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with BepInEx or the game -->
+	  <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->
+  </PropertyGroup>
+  
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>embedded</DebugType>
 
     <ErrorReport>prompt</ErrorReport>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <Optimize>false</Optimize>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
 
     <OutputPath>bin\Debug\</OutputPath>
     <WarningLevel>4</WarningLevel>
@@ -31,11 +36,10 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>false</DebugSymbols>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
 
     <ErrorReport>prompt</ErrorReport>
-    <DefineConstants>RELEASE;TRACE</DefineConstants>
-    <Optimize>true</Optimize>
+    <DefineConstants>$(DefineConstants);RELEASE;TRACE</DefineConstants>
 
     <OutputPath>bin\Release\</OutputPath>
     <WarningLevel>4</WarningLevel>
@@ -53,7 +57,6 @@
     -->
     <Reference Remove="ref\**\System.*.dll"></Reference>
     <Reference Remove="ref\**\Microsoft.Win32.SystemEvents.dll"></Reference>
-    <Reference Remove="ref\MoonSharp\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -87,6 +90,5 @@
 
     <!-- Copy the built mod dll into game Mods folder -->
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Mods" />
-	<Copy SourceFiles="$(TargetPath)" DestinationFolder="D:\SteamLibrary\steamapps\common\GB Server New\Mods" />
   </Target>
 </Project>

@@ -6,9 +6,9 @@ namespace Tungsten;
 public class Range : IEnumerator, IEnumerable
 {
     private int i;
-    private int start;
-    private int end;
-    private int step;
+    private readonly int start;
+    private readonly int end;
+    private readonly int step;
 
     public Range(int start, int end, int step)
     {
@@ -18,13 +18,7 @@ public class Range : IEnumerator, IEnumerable
         this.step = step;
     }
 
-    public object Current
-    {
-        get
-        {
-            return i++;
-        }
-    }
+    public object Current => i++;
 
     public IEnumerator GetEnumerator()
     {

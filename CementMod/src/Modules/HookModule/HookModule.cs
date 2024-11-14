@@ -50,8 +50,8 @@ public static class HookModule
             return true;
         };
 
-        HarmonyMethod prefix = hook.isPrefix ? new HarmonyMethod(hook.hook) : null;
-        HarmonyMethod postfix = hook.isPrefix ? null : new HarmonyMethod(hook.hook);
+        var prefix = hook.isPrefix ? new HarmonyMethod(hook.hook) : null;
+        var postfix = hook.isPrefix ? null : new HarmonyMethod(hook.hook);
 
         HarmonyMethod beforeEitherFix = new(doBeforeHook.Method);
 

@@ -1,6 +1,6 @@
+using MelonLoader;
 using System;
 using System.Runtime.CompilerServices;
-using MelonLoader;
 
 namespace CementGB.Mod.Utilities;
 

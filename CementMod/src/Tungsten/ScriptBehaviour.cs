@@ -1,7 +1,5 @@
-﻿using UnityEngine;
-using MelonLoader;
-using Il2CppSystem.Net;
-using System.Reflection.Metadata.Ecma335;
+﻿using MelonLoader;
+using UnityEngine;
 
 namespace Tungsten;
 
@@ -46,7 +44,7 @@ public class ScriptBehaviour : MonoBehaviour
         _hasOnGUI = _script.HasFunction("onGUI");
         _hasUpdate = _script.HasFunction("update");
     }
-    
+
     private void Awake()
     {
         OnScriptAdded();
@@ -55,7 +53,7 @@ public class ScriptBehaviour : MonoBehaviour
     private void Start()
     {
         if (_script == null) return;
-        
+
         if (_script.HasFunction("start"))
             _script.Run("start");
     }

@@ -1,6 +1,4 @@
 ﻿using CementGB.Mod.Utilities;
-using Il2Cpp;
-using Il2CppGB.Misc;
 using Il2CppGB.Platform.Utils;
 using Il2CppGB.UI;
 using Il2CppGB.UI.Menu;
@@ -12,22 +10,21 @@ using UnityEngine;
 using UnityEngine.Localization.Components;
 using UnityEngine.Localization.PropertyVariants;
 using UnityEngine.UI;
-using static Il2CppMono.Security.X509.X520;
 using Object = UnityEngine.Object;
 
 namespace CementGB.Mod.Modules.PreferenceModule;
 
-internal static class PreferenceModule 
+internal static class PreferenceModule
 {
-    public const string PrefsMenuObjName = "Cement Mod Settings";
+    public const string PrefsMenuObjName = "Mod Settings";
 
     private static bool setupPrefabs = false;
 
     private static GameObject boolOptionPrefab;
-    private const string boolOptionPath = "Managers/Menu/Settings Menu/Canvas/Input Root/Controller Vibration";
+    private const string BoolOptionPath = "Managers/Menu/Settings Menu/Canvas/Input Root/Controller Vibration";
 
     private static GameObject intOptionPrefab;
-    private const string intOptionPath = "Managers/Menu/Settings Menu/Canvas/Root Settings/PingUI";
+    private const string IntOptionPath = "Managers/Menu/Settings Menu/Canvas/Root Settings/PingUI";
 
     internal static void Initialize()
     {
@@ -38,7 +35,7 @@ internal static class PreferenceModule
     {
         if (sceneName != "Menu")
         {
-            CreateMenuPrefsUI(true);
+            CreateMenuPrefsUI();
             return;
         }
 
@@ -48,11 +45,11 @@ internal static class PreferenceModule
         CreateMenuPrefsUI();
     }
 
-    
+
     private static void SetupPrefabs()
     {
-        boolOptionPrefab = SetupPrefab(boolOptionPath);
-        intOptionPrefab = SetupPrefab(intOptionPath);
+        boolOptionPrefab = SetupPrefab(BoolOptionPath);
+        intOptionPrefab = SetupPrefab(IntOptionPath);
         intOptionPrefab.GetComponent<IntOptionHandler>().valueNameOverrides = null;
 
         setupPrefabs = true;
@@ -63,7 +60,7 @@ internal static class PreferenceModule
         var originalObject = GameObject.Find(path);
         if (originalObject == null)
         {
-            LoggingUtilities.Logger.Error("OBJECT IS NULL");
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, "OBJECT IS NULL");
             return null;
         }
         var prefab = GameObject.Instantiate(originalObject, GameObject.Find("Managers/Menu/Settings Menu/Canvas").transform);
@@ -97,10 +94,10 @@ internal static class PreferenceModule
         }
     }
 
-    private static void CreateMenuPrefsUI(bool isInGame=false)
+    private static void CreateMenuPrefsUI()
     {
-        var uiScreen = CreatePrefsScreen(isInGame);
-        var uiButton = CreatePrefsButton(isInGame);
+        var uiScreen = CreatePrefsScreen();
+        var uiButton = CreatePrefsButton();
 
         uiButton?.onClick.AddListener(new Action(() =>
         {
@@ -109,7 +106,7 @@ internal static class PreferenceModule
         }));
     }
 
-    private static BaseMenuScreen CreatePrefsScreen(bool isInGame=false)
+    private static BaseMenuScreen CreatePrefsScreen()
     {
         // TODO: Look for in-game menu & create in-game live prefs menu instead if isInGame is true
 
@@ -123,14 +120,7 @@ internal static class PreferenceModule
         var newMenu = Object.Instantiate(inputRoot, inputRoot.transform.parent, true);
         var emptyButton = newMenu.transform.Find("Reset All").GetComponent<Button>();
 
-        for (int i = 0; i < newMenu.transform.childCount; i++)
-            if (newMenu.transform.GetChild(i).name != "Reset All") Object.Destroy(newMenu.transform.GetChild(i).gameObject);
-
-        RemoveLocalisation(emptyButton.gameObject);
-
-        emptyButton.name = "Empty Button";
-        emptyButton.GetComponent<TextMeshProUGUI>().text = emptyButton.name;
-        emptyButton.onClick = new Button.ButtonClickedEvent();
+        Object.Destroy(emptyButton);
 
         CreateBoolOption(newMenu.transform, "Test1", false);
         CreateIntOption(newMenu.transform, "Test2", 2);
@@ -162,7 +152,7 @@ internal static class PreferenceModule
         return gameObject.transform.Find("HoriSort/Value").gameObject;
     }
 
-    private static GameObject CreateButton()
+    private static GameObject CreateButton(Action onClick)
     {
         return null;
     }
@@ -204,7 +194,7 @@ internal static class PreferenceModule
         return null;
     }
 
-    private static Button CreatePrefsButton(bool isInGame=false)
+    private static Button CreatePrefsButton(bool isInGame = false)
     {
         LoggingUtilities.VerboseLog("Creating RootSettingsMenu preferences button. . .");
 

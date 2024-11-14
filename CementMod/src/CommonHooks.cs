@@ -1,4 +1,4 @@
-using Il2CppCoreNet.Components;
+using Il2CppGB.Game;
 using MelonLoader;
 using System;
 
@@ -13,25 +13,19 @@ public static class CommonHooks
     /// Fired when the Menu scene loads for the first time in the app's lifespan. Will reset on application quit.
     /// </summary>
     public static event Action OnMenuFirstBoot;
-    public static event Action OnGameSetup;
-    public static event Action OnGameStart;
-    public static event Action OnGameEnd;
+    public static event Action OnGameManagerCreated;
+    public static event Action OnRoundStart;
+    public static event Action OnRoundEnd;
 
     private static bool _menuFirstBoot;
 
     internal static void Initialize()
     {
         MelonEvents.OnSceneWasLoaded.Subscribe(OnSceneWasLoaded);
-        OnMenuFirstBoot += Internal_MenuFirstBoot;
-    }
 
-    private static void Internal_MenuFirstBoot()
-    {
-        var netRoundOrganizer = NetRoundOrganiser.Instance;
-
-        netRoundOrganizer.OnGameSetup.CombineImpl((Il2CppSystem.Action)OnGameSetup);
-        netRoundOrganizer.OnGameStart.CombineImpl((Il2CppSystem.Action)OnGameStart);
-        netRoundOrganizer.OnGameEnded.CombineImpl((Il2CppSystem.Action)OnGameEnd);
+        GameManagerNew.add_OnGameManagerCreated(new Action(() => { OnGameManagerCreated?.Invoke(); }));
+        GameManagerNew.add_OnRoundStart(new Action(() => { OnRoundStart?.Invoke(); }));
+        GameManagerNew.add_OnRoundEnd(new Action(() => { OnRoundEnd?.Invoke(); }));
     }
 
     private static void OnSceneWasLoaded(int buildIndex, string sceneName)

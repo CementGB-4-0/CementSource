@@ -8,14 +8,14 @@ public class MutStack<T>
     public int indexBase = 0;
     private T[] _array;
 
-    public MutStack(int capacity = 4) {
+    public MutStack(int capacity = 4)
+    {
         _array = new T[4];
     }
 
     public T[] PeekTop(int amount)
     {
-        if (amount == 0) return new T[0];
-        return _array.AsSpan(top - amount, amount).ToArray();
+        return amount == 0 ? (new T[0]) : _array.AsSpan(top - amount, amount).ToArray();
     }
 
 
@@ -34,15 +34,9 @@ public class MutStack<T>
     // mutating part
     public T this[int i]
     {
-        get
-        {
-            return _array[indexBase + i];
-        }
+        get => _array[indexBase + i];
 
-        set
-        {
-            _array[indexBase + i] = value;
-        }
+        set => _array[indexBase + i] = value;
     }
 
 
@@ -72,8 +66,9 @@ public class MutStack<T>
 
     public void Push(T val)
     {
-        if (top + 1 >= _array.Length) {
-            T[] newArray = new T[_array.Length * 2];
+        if (top + 1 >= _array.Length)
+        {
+            var newArray = new T[_array.Length * 2];
             _array.CopyTo(newArray, 0);
             _array = newArray;
         }

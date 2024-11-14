@@ -1,11 +1,11 @@
-﻿using UnityEngine.Networking;
-using UnityEngine;
+﻿using CementGB.Mod.Utilities;
+using MelonLoader;
 using System;
-using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
-using MelonLoader;
-using CementGB.Mod.Utilities;
+using System.Reflection;
+using UnityEngine;
+using UnityEngine.Networking;
 
 namespace CementGB.Mod.Modules.NetBeard;
 
@@ -102,9 +102,9 @@ public class NetBeard : MonoBehaviour
     {
         if (calculatedServerOffsets) return;
 
-        string[] keys = serverModIds.Keys.ToArray();
+        var keys = serverModIds.Keys.ToArray();
         Array.Sort(keys);
-        foreach (string key in keys)
+        foreach (var key in keys)
         {
             CalculateServerOffsetsForModId(key, serverModIds[key]);
         }
@@ -116,9 +116,9 @@ public class NetBeard : MonoBehaviour
     {
         if (calculatedClientOffsets) return;
 
-        string[] keys = clientModIds.Keys.ToArray();
+        var keys = clientModIds.Keys.ToArray();
         Array.Sort(keys);
-        foreach (string key in keys)
+        foreach (var key in keys)
         {
             CalculateClientOffsetsForModId(key, clientModIds[key]);
         }
@@ -152,9 +152,8 @@ public class NetBeard : MonoBehaviour
 
     private static bool IsValidMethod(MethodInfo method)
     {
-        ParameterInfo[] parameters = method.GetParameters();
-        if (parameters.Length != 1) return false;
-        return parameters[0].ParameterType == typeof(NetworkMessage) && method.IsStatic;
+        var parameters = method.GetParameters();
+        return parameters.Length != 1 ? false : parameters[0].ParameterType == typeof(NetworkMessage) && method.IsStatic;
     }
 
     private static void InitFromServerHandlers()
@@ -162,16 +161,16 @@ public class NetBeard : MonoBehaviour
         foreach (var melon in MelonAssembly.LoadedAssemblies)
         {
             var assembly = melon.Assembly;
-            foreach (Type type in assembly.GetTypes())
+            foreach (var type in assembly.GetTypes())
             {
-                foreach (MethodInfo method in type.GetMethods())
+                foreach (var method in type.GetMethods())
                 {
-                    HandleMessageFromServer attribute = (HandleMessageFromServer)Attribute.GetCustomAttribute(method, typeof(HandleMessageFromServer));
+                    var attribute = (HandleMessageFromServer)Attribute.GetCustomAttribute(method, typeof(HandleMessageFromServer));
                     if (attribute != null)
                     {
                         if (IsValidMethod(method))
                         {
-                            ushort code = (ushort)(attribute.msgCode + clientModOffsets[attribute.modId]);
+                            var code = (ushort)(attribute.msgCode + clientModOffsets[attribute.modId]);
                             fromServerHandlers.Add(code);
                             NetworkManager.singleton.client.RegisterHandler((short)code, (NetworkMessageDelegate)delegate (NetworkMessage message)
                             {
@@ -195,16 +194,16 @@ public class NetBeard : MonoBehaviour
         foreach (var melon in MelonAssembly.LoadedAssemblies)
         {
             var assembly = melon.Assembly;
-            foreach (Type type in assembly.GetTypes())
+            foreach (var type in assembly.GetTypes())
             {
-                foreach (MethodInfo method in type.GetMethods())
+                foreach (var method in type.GetMethods())
                 {
-                    HandleMessageFromClient attribute = (HandleMessageFromClient)Attribute.GetCustomAttribute(method, typeof(HandleMessageFromClient));
+                    var attribute = (HandleMessageFromClient)Attribute.GetCustomAttribute(method, typeof(HandleMessageFromClient));
                     if (attribute != null)
                     {
                         if (IsValidMethod(method))
                         {
-                            ushort code = (ushort)(attribute.msgCode + serverModOffsets[attribute.modId]);
+                            var code = (ushort)(attribute.msgCode + serverModOffsets[attribute.modId]);
                             fromClientHandlers.Add(code);
                             NetworkServer.RegisterHandler((short)code, (NetworkMessageDelegate)delegate (NetworkMessage message)
                             {
@@ -272,7 +271,7 @@ public class NetBeard : MonoBehaviour
         writer.StartMessage((short)(msgCode + serverModOffsets[modId]));
         message.Serialize(writer);
         writer.FinishMessage();
-        for (int i = includeSelf ? 0 : 1; i < NetworkServer.connections.Count; ++i)
+        for (var i = includeSelf ? 0 : 1; i < NetworkServer.connections.Count; ++i)
         {
             if (NetworkServer.connections[i] == null)
             {
@@ -285,7 +284,7 @@ public class NetBeard : MonoBehaviour
 
     public static void ReinitFromServerHandlers()
     {
-        foreach (ushort code in fromServerHandlers)
+        foreach (var code in fromServerHandlers)
         {
             NetworkServer.UnregisterHandler((short)code);
         }
@@ -295,7 +294,7 @@ public class NetBeard : MonoBehaviour
 
     public static void ReinitFromClientHandlers()
     {
-        foreach (ushort code in fromServerHandlers)
+        foreach (var code in fromServerHandlers)
         {
             NetworkManager.singleton.client.UnregisterHandler((short)code);
         }

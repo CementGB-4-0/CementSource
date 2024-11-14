@@ -1,6 +1,4 @@
 ﻿using CementGB.Mod;
-using Il2Cpp;
-using Il2CppSystem;
 using Il2CppSystem.IO;
 using MelonLoader;
 using System.Collections.Generic;
@@ -16,14 +14,14 @@ public class Script
     public string name { get; private set; }
     private ProgramInfo programInfo;
 
-    private static Dictionary<string, ProgramInfo> scriptCache = new();
-    private static List<Script> _scripts = new List<Script>();
-    private static Dictionary<string, Script> _globalScripts = new();
+    private static readonly Dictionary<string, ProgramInfo> scriptCache = new();
+    private static readonly List<Script> _scripts = new();
+    private static readonly Dictionary<string, Script> _globalScripts = new();
 
     public static Script[] Scripts => _scripts.ToArray();
 
     public event System.Action OnReload;
-    
+
     private Script(string name)
     {
         this.name = name;
@@ -49,7 +47,7 @@ public class Script
         if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.shiftKey.isPressed && Keyboard.current.rKey.wasPressedThisFrame)
             ReloadScripts();
 
-        foreach (Script global in _globalScripts.Values)
+        foreach (var global in _globalScripts.Values)
             if (global.HasFunction("update"))
                 global.Run("update");
     }
@@ -59,7 +57,7 @@ public class Script
     /// </summary>
     public static void OnGUI()
     {
-        foreach (Script global in _globalScripts.Values)
+        foreach (var global in _globalScripts.Values)
             if (global.HasFunction("onGUI"))
                 global.Run("onGUI");
     }
@@ -71,7 +69,7 @@ public class Script
     {
         LoadScriptsRecursive(scriptsPath);
 
-        foreach (Script script in _scripts)
+        foreach (var script in _scripts)
         {
             // here we technically make override new global scripts, but i can't think of a better way to do it so...
             script.programInfo = scriptCache[script.name].Clone();
@@ -89,9 +87,9 @@ public class Script
 
     private static void LoadScriptsRecursive(string directory, string directoryAppend = "")
     {
-        foreach (string scriptPath in Directory.GetFiles(directory, "*.w"))
+        foreach (var scriptPath in Directory.GetFiles(directory, "*.w"))
         {
-            var parser = new Parser(File.ReadAllText(scriptPath));
+            Parser parser = new(File.ReadAllText(scriptPath));
             var programInfo = parser.Parse();
             var scriptName = Path.Combine(directoryAppend, Path.GetFileName(scriptPath)).Replace('\\', '/');
 
@@ -101,7 +99,7 @@ public class Script
                 _globalScripts[scriptName] = new Script(scriptName);
         }
 
-        foreach (string sub in Directory.GetDirectories(directory))
+        foreach (var sub in Directory.GetDirectories(directory))
             LoadScriptsRecursive(sub, Path.Combine(directoryAppend, sub));
     }
 
@@ -141,8 +139,7 @@ public class Script
     /// <returns></returns>
     public int GetFunctionArity(string functionName)
     {
-        if (!HasFunction(functionName)) return -1;
-        return programInfo.functions[functionName].arity;
+        return !HasFunction(functionName) ? -1 : programInfo.functions[functionName].arity;
     }
 
     /// <summary>
@@ -161,10 +158,10 @@ public class Script
 
         if (faultyScript)
         {
-            ((ProgramInfo)programInfo).errorManager.RaiseRuntimeError(-1, "Cannot run faulty script.");
+            programInfo.errorManager.RaiseRuntimeError(-1, "Cannot run faulty script.");
             return null;
         }
 
-        return VM.RunFunction((ProgramInfo)programInfo, functionName, args);
+        return VM.RunFunction(programInfo, functionName, args);
     }
 }

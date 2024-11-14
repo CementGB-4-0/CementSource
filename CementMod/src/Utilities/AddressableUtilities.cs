@@ -28,7 +28,7 @@ public static class AddressableUtilities
     /// <returns>The created AssetReference.</returns>
     public static AssetReference CreateModdedAssetReference(string key)
     {
-        var assetReference = new AssetReference(key);
+        AssetReference assetReference = new(key);
         assetReference.m_AssetGUID = Guid.NewGuid().ToString() + assetReference.m_SubObjectName;
         return assetReference;
     }
@@ -40,8 +40,8 @@ public static class AddressableUtilities
     /// <returns>A generic IEnumerable containing IResourceLocations that, if loaded, will result in the passed type. Will return an IEnumerable even if empty.</returns>
     public static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Il2CppSystem.Object
     {
-        var ret = new List<IResourceLocation>();
-        var allModdedKeys = new Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object>();
+        List<IResourceLocation> ret = new();
+        Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object> allModdedKeys = new();
         foreach (var value in PackAddressableKeys)
             allModdedKeys.AddRange(value.Value.Cast<Il2CppSystem.Collections.Generic.IEnumerable<Il2CppSystem.Object>>());
 
@@ -65,7 +65,10 @@ public static class AddressableUtilities
         return ret.ToArray();
     }
 
-    public static bool IsModdedKey(string key) => ModdedResourceLocators.Any(locator => locator.Keys.Contains(key));
+    public static bool IsModdedKey(string key)
+    {
+        return ModdedResourceLocators.Any(locator => locator.Keys.Contains(key));
+    }
 
     public static ReadOnlyDictionary<string, Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object>> PackAddressableKeys => new(_packAddressableKeys);
     private static readonly Dictionary<string, Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object>> _packAddressableKeys = new();

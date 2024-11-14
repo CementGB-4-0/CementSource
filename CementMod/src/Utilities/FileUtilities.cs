@@ -24,7 +24,7 @@ public static class FileUtilities
         if (assembly.GetManifestResourceNames().Contains(resourceName))
         {
             using var str = assembly.GetManifestResourceStream(resourceName) ?? throw new Exception("Resource stream returned null. This could mean an inaccessible resource caller-side or an invalid argument was passed.");
-            using var reader = new StreamReader(str);
+            using StreamReader reader = new(str);
 
             return reader.ReadToEnd();
         }

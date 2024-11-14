@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System;
-using Il2CppSystem.Data;
 
 namespace Tungsten;
 
@@ -70,7 +68,7 @@ public struct Token
     public int lineIdx;
     public int charIdx;
 
-    public Token(TokenType type, string lexeme="", int lineIdx = -1, int charIdx = -1)
+    public Token(TokenType type, string lexeme = "", int lineIdx = -1, int charIdx = -1)
     {
         this.type = type;
         this.lexeme = lexeme;
@@ -81,14 +79,14 @@ public struct Token
 
 public class Lexer
 {
-    private string _code;
+    private readonly string _code;
     private int i = -1;
 
     private int lineIdx = 0;
     private int charIdx = -1;
     private char Current => _code[i];
 
-    private Dictionary<string, TokenType> _keywords = new() {
+    private readonly Dictionary<string, TokenType> _keywords = new() {
         { "if", TokenType.KeywordIf },
         { "else", TokenType.KeywordElse },
         { "for", TokenType.KeywordFor },
@@ -105,7 +103,7 @@ public class Lexer
         { "in", TokenType.KeywordIn }
     };
 
-    private Dictionary<string, TokenType> _directives = new() {
+    private readonly Dictionary<string, TokenType> _directives = new() {
         { "global", TokenType.GlobalDirective }
     };
 
@@ -134,12 +132,12 @@ public class Lexer
         ++charIdx;
     }
 
-    private ErrorManager errorManager;
+    private readonly ErrorManager errorManager;
 
-    public Lexer(string code, ErrorManager errorManager=null)
+    public Lexer(string code, ErrorManager errorManager = null)
     {
         _code = code;
-        this.errorManager = errorManager == null ? new ErrorManager() : errorManager;
+        this.errorManager = errorManager ?? new ErrorManager();
         Advance();
     }
 
@@ -161,15 +159,15 @@ public class Lexer
     }
 
     private bool IsEnd => i >= _code.Length;
-    
+
     private bool IsIdentifier(char c)
     {
-        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '_') || (c =='.') || IsDigit(c);
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '_') || (c == '.') || IsDigit(c);
     }
 
     private bool IsDigit(char c)
     {
-        return c >= '0' && c <= '9';
+        return c is >= '0' and <= '9';
     }
 
     public Token Next()
@@ -178,7 +176,6 @@ public class Lexer
         if (IsEnd) return Token(TokenType.End);
 
         Token tok;
-        bool gotTok = true;
         switch (Current)
         {
             case '+':
@@ -194,7 +191,7 @@ public class Lexer
                 tok = Token(TokenType.ForwardSlash);
                 Advance();
                 if (Match('/'))
-                { 
+                {
                     while (!IsEnd && Current != '\n')
                         Advance();
 
@@ -295,23 +292,23 @@ public class Lexer
 
     private Token LexNum()
     {
-        int line = this.lineIdx;
-        int charIdx = this.charIdx;
+        var line = this.lineIdx;
+        var charIdx = this.charIdx;
 
-        string num = "";
+        var num = "";
         while (!IsEnd && IsDigit(Current))
         {
             num += Current;
             Advance();
         }
 
-        bool isInt = true;
+        var isInt = true;
         if (!IsEnd && Current == '.')
         {
             isInt = false;
             Advance();
             num += '.';
-            bool raiseError = true;
+            var raiseError = true;
             while (!IsEnd && IsDigit(Current))
             {
                 num += Current;
@@ -321,7 +318,7 @@ public class Lexer
 
             if (raiseError)
             {
-;               Error("There must be at least one digit after the decimal point.");
+                ; Error("There must be at least one digit after the decimal point.");
             }
         }
 
@@ -330,8 +327,8 @@ public class Lexer
 
     private Token LexString()
     {
-        int line = this.lineIdx;
-        int charIdx = this.charIdx;
+        var line = this.lineIdx;
+        var charIdx = this.charIdx;
 
         Advance(); // advance past "
         if (IsEnd)
@@ -340,12 +337,12 @@ public class Lexer
             return Token(TokenType.String, "", line, charIdx);
         }
 
-        string s = "";
+        var s = "";
         while (Current != '"')
         {
             if (Current == '\n')
             {
-                Error("Expected '\"' to close string; strings can't span several lines." + 
+                Error("Expected '\"' to close string; strings can't span several lines." +
                     "If you want to include a newline in your string use '\\n'");
                 break;
             }
@@ -396,31 +393,30 @@ public class Lexer
 
     private Token LexId()
     {
-        int line = this.lineIdx;
-        int charIdx = this.charIdx;
+        var line = this.lineIdx;
+        var charIdx = this.charIdx;
 
-        string id = "";
+        var id = "";
         while (!IsEnd && IsIdentifier(Current))
         {
             id += Current;
             Advance();
         }
 
-        if (_keywords.ContainsKey(id))
-            return Token(_keywords[id], lineIdx: line, charIdx: charIdx);
-
-        return Token(char.IsUpper(id[0]) ? TokenType.ClassIdentifier : TokenType.Identifier, id, line, charIdx);
+        return _keywords.ContainsKey(id)
+            ? Token(_keywords[id], lineIdx: line, charIdx: charIdx)
+            : Token(char.IsUpper(id[0]) ? TokenType.ClassIdentifier : TokenType.Identifier, id, line, charIdx);
     }
 
     private Token LexDirective()
     {
-        int line = this.lineIdx;
-        int charIdx = this.charIdx;
+        var line = this.lineIdx;
+        var charIdx = this.charIdx;
 
         // advance past @
         Advance();
 
-        string id = "";
+        var id = "";
         while (!IsEnd && IsIdentifier(Current))
         {
             id += Current;

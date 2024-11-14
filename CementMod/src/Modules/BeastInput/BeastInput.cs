@@ -31,18 +31,18 @@ public class BeastInput : MonoBehaviour
     // O(n^4)
     private void Update()
     {
-        foreach (Actor actor in Actor.CachedActors)
+        foreach (var actor in Actor.CachedActors)
         {
             if (actor == null) continue;
 
-            foreach (string combUnsplit in _keyCombChecks.Keys)
+            foreach (var combUnsplit in _keyCombChecks.Keys)
             {
-                string[] comb = combUnsplit.Split('+');
+                var comb = combUnsplit.Split('+');
 
-                int needed = comb.Length;
-                int got = 0;
+                var needed = comb.Length;
+                var got = 0;
 
-                foreach (string keyCode in comb)
+                foreach (var keyCode in comb)
                 {
                     var devices = GetDevicesFor(actor);
                     InputControl control = null;
@@ -76,7 +76,7 @@ public class BeastInput : MonoBehaviour
 
     private static void GetBeastAssociatedWithKeyboard()
     {
-        foreach (Actor actor in Actor.CachedActors)
+        foreach (var actor in Actor.CachedActors)
         {
             var devices = GetDevicesFor(actor);
             if (devices.Length > 1)
@@ -89,7 +89,7 @@ public class BeastInput : MonoBehaviour
 
     public static void RegisterKeyCombination(string[] keyCodes, Action<Actor> callback)
     {
-        string[] sortedKeyCodes = (string[]) keyCodes.Clone();
+        var sortedKeyCodes = (string[])keyCodes.Clone();
 
         Il2CppStringArray strings = new(sortedKeyCodes);
         Array.Sort(strings);
@@ -110,7 +110,8 @@ public class BeastInput : MonoBehaviour
         var bneastMenuState = FindObjectOfType<BeastMenuState>();
         if (bneastMenuState == null) return -1;
 
-        foreach (var pointState in bneastMenuState._pointStates) {
+        foreach (var pointState in bneastMenuState._pointStates)
+        {
             if (pointState._beast != actor) continue;
 
             return pointState._linkedLocal.PlayerID;
@@ -123,7 +124,7 @@ public class BeastInput : MonoBehaviour
     {
         if (!actor.InputPlayer.valid)
         {
-            int fallbackId = FallbackGetPlayerID(actor);
+            var fallbackId = FallbackGetPlayerID(actor);
             if (fallbackId == -1)
             {
                 LoggingUtilities.VerboseLog("[BEAST INPUT] Can't get devices for an invalid input player.");
@@ -140,7 +141,7 @@ public class BeastInput : MonoBehaviour
     {
         if (!actor.InputPlayer.valid)
         {
-            int fallbackId = FallbackGetPlayerID(actor);
+            var fallbackId = FallbackGetPlayerID(actor);
             if (fallbackId == -1)
             {
                 LoggingUtilities.VerboseLog("[BEAST INPUT] Can't get device for an invalid input player.");

@@ -1,24 +1,18 @@
-﻿using System.Reflection;
-using System;
-using System.Collections.Generic;
-using CementGB.Mod.Utilities;
+﻿using CementGB.Mod.Utilities;
 using Il2CppInterop.Runtime;
-using System.Linq;
+using System;
 using System.Collections;
-using Il2CppSystem.ComponentModel;
-using Il2CppCoatsink.Platform.Systems.Online.Connections;
-using Il2CppIonic.Zlib;
-using System.Runtime.Intrinsics.Arm;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
-using Il2CppDG.Tweening.Plugins;
-using static Il2CppMono.Security.X509.X520;
 
 namespace Tungsten;
 public static class VM
 {
-    private static MutStack<object?> stack = new(100);
-    private static Stack<int> callStack = new();
-    private static Stack<int> _tempTopStackStore = new();
+    private static readonly MutStack<object?> stack = new(100);
+    private static readonly Stack<int> callStack = new();
+    private static readonly Stack<int> _tempTopStackStore = new();
 
     private static int cachedArrayIndex;
     private static object cachedArray;
@@ -31,7 +25,8 @@ public static class VM
 
     private static string[] generics = null;
 
-    public static bool HadError {
+    public static bool HadError
+    {
         get;
         private set;
     }
@@ -50,19 +45,10 @@ public static class VM
 
     private static int CompareAssemblies(Assembly a1, Assembly a2)
     {
-        bool a1ContainsUnity = a1.FullName.Contains("Unity");
-        bool a2ContainsUnity = a2.FullName.Contains("Unity");
+        var a1ContainsUnity = a1.FullName.Contains("Unity");
+        var a2ContainsUnity = a2.FullName.Contains("Unity");
 
-        if (a1ContainsUnity && a2ContainsUnity)
-            return 0;
-
-        if (a1ContainsUnity)
-            return -1;
-
-        if (a2ContainsUnity)
-            return 1;
-
-        return 0;
+        return a1ContainsUnity && a2ContainsUnity ? 0 : a1ContainsUnity ? -1 : a2ContainsUnity ? 1 : 0;
     }
 
     private static Assembly[] _sortedAssemblies = null;
@@ -78,7 +64,7 @@ public static class VM
             return _sortedAssemblies;
         }
     }
-    
+
     public static object? RunFunction(ProgramInfo info, string functionName, params object?[] args)
     {
         Reset();
@@ -86,7 +72,7 @@ public static class VM
         currentErrorManager = info.errorManager;
 
         if (args != null)
-            foreach (object? arg in args)
+            foreach (var arg in args)
                 stack.Push(arg);
 
         if (!info.functions.ContainsKey(functionName))
@@ -113,14 +99,12 @@ public static class VM
 
         while (true)
         {
-            Instruction ins = info.instructions[pc++];
+            var ins = info.instructions[pc++];
             // LoggingUtilities.VerboseLog($"{ins.op} {ins.operand}");
 
-            if (RunInstruction(ins, info)) {
-                if (HadError)
-                    return null;
-
-                return stack.Pop();
+            if (RunInstruction(ins, info))
+            {
+                return HadError ? null : stack.Pop();
             }
         }
     }
@@ -138,7 +122,7 @@ public static class VM
                 break;
 
             case Opcode.JFZ:
-                object cond = stack.Pop();
+                var cond = stack.Pop();
 
                 if (cond == null || cond.GetType() != typeof(bool))
                 {
@@ -146,7 +130,7 @@ public static class VM
                     return true;
                 }
 
-                bool shouldJump = !(bool)cond;
+                var shouldJump = !(bool)cond;
                 pc = Convert.ToInt32(shouldJump) * ((int)ins.operand - pc) + pc;
                 break;
 
@@ -164,7 +148,7 @@ public static class VM
                 break;
 
             case Opcode.SETGLOBAL:
-                string globalName = (string)ins.operand;
+                var globalName = (string)ins.operand;
                 info.globalVariables[globalName] = stack.Peek();
                 break;
 
@@ -179,7 +163,7 @@ public static class VM
                 break;
 
             case Opcode.SETLOCAL:
-                int stackOffset = (int)ins.operand;
+                var stackOffset = (int)ins.operand;
                 stack[stackOffset] = stack.Peek();
                 break;
 
@@ -207,9 +191,9 @@ public static class VM
                 if (callStack.Count == 0)
                     return true;
 
-                object? temp = stack.Pop();
+                var temp = stack.Pop();
 
-                int newPc = callStack.Pop();
+                var newPc = callStack.Pop();
                 pc = newPc;
                 stack.Pop(stack.top - stack.indexBase);
                 stack.indexBase = callStack.Pop();
@@ -226,8 +210,8 @@ public static class VM
                 break;
 
             case Opcode.EQU:
-                object? b = stack.Pop();
-                object? a = stack.Pop();
+                var b = stack.Pop();
+                var a = stack.Pop();
 
                 if (a == null)
                 {
@@ -470,9 +454,9 @@ public static class VM
                 break;
 
             case Opcode.PUSH_STATIC_FIELD:
-                (string className, string fieldName) = GetClassAndSecondary((ins.operand as string)!);
+                (var className, var fieldName) = GetClassAndSecondary((ins.operand as string)!);
 
-                Type? type = GetType(className);
+                var type = GetType(className);
                 if (type == null)
                 {
                     Error(ins.lineIdx, $"Null reference exception. Couldn't find type '{className}'.");
@@ -502,8 +486,8 @@ public static class VM
                 break;
 
             case Opcode.PUSHARR:
-                object? idxRaw = stack.Pop();
-                int idx = 0;
+                var idxRaw = stack.Pop();
+                var idx = 0;
 
                 if (idxRaw == null)
                 {
@@ -542,7 +526,7 @@ public static class VM
                     var items = a.GetType().GetProperty("_items").GetValue(a);
                     var enumerator = (IEnumerator)items.GetType().GetMethod("GetEnumerator").Invoke(items, null)!;
                     enumerator.MoveNext();
-                    for (int i = 0; i < idx; ++i)
+                    for (var i = 0; i < idx; ++i)
                         enumerator.MoveNext();
                     stack.Push(enumerator.Current);
                 }
@@ -627,11 +611,11 @@ public static class VM
                 break;
 
             case Opcode.CRTARR:
-                int topStack = _tempTopStackStore.Pop();
-                int elementCount = stack.top - topStack;
+                var topStack = _tempTopStackStore.Pop();
+                var elementCount = stack.top - topStack;
 
                 List<object?> arr = new();
-                for (int i = 0; i < elementCount; ++i)
+                for (var i = 0; i < elementCount; ++i)
                     arr.Add(stack.Pop());
 
                 arr.Reverse();
@@ -645,10 +629,10 @@ public static class VM
 
     private static (string, string) GetClassAndSecondary(string name)
     {
-        string[] split = name.Split('.');
-        string className = "";
-        string sec = split.Last();
-        for (int i = 0; i < split.Length - 1; ++i)
+        var split = name.Split('.');
+        var className = "";
+        var sec = split.Last();
+        for (var i = 0; i < split.Length - 1; ++i)
         {
             className += split[i];
             if (i < split.Length - 2)
@@ -663,8 +647,8 @@ public static class VM
     private static bool HasGenerics => generics != null && generics.Length > 0;
     private static Type[] GetGenerics(Instruction ins)
     {
-        Type[] types = new Type[generics.Length];
-        for (int i = 0; i < generics.Length; ++i)
+        var types = new Type[generics.Length];
+        for (var i = 0; i < generics.Length; ++i)
         {
             types[i] = GetType(generics[i]);
             if (types[i] == null)
@@ -678,10 +662,10 @@ public static class VM
 
     private static bool ExtCall(Instruction ins, bool isStatic, bool isCtor, string name)
     {
-        int topStack = _tempTopStackStore.Pop();
-        int argsPassed = stack.top - topStack;
+        var topStack = _tempTopStackStore.Pop();
+        var argsPassed = stack.top - topStack;
 
-        object?[] objects = stack.PeekTop(argsPassed);
+        var objects = stack.PeekTop(argsPassed);
         stack.Pop(argsPassed);
 
 
@@ -710,8 +694,8 @@ public static class VM
             }
             else
             {
-                string[] split = name.Split('.');
-                string className = string.Join('.', split.AsSpan(0, split.Length - 1).ToArray());
+                var split = name.Split('.');
+                var className = string.Join('.', split.AsSpan(0, split.Length - 1).ToArray());
                 name = split.Last();
 
                 type = GetType(className);
@@ -732,13 +716,13 @@ public static class VM
         int tempIndexBase;
         if (isCtor)
         {
-            Type[] types = new Type[argsPassed];
-            int i = 0;
-            foreach (object? obj in objects)
+            var types = new Type[argsPassed];
+            var i = 0;
+            foreach (var obj in objects)
             {
                 types[i++] = obj!.GetType();
             }
-            ConstructorInfo? ctorInfo = type.GetConstructor(types);
+            var ctorInfo = type.GetConstructor(types);
 
             if (ctorInfo == null || argsPassed != ctorInfo.GetParameters().Length)
             {
@@ -751,7 +735,8 @@ public static class VM
 
             result = ctorInfo.Invoke(objects);
         }
-        else {
+        else
+        {
             MethodInfo? methodInfo;
             try
             {
@@ -759,9 +744,9 @@ public static class VM
             }
             catch
             {
-                Type[] types = new Type[argsPassed];
-                int i = 0;
-                foreach (object? obj in objects)
+                var types = new Type[argsPassed];
+                var i = 0;
+                foreach (var obj in objects)
                 {
                     types[i++] = obj!.GetType();
                 }
@@ -848,7 +833,7 @@ public static class VM
             Error(ins.lineIdx, $"Couldn't set property. A property with the name '{name}' doesn't exist.");
             return false;
         }
-        
+
         if (fieldOrPropertyInfo.MemberType == MemberTypes.Field)
         {
             ((FieldInfo)fieldOrPropertyInfo).SetValue(reference, value);
@@ -884,14 +869,14 @@ public static class VM
         return null;
     }
 
-    private static Dictionary<string, Type?> _nameToTypeCache = new();
+    private static readonly Dictionary<string, Type?> _nameToTypeCache = new();
     public static Type? GetType(string name)
     {
         if (_nameToTypeCache.ContainsKey(name))
             return _nameToTypeCache[name];
 
-        foreach (Assembly assembly in SortedAssemblies)
-            foreach (Type type in assembly.GetTypes())
+        foreach (var assembly in SortedAssemblies)
+            foreach (var type in assembly.GetTypes())
                 if (type.Name == name || type.FullName == name)
                 {
                     //var il2cppType = Il2CppType.From(type);
@@ -904,9 +889,8 @@ public static class VM
 
     public static Il2CppSystem.Type? GetIl2CppType(string name)
     {
-        Type? type = GetType(name);
-        if (type == null) return null;
-        return Il2CppType.From(type);
+        var type = GetType(name);
+        return type == null ? null : Il2CppType.From(type);
     }
 
     public static void Print(string msg)

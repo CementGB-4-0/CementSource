@@ -82,10 +82,10 @@ public static class AssetBundleUtilities
         {
             Melon<Mod>.Logger.Msg($"Loading stream for resource '{name}' embedded from assembly...");
             using var str = assembly.GetManifestResourceStream(name) ?? throw new Exception("Resource stream returned null. This could mean an inaccessible resource caller-side or an invalid argument was passed.");
-            using var memoryStream = new MemoryStream();
+            using MemoryStream memoryStream = new();
             str.CopyTo(memoryStream);
             Melon<Mod>.Logger.Msg(ConsoleColor.Green, "Done!");
-            byte[] resource = memoryStream.ToArray();
+            var resource = memoryStream.ToArray();
 
             Melon<Mod>.Logger.Msg($"Loading assetBundle from data '{name}', please be patient...");
             var bundle = AssetBundle.LoadFromMemory(resource);

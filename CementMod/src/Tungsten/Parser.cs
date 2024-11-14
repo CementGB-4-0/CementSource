@@ -1,20 +1,7 @@
 ﻿using CementGB.Mod.Utilities;
-using Il2CppDG.Tweening.Plugins;
-using Il2CppGB.Core;
-using Il2CppGB.UI.Utils;
-using Il2CppGB.Utils;
-using Il2CppPlayFab.ClientModels;
-using Il2CppSystem;
-using Il2CppSystem.Linq.Expressions.Interpreter;
-using Il2CppSystem.Runtime.Serialization.Formatters.Binary;
-using Il2CppSystem.Xml.Serialization;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Unity.Services.Authentication;
-using UnityEngine.Playables;
-using UnityEngine.Rendering.Universal;
-using static Il2CppMono.Security.X509.X520;
 
 namespace Tungsten;
 
@@ -23,7 +10,7 @@ public enum Opcode
     NOP, // no operation
 
     // pops, then peforms op on last two values on the stack, and pushes the result
-    ADD,    
+    ADD,
     SUB,
     MULT,
     DIV,
@@ -34,7 +21,7 @@ public enum Opcode
     PUSH,
     POP,
     DUP,
-    
+
     // variables
     SETLOCAL,
     PUSHLOCAL,
@@ -98,7 +85,7 @@ public struct Instruction
 
     public int lineIdx;
 
-    public Instruction(Opcode op, object? operand=null, int lineIdx = -1)
+    public Instruction(Opcode op, object? operand = null, int lineIdx = -1)
     {
         this.op = op;
         this.operand = operand;
@@ -107,11 +94,7 @@ public struct Instruction
 
     public string ToString()
     {
-        if (operand == null)
-        {
-            return op.ToString();
-        }
-        return op.ToString() + " " + operand.ToString();
+        return operand == null ? op.ToString() : op.ToString() + " " + operand.ToString();
     }
 }
 
@@ -124,17 +107,17 @@ public class ProgramInfo
     public ErrorManager errorManager { get; private set; }
 
     public bool isGlobal { get; private set; }
-    
+
     public ProgramInfo()
     {
 
     }
-    
+
     public ProgramInfo(
         bool isGlobal,
-        string[] globals, 
-        Dictionary<string, object> globalVariables, 
-        Dictionary<string, FuncInfo> functions, 
+        string[] globals,
+        Dictionary<string, object> globalVariables,
+        Dictionary<string, FuncInfo> functions,
         Instruction[] instructions,
         ErrorManager errorManager
     )
@@ -174,16 +157,16 @@ public struct FuncInfo
 
 public class Parser
 {
-    private Lexer lexer;
+    private readonly Lexer lexer;
     public bool HadError => errorManager.HadError;
 
-    private List<Instruction> instructions = new();
-    private Dictionary<string, FuncInfo> functions = new()
+    private readonly List<Instruction> instructions = new();
+    private readonly Dictionary<string, FuncInfo> functions = new()
     {
         { "__regglobal", new FuncInfo(0,0) }
     };
 
-    private static Dictionary<TokenType, Opcode> operatorOpcodes = new()
+    private static readonly Dictionary<TokenType, Opcode> operatorOpcodes = new()
     {
         { TokenType.Plus, Opcode.ADD },
         { TokenType.Minus, Opcode.SUB  },
@@ -197,7 +180,7 @@ public class Parser
         { TokenType.BangEquals, Opcode.EQU },
     };
 
-    private static Dictionary<TokenType, int> precedenceTable = new()
+    private static readonly Dictionary<TokenType, int> precedenceTable = new()
     {
         { TokenType.Greater, 2 },
         { TokenType.GreaterEquals, 2 },
@@ -213,14 +196,14 @@ public class Parser
         { TokenType.Colon, 7 },
     };
 
-    private HashSet<string> globalVariables = new();
-    private List<List<string>> scopes = new();
+    private readonly HashSet<string> globalVariables = new();
+    private readonly List<List<string>> scopes = new();
     private int totalVariables = 0;
 
     private Token Current;
     private Token Previous;
 
-    private ErrorManager errorManager;
+    private readonly ErrorManager errorManager;
 
     public Parser(string code)
     {
@@ -258,10 +241,10 @@ public class Parser
     {
         Advance();
 
-        bool isGlobal = false;
+        var isGlobal = false;
         if (Match(TokenType.GlobalDirective))
             isGlobal = true;
-        
+
         while (Current.type == TokenType.KeywordVar)
             GlobalVarDef();
 
@@ -286,10 +269,9 @@ public class Parser
             }
         }
 
-        if (HadError)
-            return null;
-
-        return new ProgramInfo(
+        return HadError
+            ? null
+            : new ProgramInfo(
             isGlobal,
             new string[] { "main" },
             new(),
@@ -369,13 +351,14 @@ public class Parser
         */
     }
 
-    private void Add(Opcode op, object operand=null, int lineIdx=-1)
+    private void Add(Opcode op, object operand = null, int lineIdx = -1)
     {
         if (op == Opcode.POP && operand != null && (int)operand == 0) return;
 
         // this code checks if an operation between two literals is being performed so that it can pre-evaluate the result.
-        if (instructions.Count > 1 && instructions[instructions.Count - 1].op == Opcode.PUSH &&
-            instructions[instructions.Count - 2].op == Opcode.PUSH) {
+        if (instructions.Count > 1 && instructions[^1].op == Opcode.PUSH &&
+            instructions[^2].op == Opcode.PUSH)
+        {
 
             object returnValue = null;
             switch (op)
@@ -388,16 +371,16 @@ public class Parser
                 case Opcode.LSS:
                     VM.suppressRuntimeErrors = true;
                     VM.Reset();
-                    var info = new ProgramInfo(); // we can just create a dummy info struct, bc we know we won't need it
-                    VM.RunInstruction(instructions[instructions.Count - 2], info);
-                    VM.RunInstruction(instructions[instructions.Count - 1], info);
+                    ProgramInfo info = new(); // we can just create a dummy info struct, bc we know we won't need it
+                    VM.RunInstruction(instructions[^2], info);
+                    VM.RunInstruction(instructions[^1], info);
                     VM.RunInstruction(new Instruction(op, null), info);
                     VM.suppressRuntimeErrors = false;
                     if (!VM.HadError)
                     {
                         returnValue = VM.PeekStackTop();
                         instructions.RemoveAt(instructions.Count - 1);
-                        instructions[instructions.Count - 1] = new Instruction(Opcode.PUSH, returnValue, instructions[instructions.Count - 1].lineIdx);
+                        instructions[^1] = new Instruction(Opcode.PUSH, returnValue, instructions[^1].lineIdx);
                         VM.suppressRuntimeErrors = false;
                         return;
                     }
@@ -412,17 +395,17 @@ public class Parser
                     break;
             }
         }
-        else if (instructions.Count > 0 && instructions[instructions.Count - 1].op == Opcode.PUSH)
+        else if (instructions.Count > 0 && instructions[^1].op == Opcode.PUSH)
         {
             if (op == Opcode.INV)
             {
-                Instruction ins = instructions[instructions.Count - 1];
+                var ins = instructions[^1];
                 if (ins.operand.GetType() != typeof(bool))
                 {
                     Error(Current, "Cannot invert non boolean type.");
                     return;
                 }
-                instructions[instructions.Count - 1] = new Instruction(Opcode.PUSH, !(bool)ins.operand, ins.lineIdx);
+                instructions[^1] = new Instruction(Opcode.PUSH, !(bool)ins.operand, ins.lineIdx);
                 return;
             }
         }
@@ -437,7 +420,7 @@ public class Parser
     {
         Advance();
 
-        string id = Current.lexeme;
+        var id = Current.lexeme;
         Consume(TokenType.Identifier, "Expected identifier. Global variables can't start with a capital letter.");
 
         if (Match(TokenType.SemiColon))
@@ -464,9 +447,9 @@ public class Parser
         // skip func
         Advance();
 
-        int arity = 0;
+        var arity = 0;
 
-        string id = Current.lexeme;
+        var id = Current.lexeme;
         Consume(TokenType.Identifier, "Expected identifier. Functions can't start with a capital letter.");
 
         if (functions.ContainsKey(id))
@@ -477,9 +460,9 @@ public class Parser
         IncScope();
 
         Consume(TokenType.OpenParenthesis, "Expected '('");
-        while (Current.type != TokenType.End && Current.type != TokenType.ClosedParenthesis) 
+        while (Current.type is not TokenType.End and not TokenType.ClosedParenthesis)
         {
-            string param = Current.lexeme;
+            var param = Current.lexeme;
             Consume(TokenType.Identifier, "Expected parameter name. Function parameters can't start with a capital letter.");
 
             RegisterLocalVariable(param);
@@ -552,7 +535,7 @@ public class Parser
     {
         Advance();
 
-        string id = Current.lexeme;
+        var id = Current.lexeme;
         Consume(TokenType.Identifier, "Expected variable name (variable names can't start with capital letters). " +
             "The syntax of a for loop is as follows: for [variable name] in [expression] { ... }");
 
@@ -566,7 +549,7 @@ public class Parser
         Consume(TokenType.KeywordIn, "Expected 'in'. For loop syntax: for [variable name] in [expression] { ... }");
 
         // enumerator
-        Token tokBeforeExpression = Current;
+        var tokBeforeExpression = Current;
         Expression();
 
         Add(Opcode.PREPCALL);
@@ -574,7 +557,7 @@ public class Parser
 
         // the enumerator now sits in $'s position
 
-        int loopStart = instructions.Count;
+        var loopStart = instructions.Count;
 
         // while (variable != null)
 
@@ -583,7 +566,7 @@ public class Parser
         Add(Opcode.PREPCALL);
         Add(Opcode.EXT_INST_CALL, "MoveNext");
 
-        int jumpToEnd = instructions.Count;
+        var jumpToEnd = instructions.Count;
         Add(Opcode.JFZ);
 
         // get current enum
@@ -599,10 +582,10 @@ public class Parser
     private void While()
     {
         Advance();
-        int loopStart = instructions.Count;
+        var loopStart = instructions.Count;
         Expression(); // expression to always compute
 
-        int jumpToEnd = instructions.Count;
+        var jumpToEnd = instructions.Count;
         Add(Opcode.JFZ);
 
         IncScope();
@@ -610,24 +593,24 @@ public class Parser
     }
 
     bool inLoop => currentLoopStart != -1;
-    Stack<int> breaksToPatch = new();
+    readonly Stack<int> breaksToPatch = new();
     int currentLoopStart = -1;
     int currentLoopScope = -1;
     private void Loop(int loopStart, int jumpToEnd)
     {
-        int tempLoopStart = currentLoopStart;
+        var tempLoopStart = currentLoopStart;
         currentLoopStart = loopStart;
-        int tempLoopScope = currentLoopScope;
+        var tempLoopScope = currentLoopScope;
         currentLoopScope = scopes.Count - 1;
 
-        int breaksStart = breaksToPatch.Count;
-        
+        var breaksStart = breaksToPatch.Count;
+
         Block(false);
 
         Add(Opcode.JMP, loopStart);
         PatchJump(jumpToEnd);
 
-        for (int i = breaksStart; i < breaksToPatch.Count; ++i)
+        for (var i = breaksStart; i < breaksToPatch.Count; ++i)
             PatchJump(breaksToPatch.Pop());
 
         currentLoopStart = tempLoopStart;
@@ -657,12 +640,12 @@ public class Parser
         DescopeUntil(currentLoopScope);
         Add(Opcode.JMP, currentLoopStart);
     }
-    
+
     private void DescopeUntil(int scopeIndex)
     {
-        int totalLoss = 0;
+        var totalLoss = 0;
 
-        for (int i = scopeIndex; i < scopes.Count; ++i)
+        for (var i = scopeIndex; i < scopes.Count; ++i)
             totalLoss += scopes[i].Count;
 
         Add(Opcode.POP, totalLoss);
@@ -673,14 +656,14 @@ public class Parser
         Advance(); // pass over if
         var tokBeforeExpr = Current;
         Expression(); // expression to evaluate
-        int jumpToElse = instructions.Count;
+        var jumpToElse = instructions.Count;
         Add(Opcode.JFZ, lineIdx: tokBeforeExpr.lineIdx);
 
         Block(); // if body
 
         if (Match(TokenType.KeywordElse))
         {
-            int jumpToEnd = instructions.Count;
+            var jumpToEnd = instructions.Count;
             Add(Opcode.JMP);
 
             PatchJump(jumpToElse);
@@ -697,13 +680,13 @@ public class Parser
         }
     }
 
-    private void Block(bool incScope=true)
+    private void Block(bool incScope = true)
     {
         Consume(TokenType.OpenCurlyBracket, "Expected '{'");
         if (incScope)
             IncScope();
 
-        while (Current.type != TokenType.End && Current.type != TokenType.ClosedCurlyBracket)
+        while (Current.type is not TokenType.End and not TokenType.ClosedCurlyBracket)
             Statement();
 
         Consume(TokenType.ClosedCurlyBracket, "Expected '}'");
@@ -713,12 +696,13 @@ public class Parser
     CultureInfo floatCulture;
     private void HandleInfix(int precedence)
     {
-        switch (Current.type) {
+        switch (Current.type)
+        {
             case TokenType.Bang:
-            {
-                ParseInvert(precedenceTable[TokenType.Bang]);
-                break;
-            }
+                {
+                    ParseInvert(precedenceTable[TokenType.Bang]);
+                    break;
+                }
 
             case TokenType.OpenParenthesis:
                 Advance();
@@ -726,7 +710,7 @@ public class Parser
                 Consume(TokenType.ClosedParenthesis, "Expected ')'");
                 break;
 
-            case TokenType.Minus: 
+            case TokenType.Minus:
                 ParsePrefixMinus(precedenceTable[TokenType.Bang]); // we don't have infix and prefix precedence distinction
                 break;
 
@@ -795,7 +779,7 @@ public class Parser
 
     private string GetAnyId()
     {
-        string id = Current.lexeme;
+        var id = Current.lexeme;
         if (Current.type == TokenType.ClassIdentifier)
             Advance();
         else
@@ -821,13 +805,13 @@ public class Parser
 
     private int GetVariable(string name)
     {
-        int vars = totalVariables;
-        for (int i = scopes.Count - 1; i >= 0; --i)
+        var vars = totalVariables;
+        for (var i = scopes.Count - 1; i >= 0; --i)
         {
-            int variablesPassed = 0;
-            List<string> scope = scopes[i];
+            var variablesPassed = 0;
+            var scope = scopes[i];
             vars -= scope.Count;
-            foreach (string varName in scope)
+            foreach (var varName in scope)
             {
                 if (varName == name)
                     return vars + variablesPassed;
@@ -851,17 +835,17 @@ public class Parser
 
     private void DecScope()
     {
-        List<string> scope = scopes[scopes.Count - 1];
+        var scope = scopes[^1];
         totalVariables -= scope.Count;
         Add(Opcode.POP, scope.Count);
         scopes.RemoveAt(scopes.Count - 1);
     }
-    
+
     private void LocalVariableDef()
     {
         Advance();
 
-        string id = Current.lexeme;
+        var id = Current.lexeme;
         Consume(TokenType.Identifier, "Expected identifier. Local variables can't start with a capital letter.");
 
         if (Match(TokenType.SemiColon))
@@ -898,7 +882,7 @@ public class Parser
             return;
         }
 
-        int currentTokenPrecedence = precedenceTable[Current.type];
+        var currentTokenPrecedence = precedenceTable[Current.type];
 
         while (currentTokenPrecedence >= precedence)
         {
@@ -929,7 +913,7 @@ public class Parser
 
             if (failedToHandleStatic)
             {
-                Error(Previous, "Expected ':' after class identifier. Class identifiers can't stand alone." + 
+                Error(Previous, "Expected ':' after class identifier. Class identifiers can't stand alone." +
                     "You must either use a static field, or a call a static method.");
             }
 
@@ -940,7 +924,7 @@ public class Parser
         }
     }
 
-    private static Dictionary<Opcode, Opcode> variablePushToSet = new()
+    private static readonly Dictionary<Opcode, Opcode> variablePushToSet = new()
     {
         { Opcode.PUSHGLOBAL, Opcode.SETGLOBAL },
         { Opcode.PUSHLOCAL, Opcode.SETLOCAL },
@@ -951,20 +935,20 @@ public class Parser
     private void HandleOp(int currentTokenPrecedence)
     {
 
-        Opcode op = operatorOpcodes[Current.type];
+        var op = operatorOpcodes[Current.type];
         Advance();
-        Instruction instructionToAdd = new Instruction();
-        bool addIns = false;
+        Instruction instructionToAdd = new();
+        var addIns = false;
         if (Current.type == TokenType.Equals)
         {
             currentTokenPrecedence = 0;
             addIns = true;
-            Instruction last = instructions.Last();
+            var last = instructions.Last();
             if (!variablePushToSet.ContainsKey(last.op))
             {
                 Error(Current, "Invalid left hand side for an '=' operator.");
             }
-            else 
+            else
             {
                 instructionToAdd = new Instruction(variablePushToSet[last.op], last.operand);
             }
@@ -980,7 +964,7 @@ public class Parser
 
     private void HandleComparison()
     {
-        Opcode op = operatorOpcodes[Current.type];
+        var op = operatorOpcodes[Current.type];
         switch (Current.type)
         {
             case TokenType.LessEquals:
@@ -1004,12 +988,12 @@ public class Parser
     private void HandleColon()
     {
         failedToHandleStatic = false;
-        Token prevToken = Previous;
+        var prevToken = Previous;
 
         Advance();
         var idTok = Current;
-        string methodOrFieldName = GetAnyId();
-        bool isStatic = false;
+        var methodOrFieldName = GetAnyId();
+        var isStatic = false;
 
         // handle a static class
         if (prevToken.type == TokenType.ClassIdentifier)
@@ -1057,9 +1041,9 @@ public class Parser
         LoggingUtilities.VerboseLog("PARSING GENERICS!");
         List<string> generics = new();
 
-        while (Current.type != TokenType.End && Current.type != TokenType.DoubleGreater)
+        while (Current.type is not TokenType.End and not TokenType.DoubleGreater)
         {
-            string id = Current.lexeme;
+            var id = Current.lexeme;
             Consume(TokenType.ClassIdentifier, "Expected class identifier as generic argument.");
 
             generics.Add(id);
@@ -1080,7 +1064,7 @@ public class Parser
         return generics.ToArray();
     }
 
-    private static Dictionary<TokenType, char> endTokenToChar = new()
+    private static readonly Dictionary<TokenType, char> endTokenToChar = new()
     {
         { TokenType.ClosedCurlyBracket, '}' },
         { TokenType.ClosedSquareBracket, ']' },
@@ -1104,19 +1088,19 @@ public class Parser
         if (Match(TokenType.DoubleLess))
         {
             Error(Previous, "Tungsten functions don't support generics. You can only use generics when calling methods.");
-            while (Current.type != TokenType.End && Current.type != TokenType.DoubleGreater)
+            while (Current.type is not TokenType.End and not TokenType.DoubleGreater)
                 Advance();
         }
 
-        string variableName = GetAnyId();
-        if (Match(TokenType.OpenParenthesis)) 
+        var variableName = GetAnyId();
+        if (Match(TokenType.OpenParenthesis))
         {
             ParseArguments(TokenType.ClosedParenthesis);
             Add(Opcode.CALL, variableName);
         }
         else
         {
-            int varLocation = GetVariable(variableName);
+            var varLocation = GetVariable(variableName);
             if (varLocation < 0)
             {
                 if (Match(TokenType.Equals))
@@ -1146,7 +1130,7 @@ public class Parser
         Advance();
         Expression(); // index
         Consume(TokenType.ClosedSquareBracket, "Expected ']'");
-        
+
         if (Current.type == TokenType.Equals)
         {
             ParsePrecedence(0);
