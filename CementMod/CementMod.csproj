@@ -60,10 +60,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Assets\CreditsText.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
     <GameDirFile Include="..\game_dir.txt"></GameDirFile>
   </ItemGroup>
 
