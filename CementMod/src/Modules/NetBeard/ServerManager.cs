@@ -41,8 +41,8 @@ public class ServerManager : MonoBehaviour
 
     private static void OnBoot()
     {
-        LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
-        LoggingUtilities.VerboseLog("Added DevelopmentTestServer to lobby object.");
+        // LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
+        // LoggingUtilities.VerboseLog("Added DevelopmentTestServer to lobby object.");
 
         if (IsServer) ServerBoot();
     }
