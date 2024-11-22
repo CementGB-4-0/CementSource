@@ -13,7 +13,7 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace CementGB.Mod.Utilities;
 
-public static class AddressableUtilities
+public static class AssetUtilities
 {
     /// <summary>
     /// Fires when a modded addressable catalog is registered into the game, after its keys are added to <see cref="PackAddressableKeys"/>.

@@ -10,7 +10,7 @@ namespace CementGB.Mod.Utilities;
 /// <summary>
 /// Utilities that make working with AssetBundles easier in the IL2CPP space. Implements shorthand for persistent asset loading and embedded AssetBundles.
 /// </summary>
-public static class AssetBundleUtilities
+public static class EmbeddedUtilities
 {
     /// <summary>
     /// Shorthand for loading an AssetBundle's asset by name and type in way that prevents it from being garbage collected.
@@ -93,5 +93,26 @@ public static class AssetBundleUtilities
             return bundle;
         }
         throw new Exception($"No resources matching the name '{name}' were found in the assembly '{assembly.FullName}'. Please ensure you passed the correct name.");
+    }
+
+    /// <summary>
+    /// Reads all text from an embedded file. File must be marked as an EmbeddedResource in the mod's csproj.
+    /// </summary>
+    /// <param name="assembly">The assembly the file is embedded in. Its usually okay to use <c>Assembly.GetExecutingAssembly</c> or <c>MelonMod.MelonAssembly.Assembly</c> to get the current assembly.</param>
+    /// <param name="resourceName">The embedded path to the file. Usually you can just use the path pseudo-relative to the solution directory separated by dots, e.g. ExampleMod/Assets/text.txt ExampleMod.Assets.text.txt</param>
+    /// <returns>The text the file contains.</returns>
+    /// <exception cref="Exception"></exception>
+    public static string ReadEmbeddedText(Assembly assembly, string resourceName)
+    {
+        assembly ??= Assembly.GetCallingAssembly();
+
+        if (assembly.GetManifestResourceNames().Contains(resourceName))
+        {
+            using var str = assembly.GetManifestResourceStream(resourceName) ?? throw new Exception("Resource stream returned null. This could mean an inaccessible resource caller-side or an invalid argument was passed.");
+            using StreamReader reader = new(str);
+
+            return reader.ReadToEnd();
+        }
+        throw new Exception($"No resources matching the name '{resourceName}' were found in the assembly '{assembly.FullName}'. Please ensure you passed the correct name.");
     }
 }

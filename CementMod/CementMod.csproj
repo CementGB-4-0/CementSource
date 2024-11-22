@@ -16,7 +16,7 @@
 
     <OutputType>Library</OutputType>
     
-    <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with BepInEx or the game -->
+    <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with MelonLoader or the game -->
 	  <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->
   </PropertyGroup>
   
@@ -51,6 +51,10 @@
 
   <ItemGroup>
     <Reference Include="ref\**\*.dll"></Reference>
+    
+    <Compile Remove="src\Tungsten\**" />
+    <EmbeddedResource Remove="src\Tungsten\**" />
+    <None Remove="src\Tungsten\**" />
 
     <!--
       Removing redundant references
@@ -64,7 +68,6 @@
   </ItemGroup>
 
   <Target Name="BeforeRestore" BeforeTargets="Restore">
-
     <!-- Read game_dir.txt into property -->
     <ReadLinesFromFile File="@(GameDirFile)">
       <Output TaskParameter="Lines" PropertyName="GameDir" />

@@ -6,7 +6,6 @@ using CementGB.Mod.Utilities;
 using MelonLoader;
 using MelonLoader.Utils;
 using System.IO;
-using Tungsten;
 using UnityEngine;
 
 namespace CementGB.Mod;
@@ -33,7 +32,7 @@ public class Mod : MelonMod
     /// <summary>
     /// The path Cement reads custom content from. Custom content must be in its own folder.
     /// </summary>
-    /// <remarks>See <see cref="AddressableUtilities"/> for modded Addressable helpers.</remarks>
+    /// <remarks>See <see cref="AssetUtilities"/> for modded Addressable helpers.</remarks>
     public static readonly string customContentPath = Path.Combine(userDataPath, "CustomContent");
 
     internal static GameObject CementCompContainer
@@ -68,9 +67,9 @@ public class Mod : MelonMod
         PreferenceModule.Initialize();
 
         // Load custom content catalogs
-        AddressableUtilities.LoadCCCatalogs();
+        AssetUtilities.LoadCCCatalogs();
 
-        Script.ReloadScripts();
+        //Script.ReloadScripts();
     }
 
     /// <summary>
@@ -100,19 +99,19 @@ public class Mod : MelonMod
     public override void OnUpdate()
     {
         base.OnUpdate();
-        Script.Update();
+        //Script.Update();
     }
 
     public override void OnGUI()
     {
-        Script.OnGUI();
+        //Script.OnGUI();
     }
 
     private static void FileStructure()
     {
         Directory.CreateDirectory(userDataPath);
         Directory.CreateDirectory(customContentPath);
-        Directory.CreateDirectory(Script.scriptsPath);
+        //Directory.CreateDirectory(Script.scriptsPath);
     }
 
     private static void CreateCementComponents()

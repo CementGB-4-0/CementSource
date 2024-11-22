@@ -16,7 +16,7 @@ internal static class DisplayCreditsPatch
         {
             if (textAsset == null)
             {
-                textAsset = new TextAsset($"{FileUtilities.ReadEmbeddedText(Melon<Mod>.Instance.MelonAssembly.Assembly, "CementGB.Mod.Assets.CreditsText.txt")}\n\n{__instance.textFile.text}");
+                textAsset = new TextAsset($"{EmbeddedUtilities.ReadEmbeddedText(Melon<Mod>.Instance.MelonAssembly.Assembly, "CementGB.Mod.Assets.CreditsText.txt")}\n\n{__instance.textFile.text}");
                 __instance.textFile = textAsset;
             }
         }

@@ -30,7 +30,7 @@ internal static class GameModeMapTrackerPatch
                 try
                 {
                     _instancesAlreadyExecuted.Add(__instance);
-                    var mapLocations = AddressableUtilities.GetAllModdedResourceLocationsOfType<SceneInstance>();
+                    var mapLocations = AssetUtilities.GetAllModdedResourceLocationsOfType<SceneInstance>();
 
                     foreach (var mapLocation in mapLocations)
                     {

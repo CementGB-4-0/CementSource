@@ -154,7 +154,17 @@ internal static class PreferenceModule
 
     private static GameObject CreateButton(Action onClick)
     {
-        return null;
+        throw new NotImplementedException();
+    }
+
+    private static GameObject CreateStringOption(string name, string currentValue)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static GameObject CreateKeybindOption()
+    {
+        throw new NotImplementedException();
     }
 
     private static GameObject CreateBoolOption(Transform parent, string name, bool currentValue)
@@ -182,16 +192,6 @@ internal static class PreferenceModule
 
         GetTitle(option).GetComponent<TextMeshProUGUI>().text = name;
         return option;
-    }
-
-    private static GameObject CreateStringOption(string name, string currentValue)
-    {
-        return null;
-    }
-
-    private static GameObject CreateKeybindOption()
-    {
-        return null;
     }
 
     private static Button CreatePrefsButton(bool isInGame = false)

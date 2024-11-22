@@ -2,8 +2,14 @@
 
 namespace CementGB.Mod.Utilities;
 
-public static class Extensions
+public static class UIExtensions
 {
+    /// <summary>
+    /// Manually reconstructs the navigation with the corresponding <paramref name="up"/> and <paramref name="down"> buttons. 
+    /// </summary>
+    /// <param name="toChange"></param>
+    /// <param name="up"></param>
+    /// <param name="down"></param>
     public static void ReconstructNavigation(this Button toChange, Button up, Button down)
     {
         Navigation nav = new()

@@ -17,14 +17,14 @@ internal static class LoadScenePatch
     {
         try
         {
-            if (__instance._sceneList[key] != null || !AddressableUtilities.IsModdedKey(key))
+            if (__instance._sceneList[key] != null || !AssetUtilities.IsModdedKey(key))
             {
                 return true; // Scene is vanilla, just do normal behavior
             }
 
             Melon<Mod>.Logger.Msg("CUSTOM SCENE LOADING!");
 
-            var assetReference = AddressableUtilities.CreateModdedAssetReference(key);
+            var assetReference = AssetUtilities.CreateModdedAssetReference(key);
 
             LoggingUtilities.VerboseLog("CUSTOM SCENE GUID: " + assetReference.m_AssetGUID);
             if (assetReference == null)
