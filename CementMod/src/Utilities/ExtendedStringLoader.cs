@@ -8,7 +8,7 @@ namespace CementGB.Mod.Utilities;
 /// </summary>
 public static class ExtendedStringLoader
 {
-    internal static readonly Dictionary<string, string> items = new();
+    internal static readonly Dictionary<string, string> items = [];
 
     /// <summary>
     /// Registers a key-value pair for localization. When the key is loading via GB's <c>StringLoader.LoadString</c> methods, it returns the value string instead.

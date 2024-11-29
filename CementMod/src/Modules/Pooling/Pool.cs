@@ -16,20 +16,20 @@ public class Pool : MonoBehaviour
     /// <summary>
     /// Dictionary that gets a prefab from a given id
     /// </summary>
-    private static readonly Dictionary<int, GameObject> idToObject = new();
+    private static readonly Dictionary<int, GameObject> idToObject = [];
 
     /// <summary>
     /// Dictionary that gets a id from a given prefab
     /// </summary>
-    private static readonly Dictionary<GameObject, int> objectToId = new();
+    private static readonly Dictionary<GameObject, int> objectToId = [];
 
-    private static readonly List<GameObject> spawnedObjects = new();
-    private static readonly List<GameObject> pooledObjects = new();
+    private static readonly List<GameObject> spawnedObjects = [];
+    private static readonly List<GameObject> pooledObjects = [];
 
     /// <summary>
     /// Dictionary that corresponds ids to actions
     /// </summary>
-    private static readonly Dictionary<int, Action<GameObject>> resetActions = new();
+    private static readonly Dictionary<int, Action<GameObject>> resetActions = [];
 
     private void Awake()
     {

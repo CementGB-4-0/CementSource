@@ -1,6 +1,6 @@
 ﻿using CementGB.Mod.Modules.NetBeard;
-using CementGB.Mod.Utilities;
 using HarmonyLib;
+using Il2Cpp;
 using Il2CppCoreNet;
 using Il2CppCoreNet.Config;
 using UnityEngine;
@@ -12,16 +12,27 @@ internal static class FWDPatches
     [HarmonyPatch(typeof(NetworkManager), nameof(NetworkManager.LaunchServer))]
     private static class NetworkManagerLaunchHostPatch
     {
-        private static void Prefix(NetworkManager __instance, object[] __args)
+        private static void Prefix(object[] __args)
         {
-            LoggingUtilities.Logger.BigError("this ran");
-
-            if (ServerManager.IsForwarded && !Application.isBatchMode)
+            if (ServerManager.IsForwardedHost && !Application.isBatchMode)
             {
                 __args[0] = NetConfigLoader.LoadServerConfig();
-
                 NetworkManager.OnHostStarted.Invoke();
             }
+        }
+    }
+
+    [HarmonyPatch(typeof(AnyInputOnClick), nameof(AnyInputOnClick.Start))]
+    private static class AnyInputOnClickStartPatch
+    {
+        private static void Postfix(AnyInputOnClick __instance)
+        {
+            /*
+            if (ServerManager.IsForwardedHost && !ServerManager.DontAutoStart && !Application.isBatchMode)
+            {
+                __instance.gameObject.SetActive(false);
+            }
+            */
         }
     }
 }

@@ -40,14 +40,14 @@ public class NetBeard : MonoBehaviour
 
     private static bool madeFromServer = false;
     private static bool madeFromClient = false;
-    private static readonly List<ushort> fromClientHandlers = new();
-    private static readonly List<ushort> fromServerHandlers = new();
+    private static readonly List<ushort> fromClientHandlers = [];
+    private static readonly List<ushort> fromServerHandlers = [];
 
-    private static readonly Dictionary<string, Type> serverModIds = new();
-    private static readonly Dictionary<string, Type> clientModIds = new();
+    private static readonly Dictionary<string, Type> serverModIds = [];
+    private static readonly Dictionary<string, Type> clientModIds = [];
 
-    private static readonly Dictionary<string, ushort> serverModOffsets = new();
-    private static readonly Dictionary<string, ushort> clientModOffsets = new();
+    private static readonly Dictionary<string, ushort> serverModOffsets = [];
+    private static readonly Dictionary<string, ushort> clientModOffsets = [];
 
     private static bool calculatedServerOffsets = false;
     private static bool calculatedClientOffsets = false;

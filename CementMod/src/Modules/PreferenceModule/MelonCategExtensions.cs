@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace CementGB.Mod.Modules.PreferenceModule;
 public static class MelonCategExtensions
 {
-    private static readonly Dictionary<MelonPreferences_Category, bool> isLivePref_Tracker = new();
+    private static readonly Dictionary<MelonPreferences_Category, bool> isLivePref_Tracker = [];
 
     public static void SetLivePref(this MelonPreferences_Category category, bool value)
     {

@@ -40,7 +40,7 @@ public static class AssetUtilities
     /// <returns>A generic IEnumerable containing IResourceLocations that, if loaded, will result in the passed type. Will return an IEnumerable even if empty.</returns>
     public static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Il2CppSystem.Object
     {
-        List<IResourceLocation> ret = new();
+        List<IResourceLocation> ret = [];
         Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object> allModdedKeys = new();
         foreach (var value in PackAddressableKeys)
             allModdedKeys.AddRange(value.Value.Cast<Il2CppSystem.Collections.Generic.IEnumerable<Il2CppSystem.Object>>());
@@ -71,10 +71,10 @@ public static class AssetUtilities
     }
 
     public static ReadOnlyDictionary<string, Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object>> PackAddressableKeys => new(_packAddressableKeys);
-    private static readonly Dictionary<string, Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object>> _packAddressableKeys = new();
+    private static readonly Dictionary<string, Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object>> _packAddressableKeys = [];
 
     public static ReadOnlyCollection<IResourceLocator> ModdedResourceLocators => _moddedResourceLocators.AsReadOnly();
-    private static readonly List<IResourceLocator> _moddedResourceLocators = new();
+    private static readonly List<IResourceLocator> _moddedResourceLocators = [];
 
     internal static void LoadCCCatalogs()
     {
