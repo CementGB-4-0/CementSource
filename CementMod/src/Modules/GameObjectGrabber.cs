@@ -39,7 +39,7 @@ public class GameObjectGrabber : MonoBehaviour
             ]);
     }
 
-    // TODO: This method errors out even though "Try" methods shouldn't do that
+    // TODO: This method may error out even though "Try" methods shouldn't do that
     private static bool TryFindSceneInstanceByAddress(out SceneInstance sceneInstance, string sceneAddress)
     {
         var loadHandle = Addressables.LoadSceneAsync(sceneAddress, UnityEngine.SceneManagement.LoadSceneMode.Additive, false).Acquire();
