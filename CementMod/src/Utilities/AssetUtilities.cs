@@ -2,8 +2,8 @@ using Il2CppInterop.Runtime;
 using Il2CppSystem.Linq;
 using MelonLoader;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using Il2CppSystem.Collections.Generic;
+using Il2CppSystem.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using UnityEngine.AddressableAssets;
@@ -24,8 +24,8 @@ public static class AssetUtilities
     /// <summary>
     /// Creates an AssetReference with a new Guid referring to the passed Addressable key. The key does not need to refer to a modded addressable, however this method is designed for that purpose.
     /// </summary>
-    /// <param name="key">The key to refer to when creating the AssetReference.</param>
-    /// <returns>The created AssetReference.</returns>
+    /// <param name="key">The key to refer to when creating the <see cref="AssetReference">.</param>
+    /// <returns>The created <see cref="AssetReference"/>.</returns>
     public static AssetReference CreateModdedAssetReference(string key)
     {
         AssetReference assetReference = new(key);
@@ -34,26 +34,26 @@ public static class AssetUtilities
     }
 
     /// <summary>
-    /// Gets all custom-loaded IResourceLocations of a certain result type. Used to iterate through and find addressable keys depending on type.
+    /// Gets all custom-loaded IResourceLocations of a certain result type. Used to iterate through and find custom content addressable keys depending on type.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <returns>A generic IEnumerable containing IResourceLocations that, if loaded, will result in the passed type. Will return an IEnumerable even if empty.</returns>
+    /// <returns>An array containing IResourceLocations that, if loaded, will result in the passed type. Will return an array even if empty.</returns>
     public static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Il2CppSystem.Object
     {
-        List<IResourceLocation> ret = [];
-        Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object> allModdedKeys = new();
-        foreach (var value in PackAddressableKeys)
-            allModdedKeys.AddRange(value.Value.Cast<Il2CppSystem.Collections.Generic.IEnumerable<Il2CppSystem.Object>>());
+        List<IResourceLocation> ret = new();
+        List<Il2CppSystem.Object> allModdedKeys = new();
+        foreach (var value in _packAddressableKeys)
+            allModdedKeys.AddRange(value.Value.Cast<IEnumerable<Il2CppSystem.Object>>());
 
-        var allModdedLocations = Addressables.LoadResourceLocationsAsync(allModdedKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union).Acquire();
+        var allModdedLocations = Addressables.LoadResourceLocationsAsync(allModdedKeys.Cast<IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union).Acquire();
         allModdedLocations.WaitForCompletion();
         if (allModdedLocations.Status != AsyncOperationStatus.Succeeded)
         {
             LoggingUtilities.Logger.Error($"Failed to load modded resource locations! Exception: {allModdedLocations.OperationException}");
-            return Array.Empty<IResourceLocation>();
+            return [];
         }
 
-        var result = allModdedLocations.Result.Cast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
+        var result = allModdedLocations.Result.Cast<List<IResourceLocation>>();
         foreach (var location in result)
         {
             if (location.ResourceType == Il2CppType.Of<T>())
@@ -62,19 +62,39 @@ public static class AssetUtilities
 
         if (ret.Count == 0)
             LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, "Returned empty array! Type probably wasn't found in addressables.");
-        return ret.ToArray();
+        return [.. ret];
     }
 
     public static bool IsModdedKey(string key)
     {
-        return ModdedResourceLocators.Any(locator => locator.Keys.Contains(key));
+        foreach (var moddedKeyish in _moddedResourceLocators)
+        {
+            if (moddedKeyish.Keys.Contains(key))
+                return true;
+        }
+        return false;
     }
 
-    public static ReadOnlyDictionary<string, Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object>> PackAddressableKeys => new(_packAddressableKeys);
-    private static readonly Dictionary<string, Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object>> _packAddressableKeys = [];
+    /*
+    public static ReadOnlyDictionary<string, Il2CppSystem.Object[]> PackAddressableKeys // { catalogPath: addressableKeys }
+    {
+        get
+        {
+            var dict = new Dictionary<string, Il2CppSystem.Object[]>();
 
-    public static ReadOnlyCollection<IResourceLocator> ModdedResourceLocators => _moddedResourceLocators.AsReadOnly();
-    private static readonly List<IResourceLocator> _moddedResourceLocators = [];
+            foreach (var kvp in _packAddressableKeys)
+            {
+                dict.Add(kvp.Key, kvp.Value.ToArray());
+            }
+
+            return new();
+        }
+    }
+    */
+    private static readonly Dictionary<string, List<Il2CppSystem.Object>> _packAddressableKeys = new();
+
+    public static ReadOnlyCollection<IResourceLocator> ModdedResourceLocators => new(_moddedResourceLocators.Cast<IList<IResourceLocator>>());
+    private static readonly List<IResourceLocator> _moddedResourceLocators = new();
 
     internal static void LoadCCCatalogs()
     {
@@ -86,7 +106,7 @@ public static class AssetUtilities
             var aaPath = Path.Combine(dir, "aa");
             if (!Directory.Exists(aaPath))
             {
-                LoggingUtilities.Logger.Warning($"Directory {dir} has no \"aa\" folder! Addressables will not be loaded.");
+                LoggingUtilities.Logger.Warning($"Folder {dir} has no \"aa\" folder! Custom Addressables, if any, will not be loaded.");
                 continue;
             }
 
@@ -100,12 +120,12 @@ public static class AssetUtilities
                 resourceLocatorHandle.WaitForCompletion();
                 if (resourceLocatorHandle.Status != AsyncOperationStatus.Succeeded)
                 {
-                    Melon<Mod>.Logger.Error($"Failed to load Addressable content catalog for \"{addressablePackName}\": ", resourceLocatorHandle.OperationException.ToString());
+                    Melon<Mod>.Logger.Error($"Failed to load Addressable content catalog for \"{addressablePackName}\": ", resourceLocatorHandle.OperationException);
                     continue;
                 }
 
                 var resourceLocator = resourceLocatorHandle.Result;
-                if (resourceLocatorHandle is null) continue;
+                if (resourceLocator is null) continue;
                 _moddedResourceLocators.Add(resourceLocator);
                 _packAddressableKeys.Add(catalogPath, resourceLocator.Keys.ToList());
 

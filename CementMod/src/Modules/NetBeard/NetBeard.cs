@@ -37,7 +37,6 @@ public class HandleMessageFromServer : Attribute
 [RegisterTypeInIl2Cpp]
 public class NetBeard : MonoBehaviour
 {
-
     private static bool madeFromServer = false;
     private static bool madeFromClient = false;
     private static readonly List<ushort> fromClientHandlers = [];
@@ -185,7 +184,6 @@ public class NetBeard : MonoBehaviour
                     }
                 }
             }
-            LoggingUtilities.VerboseLog("Initialised from server handlers!");
         }
     }
 
@@ -218,7 +216,6 @@ public class NetBeard : MonoBehaviour
                     }
                 }
             }
-            LoggingUtilities.VerboseLog("Initialised from client handlers!");
         }
     }
 

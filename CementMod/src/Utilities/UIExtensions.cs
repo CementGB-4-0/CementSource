@@ -5,12 +5,12 @@ namespace CementGB.Mod.Utilities;
 public static class UIExtensions
 {
     /// <summary>
-    /// Manually reconstructs the navigation with the corresponding <paramref name="up"/> and <paramref name="down"> buttons. 
+    /// Manually reconstructs the <see cref="Navigation"/> of <paramref name="toChange"/> with the corresponding <paramref name="up"/> and <paramref name="down" /> <see cref="Selectable"/>s.
     /// </summary>
-    /// <param name="toChange"></param>
-    /// <param name="up"></param>
-    /// <param name="down"></param>
-    public static void ReconstructNavigation(this Button toChange, Button up, Button down)
+    /// <param name="toChange">The <see cref="Selectable"/> whose navigation must change.</param>
+    /// <param name="up">The <see cref="Selectable"/> whose navigation must map 'up' from <paramref name="toChange"/>.</param>
+    /// <param name="down">The <see cref="Selectable"/> whose navigation must map 'down' from <paramref name="toChange"/>.</param>
+    public static void ReconstructNavigation(this Selectable toChange, Selectable up, Selectable down)
     {
         Navigation nav = new()
         {
@@ -24,17 +24,14 @@ public static class UIExtensions
     }
 
     /// <summary>
-    /// Reconstructs the up and down navigation buttons based off of the button children surrounding it
+    /// Reconstructs the up and down <see cref="Navigation"/> of <paramref name="toChange"/> based off the children of type <see cref="Selectable"/> surrounding it.
     /// </summary>
-    /// <param name="toChange"></param>
-    public static void ReconstructNavigationByChildren(this Button toChange)
+    /// <param name="toChange">The <see cref="Selectable"/> whose navigation must change.</param>
+    public static void ReconstructNavigationByChildren(this Selectable toChange)
     {
-        Selectable[] buttons = toChange.transform.parent.GetComponentsInChildren<Selectable>();
-
-        Navigation nav = new();
+        var buttons = toChange.transform.parent.GetComponentsInChildren<Selectable>();
         var sIndex = -1;
 
-        // Stupid fucking fucker button wouldn't work with Array.IndexOf so I had to do a for loop and that saddens me
         for (var i = 0; i < buttons.Length; i++)
         {
             if (buttons[i].gameObject == toChange.gameObject)
@@ -47,11 +44,6 @@ public static class UIExtensions
         var up = sIndex == 0 ? buttons.Length - 1 : sIndex - 1;
         var down = sIndex == buttons.Length - 1 ? 0 : sIndex + 1;
 
-        nav.selectOnLeft = toChange.navigation.selectOnLeft;
-        nav.selectOnRight = toChange.navigation.selectOnRight;
-        nav.selectOnUp = buttons[up];
-        nav.selectOnDown = buttons[down];
-
-        toChange.navigation = nav;
+        toChange.ReconstructNavigation(buttons[up], buttons[down]);
     }
 }

@@ -11,7 +11,7 @@ internal static class DisplayCreditsPatch
     [HarmonyPatch(typeof(DisplayCredits), nameof(DisplayCredits.ApplyText))]
     private static class ApplyText
     {
-        static TextAsset textAsset = null;
+        private static TextAsset textAsset = null;
         private static void Prefix(DisplayCredits __instance)
         {
             if (textAsset == null)

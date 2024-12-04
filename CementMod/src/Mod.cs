@@ -1,7 +1,7 @@
-﻿using CementGB.Mod.Modules.BeastInput;
+﻿using CementGB.Mod.Modules;
+using CementGB.Mod.Modules.BeastInput;
 using CementGB.Mod.Modules.NetBeard;
 using CementGB.Mod.Modules.PoolingModule;
-using CementGB.Mod.Modules.PreferenceModule;
 using CementGB.Mod.Utilities;
 using MelonLoader;
 using MelonLoader.Utils;
@@ -64,7 +64,6 @@ public class Mod : MelonMod
         // Initialize static classes that need initializing
         CementPreferences.Initialize();
         CommonHooks.Initialize();
-        PreferenceModule.Initialize();
 
         // Load custom content catalogs
         AssetUtilities.LoadCCCatalogs();
@@ -93,25 +92,10 @@ public class Mod : MelonMod
         CreateCementComponents();
     }
 
-    /// <summary>
-    /// Fires every frame.
-    /// </summary>
-    public override void OnUpdate()
-    {
-        base.OnUpdate();
-        //Script.Update();
-    }
-
-    public override void OnGUI()
-    {
-        //Script.OnGUI();
-    }
-
     private static void FileStructure()
     {
         Directory.CreateDirectory(userDataPath);
         Directory.CreateDirectory(customContentPath);
-        //Directory.CreateDirectory(Script.scriptsPath);
     }
 
     private static void CreateCementComponents()
@@ -124,5 +108,6 @@ public class Mod : MelonMod
         CementCompContainer.AddComponent<ServerManager>();
         CementCompContainer.AddComponent<Pool>();
         CementCompContainer.AddComponent<BeastInput>();
+        CementCompContainer.AddComponent<GameObjectGrabber>();
     }
 }

@@ -47,7 +47,7 @@ public class ServerManager : MonoBehaviour
 
     private void Update()
     {
-        if (!NetworkClient.active && _autoLaunchUpdateEnabled && IsClientJoiner && GlobalSceneLoader.Instance.StartResourcesLoaded)
+        if (!NetworkClient.active && _autoLaunchUpdateEnabled && IsClientJoiner && CommonHooks.GlobalInitialized)
         {
             // Start local server + local client
             var anyInputOnClick = FindObjectOfType<AnyInputOnClick>();
@@ -70,7 +70,7 @@ public class ServerManager : MonoBehaviour
 
                 if (scr.type == MenuHandlerGamemodes.MenuType.Local && scr.localCountdown != null)
                 {
-                    scr.localCountdown.StartTimer();
+                    scr.localCountdown.Complete.Invoke();
                 }
             }
 
@@ -87,12 +87,13 @@ public class ServerManager : MonoBehaviour
 
     private static void OnBoot()
     {
-        LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
+        if (IsClientJoiner || IsServer)
+            LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
         LoggingUtilities.VerboseLog("Added DevelopmentTestServer to lobby object.");
 
         if (IsServer) ServerBoot();
         else
-            UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.GameClient, null, "", "hello-world");
+            UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.GameClient, null, "", "test");
     }
 
     private static void ServerBoot()

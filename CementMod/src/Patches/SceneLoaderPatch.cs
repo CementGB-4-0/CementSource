@@ -22,25 +22,23 @@ internal static class LoadScenePatch
                 return true; // Scene is vanilla, just do normal behavior
             }
 
-            Melon<Mod>.Logger.Msg("CUSTOM SCENE LOADING!");
+            Melon<Mod>.Logger.Msg("Loading custom scene. . .");
 
             var assetReference = AssetUtilities.CreateModdedAssetReference(key);
-
-            LoggingUtilities.VerboseLog("CUSTOM SCENE GUID: " + assetReference.m_AssetGUID);
             if (assetReference == null)
             {
-                Melon<Mod>.Logger.Error("Asset reference is null! Key probably belongs to an addressable that does not exist or wasn't loaded.");
+                Melon<Mod>.Logger.Error($"Custom scene AssetReference is null! Key probably belongs to an addressable that does not exist or wasn't loaded. Key: {key}");
                 __result = null;
                 return false;
             }
 
             if (!assetReference.RuntimeKeyIsValid())
             {
-                Melon<Mod>.Logger.Error("[SCENELOAD] LoadScene: Failed validation | Key: {0} | Ref: {1}", new object[]
-                {
+                Melon<Mod>.Logger.Error("[SCENELOAD] LoadScene: Failed validation | Key: {0} | Ref: {1}",
+                [
                     key,
                     assetReference != null
-                });
+                ]);
                 __result = null;
                 return false;
             }
@@ -73,7 +71,8 @@ internal static class LoadScenePatch
         }
         catch (Exception e)
         {
-            LoggingUtilities.Logger.Error($"ERROR LOADING SCENE: {e}");
+            LoggingUtilities.Logger.Error($"Error occurred loading scene {key}: {e}");
+            __instance.LoadMainMenuWithLoadingScreen();
             return false;
         }
     }

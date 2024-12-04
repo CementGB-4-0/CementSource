@@ -1,4 +1,5 @@
 using Il2CppGB.Game;
+using Il2CppGB.Setup;
 using MelonLoader;
 using System;
 
@@ -16,6 +17,8 @@ public static class CommonHooks
     public static event Action OnGameManagerCreated;
     public static event Action OnRoundStart;
     public static event Action OnRoundEnd;
+
+    public static bool GlobalInitialized => GlobalSceneLoader.Instance != null && GlobalSceneLoader.Instance.StartResourcesLoaded;
 
     private static bool _menuFirstBoot;
 
