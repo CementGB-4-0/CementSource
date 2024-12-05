@@ -52,10 +52,6 @@
   <ItemGroup>
     <Reference Include="ref\**\*.dll"></Reference>
     
-    <Compile Remove="src\Tungsten\**" />
-    <EmbeddedResource Remove="src\Tungsten\**" />
-    <None Remove="src\Tungsten\**" />
-
     <!--
       Removing redundant references
     -->
