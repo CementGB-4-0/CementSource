@@ -3,7 +3,7 @@
 
 # CementSource
 
-This is the source code for the Cement modding tool for Gang Beasts. **To install the latest release of Cement along with its dependency, MelonLoader, go to [the Cement website](https://cementgb.github.io)** and download through the installer.
+This is the source code for the Cement modding tool for Gang Beasts. **To install the latest release of Cement along with its dependency, MelonLoader, go to [the Cement website](https://cementgb.github.io)** and download the mod. Installation instructions are provided [in the documentation.]() (link pending)
 
 ## Contribute
 
