@@ -49,7 +49,7 @@ public static class AssetUtilities
         allModdedLocations.WaitForCompletion();
         if (allModdedLocations.Status != AsyncOperationStatus.Succeeded)
         {
-            LoggingUtilities.Logger.Error($"Failed to load modded resource locations! Exception: {allModdedLocations.OperationException}");
+            Mod.Logger.Error($"Failed to load modded resource locations! Exception: {allModdedLocations.OperationException}");
             return [];
         }
 
@@ -101,12 +101,12 @@ public static class AssetUtilities
         _packAddressableKeys.Clear();
         Melon<Mod>.Logger.Msg("Starting registration of modded Addressable content catalogs. . .");
 
-        foreach (var dir in Directory.GetDirectories(Mod.customContentPath))
+        foreach (var dir in Directory.GetDirectories(Mod.CustomContentPath))
         {
             var aaPath = Path.Combine(dir, "aa");
             if (!Directory.Exists(aaPath))
             {
-                LoggingUtilities.Logger.Warning($"Folder {dir} has no \"aa\" folder! Custom Addressables, if any, will not be loaded.");
+                Mod.Logger.Warning($"Folder {dir} has no \"aa\" folder! Custom Addressables, if any, will not be loaded.");
                 continue;
             }
 

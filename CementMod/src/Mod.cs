@@ -28,12 +28,14 @@ public class Mod : MelonMod
     /// <summary>
     /// Cement's UserData path ("Gang Beasts\UserData\CementGB"). Created in <see cref="OnInitializeMelon"/>.
     /// </summary>
-    public static readonly string userDataPath = Path.Combine(MelonEnvironment.UserDataDirectory, "CementGB");
+    public static readonly string UserDataPath = Path.Combine(MelonEnvironment.UserDataDirectory, "CementGB");
     /// <summary>
     /// The path Cement reads custom content from. Custom content must be in its own folder.
     /// </summary>
     /// <remarks>See <see cref="AssetUtilities"/> for modded Addressable helpers.</remarks>
-    public static readonly string customContentPath = Path.Combine(userDataPath, "CustomContent");
+    public static readonly string CustomContentPath = MelonEnvironment.ModsDirectory;
+
+    internal static MelonLogger.Instance Logger => Melon<Mod>.Logger; // For if you're tired of the singleton pattern I guess
 
     internal static GameObject CementCompContainer
     {
@@ -94,8 +96,8 @@ public class Mod : MelonMod
 
     private static void FileStructure()
     {
-        Directory.CreateDirectory(userDataPath);
-        Directory.CreateDirectory(customContentPath);
+        Directory.CreateDirectory(UserDataPath);
+        Directory.CreateDirectory(CustomContentPath);
     }
 
     private static void CreateCementComponents()
