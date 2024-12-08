@@ -48,7 +48,7 @@ internal static class GameModeMapTrackerPatch
                 }
                 catch (Exception e)
                 {
-                    LoggingUtilities.Logger.Error(e);
+                    Mod.Logger.Error(e);
                 }
             }
         }

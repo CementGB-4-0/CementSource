@@ -1,9 +1,8 @@
 ﻿using CementGB.Mod.Utilities;
-using Il2Cpp;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data;
 using Il2CppTMPro;
-using UnityEngine.InputSystem;
+using UnityEngine.Localization.Components;
 
 namespace CementGB.Mod.Patches;
 
@@ -64,14 +63,15 @@ internal static class SelectSubTitlePath
 {
     private static void Postfix(LoadScreenDisplayHandler __instance, string name)
     {
-        var tmpInstance = __instance._subTitle.GetComponent<TextReplacer>();
+        var tmpInstance = __instance._subTitle.GetComponent<LocalizeStringEvent>();
         if (tmpInstance == null /* || !AssetUtilities.IsModdedKey(name) */) return;
 
         LoggingUtilities.VerboseLog(System.ConsoleColor.DarkGreen, "SetSubTitle Postfix called!");
 
+        var subtitleText = __instance._subTitle.GetComponent<TextMeshProUGUI>();
+        subtitleText.text = name;
+
         __instance._subTitle.enabled = false;
         tmpInstance.enabled = false;
-
-        tmpInstance.text = name;
     }
 }

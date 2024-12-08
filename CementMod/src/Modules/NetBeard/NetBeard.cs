@@ -223,7 +223,7 @@ public class NetBeard : MonoBehaviour
     {
         if (!NetworkClient.active)
         {
-            LoggingUtilities.Logger.Error("Couldn't send a message to the server, because NetworkClient is not active.");
+            Mod.Logger.Error("Couldn't send a message to the server, because NetworkClient is not active.");
             return;
         }
         NetworkWriter writer = new();
@@ -237,7 +237,7 @@ public class NetBeard : MonoBehaviour
     {
         if (!NetworkServer.active)
         {
-            LoggingUtilities.Logger.Error("Couldn't send the message to client, because NetworkServer is not active.");
+            Mod.Logger.Error("Couldn't send the message to client, because NetworkServer is not active.");
             return;
         }
         NetworkWriter writer = new();
@@ -251,7 +251,7 @@ public class NetBeard : MonoBehaviour
     {
         if (!NetworkServer.active)
         {
-            LoggingUtilities.Logger.Error("Couldn't send writer to client, because NetworkServer is not active.");
+            Mod.Logger.Error("Couldn't send writer to client, because NetworkServer is not active.");
             return;
         }
         conn.SendWriter(writer, 0);
@@ -261,7 +261,7 @@ public class NetBeard : MonoBehaviour
     {
         if (!NetworkServer.active)
         {
-            LoggingUtilities.Logger.Error("Couldn't send message to clients, because NetworkServer is not active.");
+            Mod.Logger.Error("Couldn't send message to clients, because NetworkServer is not active.");
             return;
         }
         NetworkWriter writer = new();
@@ -272,7 +272,7 @@ public class NetBeard : MonoBehaviour
         {
             if (NetworkServer.connections[i] == null)
             {
-                LoggingUtilities.Logger.Warning("Null connection while sending to all clients. Skipping. This is probably normal.");
+                Mod.Logger.Warning("Null connection while sending to all clients. Skipping. This is probably normal.");
                 continue;
             }
             SendWriterToClient(NetworkServer.connections[i], writer);

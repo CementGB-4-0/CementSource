@@ -50,9 +50,8 @@ internal static class LoadScenePatch
             Melon<Mod>.Logger.Msg($"[SCENELOAD] LoadScene: Start loading | Key: {__instance._currentKey}");
             sceneLoadTask._sceneDataRef = assetReference;
             var sceneData = Addressables.LoadAssetAsync<SceneData>(key + "-Data").Acquire();
-            sceneData.WaitForCompletion();
 
-            sceneLoadTask._sceneData = sceneData.Result;
+            sceneLoadTask._sceneData = sceneData.WaitForCompletion();
             sceneLoadTask._sceneLoading = Addressables.LoadSceneAsync(key).Acquire();
             sceneLoadTask._sceneLoading.WaitForCompletion();
             sceneLoadTask._sceneInstance = sceneLoadTask._sceneLoading.Result;
@@ -71,7 +70,7 @@ internal static class LoadScenePatch
         }
         catch (Exception e)
         {
-            LoggingUtilities.Logger.Error($"Error occurred loading scene {key}: {e}");
+            Mod.Logger.Error($"Error occurred loading scene {key}: {e}");
             __instance.LoadMainMenuWithLoadingScreen();
             return false;
         }

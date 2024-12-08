@@ -79,8 +79,8 @@ public class GameObjectGrabber : MonoBehaviour
                     continue;
                 }
 
-                var foundGoClone = UnityEngine.Object.Instantiate(foundGo);
-                UnityEngine.Object.DontDestroyOnLoad(foundGoClone);
+                var foundGoClone = Instantiate(foundGo);
+                DontDestroyOnLoad(foundGoClone);
                 MarkCached(toCache.Key, foundGoClone);
             }
         }
