@@ -41,6 +41,6 @@ public static class CommonHooks
         }
 
         if (AssetUtilities.IsModdedKey(sceneName))
-            MelonCoroutines.Start(AssetUtilities.RefreshMaterials());
+            MelonCoroutines.Start(AssetUtilities.RefindMaterials());
     }
 }
