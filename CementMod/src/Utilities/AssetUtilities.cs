@@ -198,10 +198,32 @@ public static class AssetUtilities
         }
     }
 
+    private static IResourceLocation[] _shaderResourceLocations; 
+
+    internal static IEnumerator CacheShaderLocations()
+    {
+        var output = new List<IResourceLocation>();
+        yield return new WaitForEndOfFrame();
+        foreach (var locator in Addressables.ResourceLocators.ToArray())
+        {
+            var handle = Addressables.LoadResourceLocationsAsync(locator.Keys.ToList().Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union, Il2CppType.Of<Shader>());
+            yield return handle;
+            if (handle.Status != AsyncOperationStatus.Succeeded)
+            {
+                Mod.Logger.Error($"Shader ResourceLocation caching failed! : Output \"{handle.OperationException}\"");
+                continue;
+            }
+
+            output.AddRange((IEnumerable<IResourceLocation>)handle.Result.Cast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>());
+        }
+
+        _shaderResourceLocations = [.. output];
+    }
+
     /// <summary>
-    /// A hacky Coroutine that refreshes all materials on the passed GameObject and children, or all objects in the scene if not specified.
+    /// A hacky Coroutine that calls Shader.Find on all materials on the passed GameObject and children, or all objects in the scene if not specified, and passes in the name of the current shader, setting the Material.shader value.
     /// </summary>
-    public static IEnumerator RefreshMaterials(GameObject parent=null)
+    public static IEnumerator RefindMaterials(GameObject parent=null)
     {
         yield return new WaitForEndOfFrame();
         Mod.Logger.Warning("Refreshing materials. . .");
@@ -222,6 +244,31 @@ public static class AssetUtilities
             foreach (var material in meshRenderer.materials)
             {
                 material.shader = Shader.Find(material.shader.name);
+            }
+        }
+    }
+
+    public static IEnumerator ReloadAddressableShaders(GameObject parent=null)
+    {
+        yield return new WaitForEndOfFrame();
+        Mod.Logger.Warning("Reloading Addressable shaders. . .");
+        Il2CppArrayBase<MeshRenderer> renderers;
+        if (parent == null)
+            renderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
+        else
+        {
+            var rendList = new List<MeshRenderer>();
+            rendList.AddRange(parent.GetComponents<MeshRenderer>());
+            rendList.AddRange(parent.GetComponentsInChildren<MeshRenderer>());
+
+            renderers = new Il2CppReferenceArray<MeshRenderer>([.. rendList]);
+        }
+
+        foreach (var meshRenderer in renderers)
+        {
+            foreach (var material in meshRenderer.materials)
+            {
+                
             }
         }
     }
