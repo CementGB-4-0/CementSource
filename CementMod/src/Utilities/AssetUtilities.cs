@@ -13,6 +13,7 @@ using Il2CppSystem.Linq;
 using System.Collections.ObjectModel;
 using System.Collections;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using MonoMod.Utils;
 
 namespace CementGB.Mod.Utilities;
 
@@ -196,31 +197,58 @@ public static class AssetUtilities
             }
             Melon<Mod>.Logger.Msg(ConsoleColor.Green, "Done!");
         }
+        MelonCoroutines.Start(CacheShaders());
     }
 
-    private static IResourceLocation[] _shaderResourceLocations; 
+    private static Dictionary<string, Shader> _cachedShaders = []; 
 
-    internal static IEnumerator CacheShaderLocations()
+    internal static IEnumerator CacheShaders()
     {
-        var output = new List<IResourceLocation>();
         yield return new WaitForEndOfFrame();
+        Mod.Logger.Warning("Caching Addressable game shaders, please wait. . .");
+
         foreach (var locator in Addressables.ResourceLocators.ToArray())
         {
-            var handle = Addressables.LoadResourceLocationsAsync(locator.Keys.ToList().Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union, Il2CppType.Of<Shader>());
+            var locatorKeys = locator.Keys.ToList();
+            var handle = Addressables.LoadResourceLocationsAsync(locatorKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union, Il2CppType.Of<Shader>()).Acquire();
             yield return handle;
+
+            foreach (var key in locatorKeys)
+                LoggingUtilities.VerboseLog($"{locator.LocatorId} : {key.ToString()}");
+
             if (handle.Status != AsyncOperationStatus.Succeeded)
+                throw new Exception($"Shader cache failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException.ToString()}\"");
+
+            if (handle.Result == null)
+                throw new Exception($"Shader cache returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException?.ToString() ?? "NONE"}\"");
+
+            var result = handle.Result.Cast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
+            if (result == null || result.Count == 0)
+                throw new Exception($"Shader cache returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException?.ToString() ?? "NONE"}\"");
+        
+            foreach (var location in result)
             {
-                Mod.Logger.Error($"Shader ResourceLocation caching failed! : Output \"{handle.OperationException}\"");
-                continue;
+                var assetHandle = Addressables.LoadAssetAsync<Shader>(location).Acquire();
+                yield return assetHandle;
+
+                if (assetHandle.Status != AsyncOperationStatus.Succeeded)
+                    throw new Exception($"Shader cache failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString()}\"");
+
+                if (assetHandle.Result == null)
+                    throw new Exception($"Shader cache returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString()}\"");
+
+                assetHandle.Result.hideFlags = HideFlags.DontUnloadUnusedAsset;
+                _cachedShaders.Add(assetHandle.Result.name, assetHandle.Result);
+                assetHandle.Release();
             }
 
-            output.AddRange((IEnumerable<IResourceLocation>)handle.Result.Cast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>());
+            handle.Release();
         }
 
-        _shaderResourceLocations = [.. output];
+        Mod.Logger.Msg(ConsoleColor.Green, "Shader caching done!");
     }
 
-    /// <summary>
+/*     /// <summary>
     /// A hacky Coroutine that calls Shader.Find on all materials on the passed GameObject and children, or all objects in the scene if not specified, and passes in the name of the current shader, setting the Material.shader value.
     /// </summary>
     public static IEnumerator RefindMaterials(GameObject parent=null)
@@ -246,7 +274,7 @@ public static class AssetUtilities
                 material.shader = Shader.Find(material.shader.name);
             }
         }
-    }
+    } */
 
     public static IEnumerator ReloadAddressableShaders(GameObject parent=null)
     {
@@ -268,7 +296,7 @@ public static class AssetUtilities
         {
             foreach (var material in meshRenderer.materials)
             {
-                
+                material.shader = _cachedShaders[material.shader.name];
             }
         }
     }

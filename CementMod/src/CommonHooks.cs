@@ -39,8 +39,5 @@ public static class CommonHooks
             _menuFirstBoot = true;
             OnMenuFirstBoot?.Invoke();
         }
-
-        if (AssetUtilities.IsModdedKey(sceneName))
-            MelonCoroutines.Start(AssetUtilities.RefindMaterials());
     }
 }

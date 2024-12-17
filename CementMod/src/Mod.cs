@@ -90,7 +90,6 @@ public class Mod : MelonMod
         CreateCementComponents();
 
         AssetUtilities.InitializeAddressables();
-        MelonCoroutines.Start(AssetUtilities.CacheShaderLocations());
     }
 
     private static void FileStructure()
@@ -109,6 +108,5 @@ public class Mod : MelonMod
         CementCompContainer.AddComponent<ServerManager>();
         CementCompContainer.AddComponent<Pool>();
         CementCompContainer.AddComponent<BeastInput>();
-        //CementCompContainer.AddComponent<GameObjectGrabber>();
     }
 }
