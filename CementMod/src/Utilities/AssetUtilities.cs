@@ -217,14 +217,23 @@ public static class AssetUtilities
                 LoggingUtilities.VerboseLog($"{locator.LocatorId} : {key.ToString()}");
 
             if (handle.Status != AsyncOperationStatus.Succeeded)
-                throw new Exception($"Shader cache failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException.ToString()}\"");
+            {
+                LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException.ToString()}\"");
+                continue;
+            }
 
             if (handle.Result == null)
-                throw new Exception($"Shader cache returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException?.ToString() ?? "NONE"}\"");
+            {
+                LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException?.ToString() ?? "NONE"}\"");
+                continue;
+            }
 
             var result = handle.Result.Cast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
             if (result == null || result.Count == 0)
-                throw new Exception($"Shader cache returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException?.ToString() ?? "NONE"}\"");
+            {
+                LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException?.ToString() ?? "NONE"}\"");
+                continue;
+            }
         
             foreach (var location in result)
             {
@@ -232,13 +241,17 @@ public static class AssetUtilities
                 yield return assetHandle;
 
                 if (assetHandle.Status != AsyncOperationStatus.Succeeded)
-                    throw new Exception($"Shader cache failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString()}\"");
+                {
+                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString()}\"");
+                }
 
                 if (assetHandle.Result == null)
-                    throw new Exception($"Shader cache returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString()}\"");
+                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString()}\"");
 
                 assetHandle.Result.hideFlags = HideFlags.DontUnloadUnusedAsset;
-                _cachedShaders.Add(assetHandle.Result.name, assetHandle.Result);
+
+                if (!_cachedShaders.ContainsKey(assetHandle.Result.name))
+                    _cachedShaders.Add(assetHandle.Result.name, assetHandle.Result);
                 assetHandle.Release();
             }
 
@@ -296,7 +309,8 @@ public static class AssetUtilities
         {
             foreach (var material in meshRenderer.materials)
             {
-                material.shader = _cachedShaders[material.shader.name];
+                if (_cachedShaders.ContainsKey(material.shader.name))
+                    material.shader = _cachedShaders[material.shader.name];
             }
         }
     }
