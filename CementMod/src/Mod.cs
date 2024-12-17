@@ -3,10 +3,14 @@ using CementGB.Mod.Modules.BeastInput;
 using CementGB.Mod.Modules.NetBeard;
 using CementGB.Mod.Modules.PoolingModule;
 using CementGB.Mod.Utilities;
+using Il2CppInterop.Runtime.Injection;
 using MelonLoader;
 using MelonLoader.Utils;
 using System.IO;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.AddressableAssets.ResourceLocators;
+using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace CementGB.Mod;
 
@@ -67,9 +71,6 @@ public class Mod : MelonMod
         CementPreferences.Initialize();
         CommonHooks.Initialize();
 
-        // Load custom content catalogs
-        AssetUtilities.LoadCCCatalogs();
-
         //Script.ReloadScripts();
     }
 
@@ -92,6 +93,8 @@ public class Mod : MelonMod
         base.OnLateInitializeMelon();
 
         CreateCementComponents();
+
+        AssetUtilities.InitializeAddressables();
     }
 
     private static void FileStructure()
@@ -110,6 +113,6 @@ public class Mod : MelonMod
         CementCompContainer.AddComponent<ServerManager>();
         CementCompContainer.AddComponent<Pool>();
         CementCompContainer.AddComponent<BeastInput>();
-        CementCompContainer.AddComponent<GameObjectGrabber>();
+        //CementCompContainer.AddComponent<GameObjectGrabber>();
     }
 }

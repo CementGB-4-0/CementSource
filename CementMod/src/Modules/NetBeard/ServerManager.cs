@@ -3,7 +3,6 @@ using Il2Cpp;
 using Il2CppCoatsink.UnityServices;
 using Il2CppGB.Core.Bootstrappers;
 using Il2CppGB.Platform.Lobby;
-using Il2CppGB.Setup;
 using Il2CppGB.UI;
 using MelonLoader;
 using System;
@@ -49,39 +48,8 @@ public class ServerManager : MonoBehaviour
     {
         if (!NetworkClient.active && _autoLaunchUpdateEnabled && IsClientJoiner && CommonHooks.GlobalInitialized)
         {
-            // Start local server + local client
-            var anyInputOnClick = FindObjectOfType<AnyInputOnClick>();
-            if (anyInputOnClick == null)
-                return;
-            anyInputOnClick.button.onClick.Invoke();
-
-            var localButtonObj = GameObject.Find("Managers/Menu/Main Menu/Canvas/Main Menu/TextSection/Local");
-            if (localButtonObj == null)
-                return;
-            var localButton = localButtonObj.GetComponent<Button>();
-            if (localButton == null)
-                return;
-            localButton.onClick.Invoke();
-
-            var countdownScripts = FindObjectsOfType<MenuHandlerGamemodes>(true);
-            foreach (var scr in countdownScripts)
-            {
-                scr.gameObject.SetActive(true);
-
-                if (scr.type == MenuHandlerGamemodes.MenuType.Local && scr.localCountdown != null)
-                {
-                    scr.localCountdown.Complete.Invoke();
-                }
-            }
-
+            // Connect if client, start local game if fwd
             _autoLaunchUpdateEnabled = false;
-
-            /*
-            if (IsForwardedHost)
-                MonoSingleton<Global>.Instance.UNetManager.LaunchHost();
-            else
-                MonoSingleton<Global>.Instance.UNetManager.LaunchClient(IP, Port);
-            */
         }
     }
 

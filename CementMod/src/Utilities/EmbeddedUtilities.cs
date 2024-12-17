@@ -19,6 +19,7 @@ public static class EmbeddedUtilities
     /// <param name="bundle">The bundle to load the asset from.</param>
     /// <param name="name">The exact name of the asset to load.</param>
     /// <returns>The loaded asset with <c>hideFlags</c> set to <c>HideFlags.DontUnloadUnusedAsset</c></returns>
+    [Obsolete($"Use {nameof(AssetUtilities.LoadPersistentAsset)} instead.")]
     public static T LoadPersistentAsset<T>(this AssetBundle bundle, string name) where T : UnityEngine.Object
     {
         var asset = bundle.LoadAsset(name);
@@ -39,6 +40,7 @@ public static class EmbeddedUtilities
     /// <param name="bundle">The bundle to load the asset from.</param>
     /// <param name="name">The exact name of the asset to load.</param>
     /// <param name="onLoaded">The callback to execute once the asset loads. Takes the loaded asset as a parameter.</param>
+    [Obsolete($"Use {nameof(AssetUtilities.LoadPersistentAssetAsync)} instead.")]
     public static void LoadPersistentAssetAsync<T>(this AssetBundle bundle, string name, Action<T> onLoaded) where T : UnityEngine.Object
     {
         var request = bundle.LoadAssetAsync<T>(name);
@@ -52,7 +54,8 @@ public static class EmbeddedUtilities
             onLoaded?.Invoke(result);
         }));
     }
-
+   
+    [Obsolete($"Use {nameof(AssetUtilities.LoadAllAssetsPersistentAsync)} instead.")]
     public static void LoadAllAssetsPersistentAsync<T>(this AssetBundle bundle, Action<T> onLoaded) where T : UnityEngine.Object
     {
         var request = bundle.LoadAllAssetsAsync<T>();

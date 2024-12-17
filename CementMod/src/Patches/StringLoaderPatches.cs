@@ -11,7 +11,7 @@ internal class LoadStringPatch
 {
     private static void Postfix(string key, ref string __result)
     {
-        if (__result == null)
+        if (__result == null || __result.StartsWith("No translation"))
         {
             if (!ExtendedStringLoader.items.ContainsKey(key))
             {
@@ -29,7 +29,7 @@ internal class LoadRawStringPatch
 {
     private static void Postfix(string key, ref string __result)
     {
-        if (__result == null)
+        if (__result == null || __result.StartsWith("No translation"))
         {
             if (!ExtendedStringLoader.items.ContainsKey(key))
             {
@@ -55,23 +55,5 @@ internal class TryLoadStringPatch
             pulledString = ExtendedStringLoader.items[key];
             __result = true;
         }
-    }
-}
-
-[HarmonyLib.HarmonyPatch(typeof(LoadScreenDisplayHandler), nameof(LoadScreenDisplayHandler.SetSubTitle))]
-internal static class SelectSubTitlePath
-{
-    private static void Postfix(LoadScreenDisplayHandler __instance, string name)
-    {
-        var tmpInstance = __instance._subTitle.GetComponent<LocalizeStringEvent>();
-        if (tmpInstance == null /* || !AssetUtilities.IsModdedKey(name) */) return;
-
-        LoggingUtilities.VerboseLog(System.ConsoleColor.DarkGreen, "SetSubTitle Postfix called!");
-
-        var subtitleText = __instance._subTitle.GetComponent<TextMeshProUGUI>();
-        subtitleText.text = name;
-
-        __instance._subTitle.enabled = false;
-        tmpInstance.enabled = false;
     }
 }

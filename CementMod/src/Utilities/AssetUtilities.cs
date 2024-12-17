@@ -1,15 +1,18 @@
 using Il2CppInterop.Runtime;
-using Il2CppSystem.Linq;
+using System.Linq;
 using MelonLoader;
 using System;
-using Il2CppSystem.Collections.Generic;
-using Il2CppSystem.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
+using UnityEngine;
+using Il2CppSystem.Linq;
+using System.Collections.ObjectModel;
+using System.Collections;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 
 namespace CementGB.Mod.Utilities;
 
@@ -20,6 +23,61 @@ public static class AssetUtilities
     /// Takes the catalog path as a parameter.
     /// </summary>
     public static event Action<string> OnModdedAddressableCatalogLoaded;
+
+    /// <summary>
+    /// Shorthand for loading an AssetBundle's asset by name and type in way that prevents it from being garbage collected.
+    /// </summary>
+    /// <typeparam name="T">The type of the asset to load.</typeparam>
+    /// <param name="bundle">The bundle to load the asset from.</param>
+    /// <param name="name">The exact name of the asset to load.</param>
+    /// <returns>The loaded asset with <c>hideFlags</c> set to <c>HideFlags.DontUnloadUnusedAsset</c></returns>
+    public static T LoadPersistentAsset<T>(this AssetBundle bundle, string name) where T : UnityEngine.Object
+    {
+        var asset = bundle.LoadAsset(name);
+
+        if (asset != null)
+        {
+            asset.hideFlags = HideFlags.DontUnloadUnusedAsset;
+            return asset.TryCast<T>();
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Shorthand for loading an AssetBundle's asset by name and type in way that prevents it from being garbage collected. This method will execute the callback when async loading is complete.
+    /// </summary>
+    /// <typeparam name="T">The type of the asset to load.</typeparam>
+    /// <param name="bundle">The bundle to load the asset from.</param>
+    /// <param name="name">The exact name of the asset to load.</param>
+    /// <param name="onLoaded">The callback to execute once the asset loads. Takes the loaded asset as a parameter.</param>
+    public static void LoadPersistentAssetAsync<T>(this AssetBundle bundle, string name, Action<T> onLoaded) where T : UnityEngine.Object
+    {
+        var request = bundle.LoadAssetAsync<T>(name);
+
+        request.add_completed((Il2CppSystem.Action<AsyncOperation>)((a) =>
+        {
+            if (request.asset == null) return;
+            var result = request.asset.TryCast<T>();
+            if (result == null) return;
+            result.MakePersistent();
+            onLoaded?.Invoke(result);
+        }));
+    }
+
+    public static void LoadAllAssetsPersistentAsync<T>(this AssetBundle bundle, Action<T> onLoaded) where T : UnityEngine.Object
+    {
+        var request = bundle.LoadAllAssetsAsync<T>();
+
+        request.add_completed((Il2CppSystem.Action<AsyncOperation>)new Action<AsyncOperation>((a) =>
+        {
+            if (request.asset == null) return;
+            var result = request.asset.TryCast<T>();
+            if (result == null) return;
+            result.MakePersistent();
+            onLoaded?.Invoke(result);
+        }));
+    }
 
     /// <summary>
     /// Creates an AssetReference with a new Guid referring to the passed Addressable key. The key does not need to refer to a modded addressable, however this method is designed for that purpose.
@@ -41,11 +99,11 @@ public static class AssetUtilities
     public static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Il2CppSystem.Object
     {
         List<IResourceLocation> ret = new();
-        List<Il2CppSystem.Object> allModdedKeys = new();
+        Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object> allModdedKeys = new();
         foreach (var value in _packAddressableKeys)
-            allModdedKeys.AddRange(value.Value.Cast<IEnumerable<Il2CppSystem.Object>>());
+            allModdedKeys.AddRange(value.Value.Cast<Il2CppSystem.Collections.Generic.IEnumerable<Il2CppSystem.Object>>());
 
-        var allModdedLocations = Addressables.LoadResourceLocationsAsync(allModdedKeys.Cast<IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union).Acquire();
+        var allModdedLocations = Addressables.LoadResourceLocations(allModdedKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union).Acquire();
         allModdedLocations.WaitForCompletion();
         if (allModdedLocations.Status != AsyncOperationStatus.Succeeded)
         {
@@ -53,7 +111,7 @@ public static class AssetUtilities
             return [];
         }
 
-        var result = allModdedLocations.Result.Cast<List<IResourceLocation>>();
+        var result = allModdedLocations.Result.Cast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
         foreach (var location in result)
         {
             if (location.ResourceType == Il2CppType.Of<T>())
@@ -75,7 +133,6 @@ public static class AssetUtilities
         return false;
     }
 
-    /*
     public static ReadOnlyDictionary<string, Il2CppSystem.Object[]> PackAddressableKeys // { catalogPath: addressableKeys }
     {
         get
@@ -87,33 +144,30 @@ public static class AssetUtilities
                 dict.Add(kvp.Key, kvp.Value.ToArray());
             }
 
-            return new();
+            return new(dict);
         }
     }
-    */
-    private static readonly Dictionary<string, List<Il2CppSystem.Object>> _packAddressableKeys = new();
+    private static readonly Dictionary<string, Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object>> _packAddressableKeys = [];
 
-    public static ReadOnlyCollection<IResourceLocator> ModdedResourceLocators => new(_moddedResourceLocators.Cast<IList<IResourceLocator>>());
-    private static readonly List<IResourceLocator> _moddedResourceLocators = new();
+    public static IResourceLocator[] ModdedResourceLocators => [.. _moddedResourceLocators];
+    private static readonly List<IResourceLocator> _moddedResourceLocators = [];
 
-    internal static void LoadCCCatalogs()
+    internal static void InitializeAddressables()
     {
         _packAddressableKeys.Clear();
-        Melon<Mod>.Logger.Msg("Starting registration of modded Addressable content catalogs. . .");
+        Melon<Mod>.Logger.Msg("Starting registration of modded Addressables. . .");
 
-        foreach (var dir in Directory.GetDirectories(Mod.CustomContentPath))
+        foreach (var dir in Directory.EnumerateDirectories(Mod.CustomContentPath))
         {
             var aaPath = Path.Combine(dir, "aa");
-            if (!Directory.Exists(aaPath))
-            {
-                Mod.Logger.Warning($"Folder {dir} has no \"aa\" folder! Custom Addressables, if any, will not be loaded.");
-                continue;
-            }
 
-            var catalogPath = Path.Combine(aaPath, "catalog.json");
-            if (File.Exists(catalogPath))
+            if (!Directory.Exists(aaPath)) continue;
+
+            foreach (var file in Directory.EnumerateFiles(aaPath, "catalog_*.json", SearchOption.AllDirectories))
             {
-                var resourceLocatorHandle = Addressables.LoadContentCatalogAsync(catalogPath).Acquire();
+                var catalogPath = file;
+
+                var resourceLocatorHandle = Addressables.LoadContentCatalog(catalogPath).Acquire();
                 var addressablePackName = Path.GetDirectoryName(catalogPath);
                 if (string.IsNullOrWhiteSpace(addressablePackName)) continue;
 
@@ -126,6 +180,8 @@ public static class AssetUtilities
 
                 var resourceLocator = resourceLocatorHandle.Result;
                 if (resourceLocator is null) continue;
+
+                Addressables.AddResourceLocator(resourceLocator);
                 _moddedResourceLocators.Add(resourceLocator);
                 _packAddressableKeys.Add(catalogPath, resourceLocator.Keys.ToList());
 
@@ -138,11 +194,35 @@ public static class AssetUtilities
                 OnModdedAddressableCatalogLoaded?.Invoke(catalogPath);
                 resourceLocatorHandle.Release();
             }
-            else
+            Melon<Mod>.Logger.Msg(ConsoleColor.Green, "Done!");
+        }
+    }
+
+    /// <summary>
+    /// A hacky Coroutine that refreshes all materials on the passed GameObject and children, or all objects in the scene if not specified.
+    /// </summary>
+    public static IEnumerator RefreshMaterials(GameObject parent=null)
+    {
+        yield return new WaitForEndOfFrame();
+        Mod.Logger.Warning("Refreshing materials. . .");
+        Il2CppArrayBase<MeshRenderer> renderers;
+        if (parent == null)
+            renderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
+        else
+        {
+            var rendList = new List<MeshRenderer>();
+            rendList.AddRange(parent.GetComponents<MeshRenderer>());
+            rendList.AddRange(parent.GetComponentsInChildren<MeshRenderer>());
+
+            renderers = new Il2CppReferenceArray<MeshRenderer>([.. rendList]);
+        }
+       
+        foreach (var meshRenderer in renderers)
+        {
+            foreach (var material in meshRenderer.materials)
             {
-                Melon<Mod>.Logger.Warning($"No catalog found in directory \"{dir}\".");
+                material.shader = Shader.Find(material.shader.name);
             }
         }
-        Melon<Mod>.Logger.Msg(ConsoleColor.Green, "Done!");
     }
 }

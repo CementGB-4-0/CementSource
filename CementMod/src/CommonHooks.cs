@@ -1,3 +1,4 @@
+using CementGB.Mod.Utilities;
 using Il2CppGB.Game;
 using Il2CppGB.Setup;
 using MelonLoader;
@@ -38,5 +39,8 @@ public static class CommonHooks
             _menuFirstBoot = true;
             OnMenuFirstBoot?.Invoke();
         }
+
+        if (AssetUtilities.IsModdedKey(sceneName))
+            MelonCoroutines.Start(AssetUtilities.RefreshMaterials());
     }
 }
