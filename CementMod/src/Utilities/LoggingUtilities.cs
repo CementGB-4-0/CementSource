@@ -14,7 +14,6 @@ internal static class LoggingUtilities
 
     internal static void VerboseLog(string message, [CallerMemberName] string callerName = null, [CallerLineNumber] int lineNumber = 0)
     {
-        if (!CementPreferences.VerboseMode) return;
-        Mod.Logger.Msg(ConsoleColor.DarkGray, callerName == null ? $"{message}" : $"[{callerName.ToUpper()}] {message} : Ln {lineNumber}");
+        VerboseLog(ConsoleColor.DarkGray, callerName == null ? $"{message}" : $"[{callerName.ToUpper()}] {message} : Ln {lineNumber}");
     }
 }
