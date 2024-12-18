@@ -14,9 +14,8 @@ internal static class GameModeMapTrackerPatch
     private static bool SceneNameAlreadyExists(GameModeMapTracker __instance, string sceneName)
     {
         foreach (var map in __instance.AvailableMaps)
-        {
             if (map.MapName == sceneName) return true;
-        }
+
         return false;
     }
 
