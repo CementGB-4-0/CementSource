@@ -243,10 +243,14 @@ public static class AssetUtilities
                 if (assetHandle.Status != AsyncOperationStatus.Succeeded)
                 {
                     LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString()}\"");
+                    continue;
                 }
 
                 if (assetHandle.Result == null)
+                {
                     LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString()}\"");
+                    continue;
+                }
 
                 assetHandle.Result.hideFlags = HideFlags.DontUnloadUnusedAsset;
 
