@@ -13,64 +13,6 @@ namespace CementGB.Mod.Utilities;
 public static class EmbeddedUtilities
 {
     /// <summary>
-    /// Shorthand for loading an AssetBundle's asset by name and type in way that prevents it from being garbage collected.
-    /// </summary>
-    /// <typeparam name="T">The type of the asset to load.</typeparam>
-    /// <param name="bundle">The bundle to load the asset from.</param>
-    /// <param name="name">The exact name of the asset to load.</param>
-    /// <returns>The loaded asset with <c>hideFlags</c> set to <c>HideFlags.DontUnloadUnusedAsset</c></returns>
-    [Obsolete($"Use {nameof(AssetUtilities.LoadPersistentAsset)} instead.")]
-    public static T LoadPersistentAsset<T>(this AssetBundle bundle, string name) where T : UnityEngine.Object
-    {
-        var asset = bundle.LoadAsset(name);
-
-        if (asset != null)
-        {
-            asset.hideFlags = HideFlags.DontUnloadUnusedAsset;
-            return asset.TryCast<T>();
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Shorthand for loading an AssetBundle's asset by name and type in way that prevents it from being garbage collected. This method will execute the callback when async loading is complete.
-    /// </summary>
-    /// <typeparam name="T">The type of the asset to load.</typeparam>
-    /// <param name="bundle">The bundle to load the asset from.</param>
-    /// <param name="name">The exact name of the asset to load.</param>
-    /// <param name="onLoaded">The callback to execute once the asset loads. Takes the loaded asset as a parameter.</param>
-    [Obsolete($"Use {nameof(AssetUtilities.LoadPersistentAssetAsync)} instead.")]
-    public static void LoadPersistentAssetAsync<T>(this AssetBundle bundle, string name, Action<T> onLoaded) where T : UnityEngine.Object
-    {
-        var request = bundle.LoadAssetAsync<T>(name);
-
-        request.add_completed((Il2CppSystem.Action<AsyncOperation>)((a) =>
-        {
-            if (request.asset == null) return;
-            var result = request.asset.TryCast<T>();
-            if (result == null) return;
-            result.hideFlags = HideFlags.DontUnloadUnusedAsset;
-            onLoaded?.Invoke(result);
-        }));
-    }
-   
-    [Obsolete($"Use {nameof(AssetUtilities.LoadAllAssetsPersistentAsync)} instead.")]
-    public static void LoadAllAssetsPersistentAsync<T>(this AssetBundle bundle, Action<T> onLoaded) where T : UnityEngine.Object
-    {
-        var request = bundle.LoadAllAssetsAsync<T>();
-
-        request.add_completed((Il2CppSystem.Action<AsyncOperation>)new Action<AsyncOperation>((a) =>
-        {
-            if (request.asset == null) return;
-            var result = request.asset.TryCast<T>();
-            if (result == null) return;
-            result.hideFlags = HideFlags.DontUnloadUnusedAsset;
-            onLoaded?.Invoke(result);
-        }));
-    }
-
-    /// <summary>
     /// Loads an AssetBundle from an assembly that has it embedded. 
     /// Good for keeping mods small and single-filed. 
     /// Mark an AssetBundle as an EmbeddedResource in your csproj in order for this to work.
