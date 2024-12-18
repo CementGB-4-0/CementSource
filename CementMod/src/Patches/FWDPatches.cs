@@ -24,18 +24,4 @@ internal static class FWDPatches
                 NetworkManager.OnHostStarted.Invoke();
         }
     }
-
-    [HarmonyPatch(typeof(AnyInputOnClick), nameof(AnyInputOnClick.Start))]
-    private static class AnyInputOnClickStartPatch
-    {
-        private static void Postfix(AnyInputOnClick __instance)
-        {
-            /*
-            if (ServerManager.IsForwardedHost && !ServerManager.DontAutoStart && !Application.isBatchMode)
-            {
-                __instance.gameObject.SetActive(false);
-            }
-            */
-        }
-    }
 }

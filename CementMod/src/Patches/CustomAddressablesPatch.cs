@@ -12,8 +12,6 @@ public static class CustomAddressablesPatch
     [HarmonyPrefix]
     public static bool LabelModdedKeysAsValid(AssetReference __instance, ref bool __result)
     {
-        var key = __instance.RuntimeKey.ToString();
-
         if (AssetUtilities.IsModdedKey(__instance.RuntimeKey.ToString()))
         {
             __result = true;
