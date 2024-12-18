@@ -13,7 +13,6 @@ using Il2CppSystem.Linq;
 using System.Collections.ObjectModel;
 using System.Collections;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using MonoMod.Utils;
 
 namespace CementGB.Mod.Utilities;
 
@@ -81,25 +80,13 @@ public static class AssetUtilities
     }
 
     /// <summary>
-    /// Creates an AssetReference with a new Guid referring to the passed Addressable key. The key does not need to refer to a modded addressable, however this method is designed for that purpose.
-    /// </summary>
-    /// <param name="key">The key to refer to when creating the <see cref="AssetReference">.</param>
-    /// <returns>The created <see cref="AssetReference"/>.</returns>
-    public static AssetReference CreateModdedAssetReference(string key)
-    {
-        AssetReference assetReference = new(key);
-        assetReference.m_AssetGUID = Guid.NewGuid().ToString() + assetReference.m_SubObjectName;
-        return assetReference;
-    }
-
-    /// <summary>
     /// Gets all custom-loaded IResourceLocations of a certain result type. Used to iterate through and find custom content addressable keys depending on type.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns>An array containing IResourceLocations that, if loaded, will result in the passed type. Will return an array even if empty.</returns>
     public static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Il2CppSystem.Object
     {
-        List<IResourceLocation> ret = new();
+        List<IResourceLocation> ret = [];
         Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object> allModdedKeys = new();
         foreach (var value in _packAddressableKeys)
             allModdedKeys.AddRange(value.Value.Cast<Il2CppSystem.Collections.Generic.IEnumerable<Il2CppSystem.Object>>());
@@ -180,7 +167,7 @@ public static class AssetUtilities
                 }
 
                 var resourceLocator = resourceLocatorHandle.Result;
-                if (resourceLocator is null) continue;
+                if (resourceLocator == null) continue;
 
                 Addressables.AddResourceLocator(resourceLocator);
                 _moddedResourceLocators.Add(resourceLocator);
