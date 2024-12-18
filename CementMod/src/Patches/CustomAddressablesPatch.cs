@@ -4,11 +4,6 @@ using UnityEngine.AddressableAssets;
 
 namespace CementGB.Mod.Patches;
 
-
-/// <summary>
-/// Miracle patch by @Lionmeow on GitHub. THANK YOU!
-/// https://github.com/Lionmeow/AcceleratorThings/blob/main/AcceleratorThings/CustomAddressablesPatch.cs
-/// </summary>
 [HarmonyPatch]
 public static class CustomAddressablesPatch
 {
