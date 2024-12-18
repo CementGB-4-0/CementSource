@@ -11,7 +11,7 @@ namespace CementGB.Mod.Patches;
 [HarmonyLib.HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneListComplete))]
 internal static class OnSceneListCompletePatch
 {
-    private static void Postfix(SceneLoader __instance, ref Il2CppSystem.Object data)
+    private static void Postfix(ref Il2CppSystem.Object data)
     {
         var sceneList = data.Cast<AddressableDataCache>();
 

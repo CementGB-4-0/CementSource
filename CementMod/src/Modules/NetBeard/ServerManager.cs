@@ -3,13 +3,11 @@ using Il2Cpp;
 using Il2CppCoatsink.UnityServices;
 using Il2CppGB.Core.Bootstrappers;
 using Il2CppGB.Platform.Lobby;
-using Il2CppGB.UI;
 using MelonLoader;
 using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.UI;
 
 namespace CementGB.Mod.Modules.NetBeard;
 
