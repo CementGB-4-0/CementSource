@@ -8,6 +8,21 @@ namespace CementGB.Mod.Patches;
 
 internal static class CustomCostumePatches
 {
+    private static ushort NewUID(this CostumeDatabase __instance)
+    {
+        ushort num;
+        try
+        {
+            num = (ushort)(__instance.GetAllCostumeObjects().Count + 1);
+        }
+        catch (OverflowException)
+        {
+            Mod.Logger.Error("There are too many CostumeObject UIDs!");
+            num = 0;
+        }
+        return num;
+    }
+
     [HarmonyPatch(typeof(CostumeDatabase), nameof(CostumeDatabase.Load))]
     private static class CostumeDatabasePatch
     {
@@ -30,6 +45,7 @@ internal static class CustomCostumePatches
                     continue;
                 }
 
+                handle.Result._uid = __instance.NewUID();
                 __instance.CostumeObjects.Add(handle.Result);
                 handle.Release();
             }
