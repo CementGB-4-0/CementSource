@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace CementGB.Mod.Utilities;
 
-internal static class LoggingUtilities
+public static class LoggingUtilities
 {
     public static void VerboseLog(ConsoleColor color, string message, [CallerMemberName] string callerName = null, [CallerLineNumber] int lineNumber = 0)
     {
