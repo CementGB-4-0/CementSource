@@ -1,0 +1,89 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+
+    <TargetFramework>net6</TargetFramework>
+
+    <RootNamespace>CementGB.Mod</RootNamespace>
+    <AssemblyName>CementGB</AssemblyName>
+    
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <LangVersion>latest</LangVersion>
+    <DefineConstants>$(DefineConstants);MELONLOADER</DefineConstants>
+    <Nullable>disable</Nullable>
+    <Optimize>false</Optimize>
+
+    <OutputType>Library</OutputType>
+    
+    <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with MelonLoader or the game -->
+	  <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>embedded</DebugType>
+
+    <ErrorReport>prompt</ErrorReport>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+
+    <OutputPath>bin\Debug\</OutputPath>
+    <WarningLevel>4</WarningLevel>
+    <!-- <DocumentationFile>CementDocs.xml</DocumentationFile> -->
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+
+    <ErrorReport>prompt</ErrorReport>
+    <DefineConstants>$(DefineConstants);RELEASE;TRACE</DefineConstants>
+
+    <OutputPath>bin\Release\</OutputPath>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ref\**\*.dll"></Reference>
+    
+    <!--
+      Removing redundant references
+    -->
+    <Reference Remove="ref\**\System.*.dll"></Reference>
+    <Reference Remove="ref\**\Microsoft.Win32.SystemEvents.dll"></Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <GameDirFile Include="..\game_dir.txt"></GameDirFile>
+  </ItemGroup>
+
+  <Target Name="BeforeRestore" BeforeTargets="Restore">
+    <!-- Read game_dir.txt into property -->
+    <ReadLinesFromFile File="@(GameDirFile)">
+      <Output TaskParameter="Lines" PropertyName="GameDir" />
+    </ReadLinesFromFile>
+
+    <!-- 
+      Copy net6 and Il2CppAssemblies from game MelonLoader folder to ref folder (It is assumed that you
+    have these
+    folders already if you are contributing)
+    -->
+    <Exec Command=".\ref\copy_refs.bat &quot;$(GameDir)&quot;"></Exec>
+  </Target>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <!-- Read game_dir.txt into property -->
+    <ReadLinesFromFile File="@(GameDirFile)">
+      <Output TaskParameter="Lines" PropertyName="GameDir" />
+    </ReadLinesFromFile>
+
+    <!-- Copy the built mod dll into game Mods folder -->
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Mods" />
+  </Target>
+</Project>

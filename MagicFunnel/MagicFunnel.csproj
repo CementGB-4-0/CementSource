@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+
+	<ItemGroup>
+		<Reference Include="..\CementMod\ref\**\*.dll"></Reference>
+
+		<!--
+      Removing redundant references
+    -->
+		<Reference Remove="..\CementMod\ref\**\System.*.dll"></Reference>
+		<Reference Remove="..\CementMod\ref\**\Microsoft.Win32.SystemEvents.dll"></Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<GameDirFile Include="..\game_dir.txt"></GameDirFile>
+	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <!-- Read game_dir.txt into property -->
+    <ReadLinesFromFile File="@(GameDirFile)">
+      <Output TaskParameter="Lines" PropertyName="GameDir" />
+    </ReadLinesFromFile>
+
+    <!-- Copy the built mod dll into game Mods folder -->
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Plugins" />
+  </Target>
+</Project>

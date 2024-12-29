@@ -1,1 +1,0 @@
-dotnet nuget add source https://nuget.bepinex.dev/v3/index.json -n BepInEx

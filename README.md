@@ -1,33 +1,17 @@
+> [!IMPORTANT]
+> This is the current main development branch for the 4.0 rewrite and support for the IL2CPP versions of Gang Beasts (v1.22 and up). This is a construction zone and not fit for release! Everything is subject to change and lots of things may be broken.
+
 # CementSource
 
-This is the source code for the Cement Mod Loader for Gang Beasts. This outlines the structure of this repo. If you want to learn how to use Cement, go to the documentation [here](https://github.com/HueSamai/CementSource/wiki/).
+This is the source code for the Cement modding tool for Gang Beasts. **To install the latest release of Cement along with its dependency, MelonLoader, go to [the Cement website](https://cementgb.github.io)** and download the mod. Installation instructions are provided [in the documentation.]() (link pending)
 
-Okay now let me show you around.
+## Contribute
 
-## cement
+> **NOTE:** The terms "folder" and "directory" are used interchangeably, but they mean the same thing.
 
-The assetbundle for Cement.
-
-## Cement.cs
-
-This C# file contains the Cement class, which is the actual BepInEx plugin. It manages all the other classes as well as the interactions with Gang Beasts itself. If you want to dig around start here, in the Awake method.
-
-## Helpers
-
-The Helpers directory just contains a bunch of helper classes, not anything interesing.
-
-## ModDownload
-
-This directory contains the classes which all help downloading mods in some way.
-
-## ModMenu
-
-I mean it's pretty obvious this directory just contains the classes which handle the mod menu. Although I should mention that the mod menu is instantiated in the Cement.cs file.
-
-## Mods
-
-This directory contains all the classes which deal with mods directly, for instance, the ModFile class.
-
-## That's all folks
-
-That's literally it. There are almost no comments, so be warned. If you want to fix an issue, create a pull request, you know how it goes. 
+1. **Ensure you have installed the latest 0.6.x release of MelonLoader separately already and run the game with it at least once.** MelonLoader does not come provided with this repository.
+2. Clone this repository into an empty directory.
+3. Create a file called `game_dir.txt` at the root of the cloned repository (the folder that contains `CementMod`) and write the path to your Gang Beasts folder (or Staging folder) in it.
+4. Open the solution in your preferred C# IDE (VS Code, Visual Studio, Rider, etc) and run `dotnet restore` in the terminal. This should copy all needed references from your game directory and vanquish a bunch of missing reference errors.
+5. **Make your changes.** Make sure to commit often, as too many breaking changes in one commit can cause problems. Read up on Git fundamentals to learn more about how to contribute seamlessly.
+6. **Building & Testing**: Once you've made your changes, you need to make sure things work before you submit a PR. It should be as simple as going into the root of the repository again in a terminal and calling `dotnet build`. Build events should take the built files and put them in their needed places in your game directory for testing.
