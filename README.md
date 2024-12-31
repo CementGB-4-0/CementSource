@@ -1,6 +1,3 @@
-> [!IMPORTANT]
-> This is the current main development branch for the 4.0 rewrite and support for the IL2CPP versions of Gang Beasts (v1.22 and up). This is a construction zone and not fit for release! Everything is subject to change and lots of things may be broken.
-
 # CementSource
 
 This is the source code for the Cement modding tool for Gang Beasts. **To install the latest release of Cement along with its dependency, MelonLoader, go to [the Cement website](https://cementgb.github.io)** and download the mod. Installation instructions are provided [in the documentation.]() (link pending)
