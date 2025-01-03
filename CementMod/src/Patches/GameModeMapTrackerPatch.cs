@@ -1,7 +1,6 @@
 using CementGB.Mod.Utilities;
 using HarmonyLib;
 using Il2CppGB.Gamemodes;
-using System;
 using System.Collections.Generic;
 using UnityEngine.ResourceManagement.ResourceProviders;
 
@@ -26,8 +25,6 @@ internal static class GameModeMapTrackerPatch
         {
             if (!_instancesAlreadyExecuted.Contains(__instance))
             {
-                try
-                {
                     _instancesAlreadyExecuted.Add(__instance);
                     var mapLocations = AssetUtilities.GetAllModdedResourceLocationsOfType<SceneInstance>();
 
@@ -44,11 +41,6 @@ internal static class GameModeMapTrackerPatch
 
                         __instance.AvailableMaps.Add(newMapStatus);
                     }
-                }
-                catch (Exception e)
-                {
-                    Mod.Logger.Error(e);
-                }
             }
         }
     }

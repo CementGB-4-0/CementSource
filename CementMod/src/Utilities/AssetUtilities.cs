@@ -95,7 +95,7 @@ public static class AssetUtilities
         allModdedLocations.WaitForCompletion();
         if (allModdedLocations.Status != AsyncOperationStatus.Succeeded)
         {
-            Mod.Logger.Error($"Failed to load modded resource locations! Exception: {allModdedLocations.OperationException}");
+            Mod.Logger.Error($"Failed to load modded resource locations! OperationException: {allModdedLocations.OperationException}");
             return [];
         }
 
@@ -143,7 +143,7 @@ public static class AssetUtilities
     internal static void InitializeAddressables()
     {
         _packAddressableKeys.Clear();
-        Melon<Mod>.Logger.Msg("Starting registration of modded Addressables. . .");
+        Mod.Logger.Msg("Starting registration of modded Addressable content catalogs. . .");
 
         foreach (var dir in Directory.EnumerateDirectories(Mod.CustomContentPath))
         {
@@ -156,18 +156,24 @@ public static class AssetUtilities
                 var catalogPath = file;
 
                 var resourceLocatorHandle = Addressables.LoadContentCatalog(catalogPath).Acquire();
-                var addressablePackName = Path.GetDirectoryName(catalogPath);
+                var addressablePackName = Path.GetDirectoryName(aaPath);
                 if (string.IsNullOrWhiteSpace(addressablePackName)) continue;
 
                 resourceLocatorHandle.WaitForCompletion();
                 if (resourceLocatorHandle.Status != AsyncOperationStatus.Succeeded)
                 {
-                    Melon<Mod>.Logger.Error($"Failed to load Addressable content catalog for \"{addressablePackName}\": ", resourceLocatorHandle.OperationException);
+                    Mod.Logger.Error($"Failed to load Addressable content catalog for \"{addressablePackName}\". OperationException: {resourceLocatorHandle.OperationException.ToString()}");
+                    resourceLocatorHandle.Release();
                     continue;
                 }
 
                 var resourceLocator = resourceLocatorHandle.Result;
-                if (resourceLocator == null) continue;
+                if (resourceLocator == null) 
+                {
+                    Mod.Logger.Error($"Handle for modded Addressable content catalog returned no result. OperationException: {resourceLocatorHandle.OperationException.ToString()}");
+                    resourceLocatorHandle.Release();
+                    continue;
+                }
 
                 Addressables.AddResourceLocator(resourceLocator);
                 _moddedResourceLocators.Add(resourceLocator);
@@ -178,11 +184,11 @@ public static class AssetUtilities
                     LoggingUtilities.VerboseLog($"{addressablePackName} : {key.ToString()}");
                 }
 
-                Melon<Mod>.Logger.Msg(ConsoleColor.Green, $"Content catalog for \"{addressablePackName}\" loaded OK");
+                Mod.Logger.Msg(ConsoleColor.Green, $"Content catalog for \"{addressablePackName}\" loaded OK");
                 OnModdedAddressableCatalogLoaded?.Invoke(catalogPath);
                 resourceLocatorHandle.Release();
             }
-            Melon<Mod>.Logger.Msg(ConsoleColor.Green, "Done!");
+            Mod.Logger.Msg(ConsoleColor.Green, "Done!");
         }
         MelonCoroutines.Start(CacheShaders());
     }
