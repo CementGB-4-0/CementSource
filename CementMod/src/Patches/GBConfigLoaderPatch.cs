@@ -41,9 +41,9 @@ internal static class GBConfigLoaderPatch
                         continue;
                     }
 
-                    if (handle.Result._wavesData == null && masterMenuHandler.CurrentGamemode == Il2CppGB.Gamemodes.GameModeEnum.Waves)
+                    if ((handle.Result._wavesData == null && masterMenuHandler.CurrentGamemode == Il2CppGB.Gamemodes.GameModeEnum.Waves) || masterMenuHandler.CurrentGamemode != Il2CppGB.Gamemodes.GameModeEnum.Melee || masterMenuHandler.CurrentGamemode != Il2CppGB.Gamemodes.GameModeEnum.Waves)
                     {
-                        // Custom scene data has no waves data attached; this is not a waves map
+                        // Custom scene data has no waves data attached; this is not a waves map (or the gamemode isn't melee or waves)
                         handle.Release();
                         continue;
                     }
