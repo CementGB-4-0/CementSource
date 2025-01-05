@@ -35,20 +35,22 @@ internal static class CustomCostumePatches
 
                 if (handle.Status != UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded)
                 {
-                    Mod.Logger.Error($"Failed to load custom Addressable costume object : Key \"{location.PrimaryKey}\" : OperationException {handle.OperationException?.ToString() ?? "null"}");
-                    handle.Release();
-                    continue; 
-                }
-
-                if (handle.Result == null)
-                {
-                    Mod.Logger.Error($"Handle loading Custom costume object completed with no result : Key \"{location.PrimaryKey}\" : OperationException {handle.OperationException?.ToString() ?? "null"}");
+                    Mod.Logger.Error($"Failed to load custom Addressable CostumeObject : Key \"{location.PrimaryKey}\" : OperationException {handle.OperationException?.ToString() ?? "null"}");
                     handle.Release();
                     continue;
                 }
 
-                handle.Result._uid = __instance.NewUID();
-                __instance.CostumeObjects.Add(handle.Result);
+                if (handle.Result == null)
+                {
+                    Mod.Logger.Error($"Handle loading Custom CostumeObject completed with no result : Key \"{location.PrimaryKey}\" : OperationException {handle.OperationException?.ToString() ?? "null"}");
+                    handle.Release();
+                    continue;
+                }
+
+                var res = handle.Result;
+                res._uid = __instance.NewUID();
+                __instance.CostumeObjects.Add(res);
+
                 handle.Release();
             }
         }
