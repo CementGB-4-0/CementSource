@@ -29,6 +29,8 @@ internal static class OnSceneListCompletePatch
             {
                 Key = sceneInstance.PrimaryKey+"-Data"
             });
+
+            Mod.Logger.Msg(System.ConsoleColor.DarkGreen, $"New custom stage registered : Key: {sceneInstance.PrimaryKey}");
         }
 
         data = sceneList;
