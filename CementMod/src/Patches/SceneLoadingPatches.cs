@@ -52,3 +52,18 @@ internal static class LoadLoadedItemPatch
         return true;
     }
 }
+
+[HarmonyLib.HarmonyPatch(typeof(LoadScreenDisplayHandler), nameof(LoadScreenDisplayHandler.SetSubTitle))]
+internal static class SetSubTitlePatch
+{
+    private static bool Prefix(LoadScreenDisplayHandler __instance, ref string name)
+    {
+        if (AssetUtilities.IsModdedKey(name))
+        {
+            __instance._subTitle.GetComponent<TextMeshProUGUI>().text = name;
+            return false;
+        }
+
+        return true;
+    }
+}
