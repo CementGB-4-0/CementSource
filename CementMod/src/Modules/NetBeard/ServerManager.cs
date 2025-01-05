@@ -58,7 +58,7 @@ public class ServerManager : MonoBehaviour
     {
         if (!NetworkClient.active && _autoLaunchUpdateEnabled && IsClientJoiner && CommonHooks.GlobalInitialized)
         {
-            // Connect if client, start local game if fwd
+            // TODO: Connect if client, start local game if fwd
             _autoLaunchUpdateEnabled = false;
         }
     }
