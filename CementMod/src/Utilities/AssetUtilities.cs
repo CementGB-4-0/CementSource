@@ -197,7 +197,7 @@ public static class AssetUtilities
 
     internal static void CacheShaders()
     {
-        Mod.Logger.Warning("Caching Addressable game shaders, please wait. . .");
+        Mod.Logger.Msg("Caching Addressable game shaders, please wait. . .");
 
         foreach (var locator in Addressables.ResourceLocators.ToArray())
         {
