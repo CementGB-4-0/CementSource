@@ -66,8 +66,10 @@ public class ServerManager : MonoBehaviour
     private static void OnBoot()
     {
         if ((IsClientJoiner && !IsForwardedHost) || IsServer)
+        {
             LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
-        LoggingUtilities.VerboseLog("Added DevelopmentTestServer to lobby object.");
+            LoggingUtilities.VerboseLog("Added DevelopmentTestServer to lobby object.");
+        }
 
         if (IsServer) ServerBoot();
     }
