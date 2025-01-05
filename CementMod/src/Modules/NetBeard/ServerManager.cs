@@ -4,7 +4,6 @@ using Il2CppCoatsink.UnityServices;
 using Il2CppGB.Core.Bootstrappers;
 using Il2CppGB.Platform.Lobby;
 using MelonLoader;
-using MelonLoader.Utils;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -71,8 +70,6 @@ public class ServerManager : MonoBehaviour
         LoggingUtilities.VerboseLog("Added DevelopmentTestServer to lobby object.");
 
         if (IsServer) ServerBoot();
-        else
-            UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.GameClient, null, "", "test");
     }
 
     private static void ServerBoot()
