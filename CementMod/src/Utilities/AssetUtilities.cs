@@ -168,7 +168,7 @@ public static class AssetUtilities
                 }
 
                 var resourceLocator = resourceLocatorHandle.Result;
-                if (resourceLocator == null) 
+                if (resourceLocator == null)
                 {
                     Mod.Logger.Error($"Handle for modded Addressable content catalog returned no result. OperationException: {resourceLocatorHandle.OperationException.ToString()}");
                     resourceLocatorHandle.Release();
@@ -188,26 +188,22 @@ public static class AssetUtilities
                 OnModdedAddressableCatalogLoaded?.Invoke(catalogPath);
                 resourceLocatorHandle.Release();
             }
-            Mod.Logger.Msg(ConsoleColor.Green, "Done!");
         }
-        MelonCoroutines.Start(CacheShaders());
+        Mod.Logger.Msg(ConsoleColor.Green, "Done custom content catalogs!");
+        CacheShaders();
     }
 
-    private static Dictionary<string, Shader> _cachedShaders = []; 
+    private static Dictionary<string, Shader> _cachedShaders = [];
 
-    internal static IEnumerator CacheShaders()
+    internal static void CacheShaders()
     {
-        yield return new WaitForEndOfFrame();
         Mod.Logger.Warning("Caching Addressable game shaders, please wait. . .");
 
         foreach (var locator in Addressables.ResourceLocators.ToArray())
         {
             var locatorKeys = locator.Keys.ToList();
-            var handle = Addressables.LoadResourceLocationsAsync(locatorKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union, Il2CppType.Of<Shader>()).Acquire();
-            yield return handle;
-
-            foreach (var key in locatorKeys)
-                LoggingUtilities.VerboseLog($"{locator.LocatorId} : {key.ToString()}");
+            var handle = Addressables.LoadResourceLocations(locatorKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union, Il2CppType.Of<Shader>()).Acquire();
+            handle.WaitForCompletion();
 
             if (handle.Status != AsyncOperationStatus.Succeeded)
             {
@@ -222,26 +218,20 @@ public static class AssetUtilities
             }
 
             var result = handle.Result.Cast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
-            if (result == null || result.Count == 0)
-            {
-                LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException?.ToString() ?? "NONE"}\"");
-                continue;
-            }
-        
             foreach (var location in result)
             {
                 var assetHandle = Addressables.LoadAssetAsync<Shader>(location).Acquire();
-                yield return assetHandle;
+                assetHandle.WaitForCompletion();
 
                 if (assetHandle.Status != AsyncOperationStatus.Succeeded)
                 {
-                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString()}\"");
+                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString() ?? "NONE"}\"");
                     continue;
                 }
 
                 if (assetHandle.Result == null)
                 {
-                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString()}\"");
+                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString() ?? "NONE"}\"");
                     continue;
                 }
 
@@ -258,35 +248,35 @@ public static class AssetUtilities
         Mod.Logger.Msg(ConsoleColor.Green, "Shader caching done!");
     }
 
-/*     /// <summary>
-    /// A hacky Coroutine that calls Shader.Find on all materials on the passed GameObject and children, or all objects in the scene if not specified, and passes in the name of the current shader, setting the Material.shader value.
-    /// </summary>
-    public static IEnumerator RefindMaterials(GameObject parent=null)
-    {
-        yield return new WaitForEndOfFrame();
-        Mod.Logger.Warning("Refreshing materials. . .");
-        Il2CppArrayBase<MeshRenderer> renderers;
-        if (parent == null)
-            renderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
-        else
+    /*     /// <summary>
+        /// A hacky Coroutine that calls Shader.Find on all materials on the passed GameObject and children, or all objects in the scene if not specified, and passes in the name of the current shader, setting the Material.shader value.
+        /// </summary>
+        public static IEnumerator RefindMaterials(GameObject parent=null)
         {
-            var rendList = new List<MeshRenderer>();
-            rendList.AddRange(parent.GetComponents<MeshRenderer>());
-            rendList.AddRange(parent.GetComponentsInChildren<MeshRenderer>());
-
-            renderers = new Il2CppReferenceArray<MeshRenderer>([.. rendList]);
-        }
-       
-        foreach (var meshRenderer in renderers)
-        {
-            foreach (var material in meshRenderer.materials)
+            yield return new WaitForEndOfFrame();
+            Mod.Logger.Warning("Refreshing materials. . .");
+            Il2CppArrayBase<MeshRenderer> renderers;
+            if (parent == null)
+                renderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
+            else
             {
-                material.shader = Shader.Find(material.shader.name);
-            }
-        }
-    } */
+                var rendList = new List<MeshRenderer>();
+                rendList.AddRange(parent.GetComponents<MeshRenderer>());
+                rendList.AddRange(parent.GetComponentsInChildren<MeshRenderer>());
 
-    public static IEnumerator ReloadAddressableShaders(GameObject parent=null)
+                renderers = new Il2CppReferenceArray<MeshRenderer>([.. rendList]);
+            }
+
+            foreach (var meshRenderer in renderers)
+            {
+                foreach (var material in meshRenderer.materials)
+                {
+                    material.shader = Shader.Find(material.shader.name);
+                }
+            }
+        } */
+
+    public static IEnumerator ReloadAddressableShaders(GameObject parent = null)
     {
         yield return new WaitForEndOfFrame();
         Mod.Logger.Warning("Reloading Addressable shaders. . .");
