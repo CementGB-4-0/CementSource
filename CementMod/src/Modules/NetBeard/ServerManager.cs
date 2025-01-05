@@ -76,10 +76,10 @@ public class ServerManager : MonoBehaviour
 
     private static void ServerBoot()
     {
-        LoggingUtilities.VerboseLog("Setting up server boot...");
+        Mod.Logger.Msg("Setting up server boot...");
         FindObjectOfType<NetworkBootstrapper>().AutoRunServer = IsServer && !DontAutoStart;
         UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.DedicatedServer, null, "", "DGS");
         GameObject.Find("Global(Clone)/LevelLoadSystem").SetActive(false);
-        LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen, "Done!");
+        Mod.Logger.Msg(ConsoleColor.DarkGreen, "Done!");
     }
 }
