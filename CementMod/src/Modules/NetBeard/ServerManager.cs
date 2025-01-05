@@ -1,4 +1,4 @@
-﻿using CementGB.Mod.Utilities;
+using CementGB.Mod.Utilities;
 using Il2Cpp;
 using Il2CppCoatsink.UnityServices;
 using Il2CppGB.Core.Bootstrappers;
@@ -53,7 +53,7 @@ public class ServerManager : MonoBehaviour
 
     private static void OnBoot()
     {
-        if (IsClientJoiner || IsServer)
+        if ((IsClientJoiner && !IsForwardedHost) || IsServer)
             LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
         LoggingUtilities.VerboseLog("Added DevelopmentTestServer to lobby object.");
 
