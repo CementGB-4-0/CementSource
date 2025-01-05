@@ -1,6 +1,7 @@
 using CementGB.Mod.Utilities;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
+using Il2CppTMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -18,7 +19,7 @@ internal static class OnSceneListCompletePatch
         foreach (var sceneInstance in AssetUtilities.GetAllModdedResourceLocationsOfType<SceneInstance>())
         {
             var sceneRef = new AssetReference(sceneInstance.PrimaryKey);
-            
+
             sceneList._assets.Add(new()
             {
                 Asset = sceneRef,
@@ -27,7 +28,7 @@ internal static class OnSceneListCompletePatch
 
             Il2CppGB.Core.Resources._assetList.Add(new Il2CppGB.Core.Resources.LoadLoadedItem(new AssetReference($"{sceneInstance.PrimaryKey}-Data"))
             {
-                Key = sceneInstance.PrimaryKey+"-Data"
+                Key = sceneInstance.PrimaryKey + "-Data"
             });
 
             Mod.Logger.Msg(System.ConsoleColor.DarkGreen, $"New custom stage registered : Key: {sceneInstance.PrimaryKey}");
@@ -42,7 +43,7 @@ internal static class LoadLoadedItemPatch
 {
     private static bool Prefix(Il2CppGB.Core.Resources.LoadLoadedItem __instance, ref AsyncOperationHandle __result)
     {
-        if (AssetUtilities.IsModdedKey(__instance.Key)) 
+        if (AssetUtilities.IsModdedKey(__instance.Key))
         {
             __instance._finishedLoading = AsyncOperationStatus.None;
             __instance._loadHandle = Addressables.LoadAssetAsync<ScriptableObject>(__instance.Key);
