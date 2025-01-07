@@ -12,6 +12,7 @@ using Il2CppSystem.Linq;
 using System.Collections.ObjectModel;
 using System.Collections;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using System.Diagnostics;
 
 namespace CementGB.Mod.Utilities;
 
@@ -144,6 +145,9 @@ public static class AssetUtilities
         _packAddressableKeys.Clear();
         Mod.Logger.Msg("Starting registration of modded Addressable content catalogs. . .");
 
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+
         foreach (var dir in Directory.EnumerateDirectories(Mod.CustomContentPath))
         {
             var aaPath = Path.Combine(dir, "aa");
@@ -186,17 +190,22 @@ public static class AssetUtilities
                 Mod.Logger.Msg(ConsoleColor.Green, $"Content catalog for \"{addressablePackName}\" loaded OK");
                 OnModdedAddressableCatalogLoaded?.Invoke(catalogPath);
                 resourceLocatorHandle.Release();
+
             }
         }
-        Mod.Logger.Msg(ConsoleColor.Green, "Done custom content catalogs!");
+
+        stopwatch.Stop();
+        Mod.Logger.Msg(ConsoleColor.Green, $"Done custom content catalogs! Total time taken: {stopwatch.Elapsed}");
         CacheShaders();
     }
 
-    private static Dictionary<string, Shader> _cachedShaders = [];
+    private static readonly Dictionary<string, Shader> _cachedShaders = [];
 
     internal static void CacheShaders()
     {
         Mod.Logger.Msg("Caching Addressable game shaders, please wait. . .");
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
 
         foreach (var locator in Addressables.ResourceLocators.ToArray())
         {
@@ -207,12 +216,14 @@ public static class AssetUtilities
             if (handle.Status != AsyncOperationStatus.Succeeded)
             {
                 LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException.ToString()}\"");
+                stopwatch.Reset();
                 continue;
             }
 
             if (handle.Result == null)
             {
                 LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException?.ToString() ?? "NONE"}\"");
+                stopwatch.Reset();
                 continue;
             }
 
@@ -224,13 +235,15 @@ public static class AssetUtilities
 
                 if (assetHandle.Status != AsyncOperationStatus.Succeeded)
                 {
-                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString() ?? "NONE"}\"");
+                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE failed for location (Key \"{location.PrimaryKey}\")! : OperationException \"{assetHandle.OperationException.ToString() ?? "NONE"}\"");
+                    assetHandle.Release();
                     continue;
                 }
 
                 if (assetHandle.Result == null)
                 {
-                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{assetHandle.OperationException.ToString() ?? "NONE"}\"");
+                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE returned no result for location (Key \"{location.PrimaryKey}\")! : OperationException \"{assetHandle.OperationException.ToString() ?? "NONE"}\"");
+                    assetHandle.Release();
                     continue;
                 }
 
@@ -240,11 +253,11 @@ public static class AssetUtilities
                     _cachedShaders.Add(assetHandle.Result.name, assetHandle.Result);
                 assetHandle.Release();
             }
-
             handle.Release();
         }
 
-        Mod.Logger.Msg(ConsoleColor.Green, "Shader caching done!");
+        stopwatch.Stop();
+        Mod.Logger.Msg(ConsoleColor.Green, $"Shader caching done! Total time taken: {stopwatch.Elapsed}");
     }
 
     /*     /// <summary>

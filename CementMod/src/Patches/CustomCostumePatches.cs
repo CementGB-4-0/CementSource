@@ -46,6 +46,7 @@ internal static class CustomCostumePatches
                 {
                     Mod.Logger.Error($"Failed to load custom Addressable CostumeObject : Key \"{location.PrimaryKey}\" : OperationException {handle.OperationException?.ToString() ?? "null"}");
                     handle.Release();
+                    timeTakenStopwatch.Restart();
                     continue;
                 }
 
@@ -53,6 +54,7 @@ internal static class CustomCostumePatches
                 {
                     Mod.Logger.Error($"Handle loading Custom CostumeObject completed with no result : Key \"{location.PrimaryKey}\" : OperationException {handle.OperationException?.ToString() ?? "null"}");
                     handle.Release();
+                    timeTakenStopwatch.Restart();
                     continue;
                 }
 
