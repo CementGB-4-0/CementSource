@@ -8,7 +8,7 @@ internal class LoadStringPatch
 {
     private static void Postfix(string key, ref string __result)
     {
-        if (__result == null || __result.StartsWith("No translation"))
+        if (__result == null || __result.StartsWith("Couldn't find value"))
         {
             if (!ExtendedStringLoader.items.ContainsKey(key))
             {
@@ -26,7 +26,7 @@ internal class LoadRawStringPatch
 {
     private static void Postfix(string key, ref string __result)
     {
-        if (__result == null || __result.StartsWith("No translation"))
+        if (__result == null || __result.StartsWith("Couldn't find value"))
         {
             if (!ExtendedStringLoader.items.ContainsKey(key))
             {

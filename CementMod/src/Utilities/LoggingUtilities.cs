@@ -4,9 +4,9 @@ using System.Runtime.CompilerServices;
 
 namespace CementGB.Mod.Utilities;
 
-internal static class LoggingUtilities
+public static class LoggingUtilities
 {
-    internal static void VerboseLog(ConsoleColor color, string message, [CallerMemberName] string callerName = null, [CallerLineNumber] int lineNumber = 0)
+    public static void VerboseLog(ConsoleColor color, string message, [CallerMemberName] string callerName = null, [CallerLineNumber] int lineNumber = 0)
     {
         if (!CementPreferences.VerboseMode) return;
 
@@ -22,7 +22,7 @@ internal static class LoggingUtilities
         Mod.Logger.Msg(color, callerName == null ? $"{message}" : $"[{fullCallerName}] {message} : Ln {lineNumber}");
     }
 
-    internal static void VerboseLog(string message, [CallerMemberName] string callerName = null, [CallerLineNumber] int lineNumber = 0) =>
+    public static void VerboseLog(string message, [CallerMemberName] string callerName = null, [CallerLineNumber] int lineNumber = 0) =>
         VerboseLog(ConsoleColor.DarkGray, message, callerName, lineNumber);
 
 }

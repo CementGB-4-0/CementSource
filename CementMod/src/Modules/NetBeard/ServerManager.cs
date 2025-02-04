@@ -6,6 +6,7 @@ using Il2CppGB.Platform.Lobby;
 using MelonLoader;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -14,6 +15,9 @@ namespace CementGB.Mod.Modules.NetBeard;
 [RegisterTypeInIl2Cpp]
 public class ServerManager : MonoBehaviour
 {
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    internal static extern IntPtr MessageBox(int hWnd, String text, String caption, uint type);
+
     public const string DEFAULT_IP = "127.0.0.1";
     public const int DEFAULT_PORT = 5999;
 
@@ -33,6 +37,14 @@ public class ServerManager : MonoBehaviour
     {
         LobbyManager.add_onSetupComplete(new Action(OnBoot));
 
+        if (MelonUtils.IsWindows)
+        {
+            if (IsForwardedHost)
+                MessageBox(0, $"Gang Beasts is loading in FWD mode. This will open a server on port {Port} upon creating a local game for LAN or port-forwarded players to join.\nIf this is unintended, please remove the launch argument \"-FWD\" from the Gang Beasts executable.", "Warning", 0);
+            else if (IsClientJoiner)
+                MessageBox(0, $"Gang Beasts is loading in Joiner mode. This will unlock a panel allowing you to join a server with a specific IP and port.\nIf this is unintended, please remove the launch arguments \"-ip\" and \"-port\" from the Gang Beasts executable.", "Warning", 0);
+        }
+
         if (IsServer)
         {
             LoggingUtilities.VerboseLog("Setting up pre-boot dedicated server overrides. . .");
@@ -46,28 +58,28 @@ public class ServerManager : MonoBehaviour
     {
         if (!NetworkClient.active && _autoLaunchUpdateEnabled && IsClientJoiner && CommonHooks.GlobalInitialized)
         {
-            // Connect if client, start local game if fwd
+            // TODO: Connect if client, start local game if fwd
             _autoLaunchUpdateEnabled = false;
         }
     }
 
     private static void OnBoot()
     {
-        if (IsClientJoiner || IsServer)
+        if ((IsClientJoiner && !IsForwardedHost) || IsServer)
+        {
             LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
-        LoggingUtilities.VerboseLog("Added DevelopmentTestServer to lobby object.");
+            LoggingUtilities.VerboseLog("Added DevelopmentTestServer to lobby object.");
+        }
 
         if (IsServer) ServerBoot();
-        else
-            UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.GameClient, null, "", "test");
     }
 
     private static void ServerBoot()
     {
-        LoggingUtilities.VerboseLog("Setting up server boot...");
+        Mod.Logger.Msg("Setting up server boot...");
         FindObjectOfType<NetworkBootstrapper>().AutoRunServer = IsServer && !DontAutoStart;
         UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.DedicatedServer, null, "", "DGS");
         GameObject.Find("Global(Clone)/LevelLoadSystem").SetActive(false);
-        LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen, "Done!");
+        Mod.Logger.Msg(ConsoleColor.DarkGreen, "Done!");
     }
 }

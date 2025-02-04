@@ -1,7 +1,6 @@
 using CementGB.Mod.Utilities;
 using HarmonyLib;
 using Il2CppGB.Gamemodes;
-using System;
 using System.Collections.Generic;
 using UnityEngine.ResourceManagement.ResourceProviders;
 
@@ -26,28 +25,21 @@ internal static class GameModeMapTrackerPatch
         {
             if (!_instancesAlreadyExecuted.Contains(__instance))
             {
-                try
-                {
-                    _instancesAlreadyExecuted.Add(__instance);
-                    var mapLocations = AssetUtilities.GetAllModdedResourceLocationsOfType<SceneInstance>();
+                _instancesAlreadyExecuted.Add(__instance);
+                var mapLocations = AssetUtilities.GetAllModdedResourceLocationsOfType<SceneInstance>();
 
-                    foreach (var mapLocation in mapLocations)
+                foreach (var mapLocation in mapLocations)
+                {
+                    if (SceneNameAlreadyExists(__instance, mapLocation.PrimaryKey)) continue;
+                    ExtendedStringLoader.Register($"STAGE_{mapLocation.PrimaryKey.ToUpper()}", mapLocation.PrimaryKey);
+
+                    ModeMapStatus newMapStatus = new(mapLocation.PrimaryKey, true)
                     {
-                        if (SceneNameAlreadyExists(__instance, mapLocation.PrimaryKey)) continue;
-                        ExtendedStringLoader.Register($"STAGE_{mapLocation.PrimaryKey.ToUpper()}", mapLocation.PrimaryKey);
+                        AllowedModesLocal = GameModeEnum.Melee,
+                        AllowedModesOnline = GameModeEnum.Melee // TODO: support additional gamemodes
+                    };
 
-                        ModeMapStatus newMapStatus = new(mapLocation.PrimaryKey, true)
-                        {
-                            AllowedModesLocal = GameModeEnum.Melee,
-                            AllowedModesOnline = GameModeEnum.Melee // TODO: support additional gamemodes
-                        };
-
-                        __instance.AvailableMaps.Add(newMapStatus);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Mod.Logger.Error(e);
+                    __instance.AvailableMaps.Add(newMapStatus);
                 }
             }
         }

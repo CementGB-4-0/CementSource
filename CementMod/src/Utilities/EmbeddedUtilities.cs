@@ -8,7 +8,7 @@ using UnityEngine;
 namespace CementGB.Mod.Utilities;
 
 /// <summary>
-/// Utilities that make working with AssetBundles easier in the IL2CPP space. Implements shorthand for persistent asset loading and embedded AssetBundles.
+/// Utilities that make working with AssetBundles easier in the IL2CPP space. Implements shorthand for embedded AssetBundles.
 /// </summary>
 public static class EmbeddedUtilities
 {
