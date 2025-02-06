@@ -104,7 +104,7 @@ public class Mod : MelonMod
         Object.DontDestroyOnLoad(CementCompContainer);
         CementCompContainer.hideFlags = HideFlags.DontUnloadUnusedAsset;
 
-        CementCompContainer.AddComponent<NetBeard>();
+        //CementCompContainer.AddComponent<NetBeard>();
         CementCompContainer.AddComponent<ServerManager>();
         CementCompContainer.AddComponent<Pool>();
         CementCompContainer.AddComponent<BeastInput>();
