@@ -9,7 +9,7 @@
     <AssemblyName>CementGB</AssemblyName>
     
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>12</LangVersion>
     <DefineConstants>$(DefineConstants);MELONLOADER</DefineConstants>
     <Nullable>disable</Nullable>
     <Optimize>false</Optimize>

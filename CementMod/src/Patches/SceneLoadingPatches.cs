@@ -38,24 +38,6 @@ internal static class OnSceneListCompletePatch
     }
 }
 
-[HarmonyLib.HarmonyPatch(typeof(Il2CppGB.Core.Resources.LoadLoadedItem), nameof(Il2CppGB.Core.Resources.LoadLoadedItem.Load))]
-internal static class LoadLoadedItemPatch
-{
-    private static bool Prefix(Il2CppGB.Core.Resources.LoadLoadedItem __instance, ref AsyncOperationHandle __result)
-    {
-        if (AssetUtilities.IsModdedKey(__instance.Key))
-        {
-            __instance._finishedLoading = AsyncOperationStatus.None;
-            __instance._loadHandle = Addressables.LoadAssetAsync<ScriptableObject>(__instance.Key);
-
-            __result = __instance._loadHandle;
-            return false;
-        }
-
-        return true;
-    }
-}
-
 [HarmonyLib.HarmonyPatch(typeof(LoadScreenDisplayHandler), nameof(LoadScreenDisplayHandler.SetSubTitle))]
 internal static class SetSubTitlePatch
 {
