@@ -28,11 +28,9 @@ internal static class CustomCostumePatches
     [HarmonyPatch(typeof(CostumeDatabase), nameof(CostumeDatabase.Load))]
     private static class CostumeDatabasePatch
     {
-        private static void Postfix(ref Il2CppSystem.Collections.IEnumerator __result)
+        private static void Postfix()
         {
-            if (__result.Current != null) return;
-
-            Mod.Logger.Msg("Injecting custom Addressable CostumeObjects into database. . .");
+            Mod.Logger.Msg("Injecting custom Addressable CostumeObjects into vanilla databases. . .");
             var timeTakenStopwatch = new Stopwatch();
             var totalTimeTaken = new TimeSpan();
             timeTakenStopwatch.Start();
@@ -46,7 +44,6 @@ internal static class CustomCostumePatches
                 {
                     Mod.Logger.Error($"Failed to load custom Addressable CostumeObject : Key \"{location.PrimaryKey}\" : OperationException {handle.OperationException?.ToString() ?? "null"}");
                     handle.Release();
-                    timeTakenStopwatch.Restart();
                     continue;
                 }
 
@@ -54,7 +51,6 @@ internal static class CustomCostumePatches
                 {
                     Mod.Logger.Error($"Handle loading Custom CostumeObject completed with no result : Key \"{location.PrimaryKey}\" : OperationException {handle.OperationException?.ToString() ?? "null"}");
                     handle.Release();
-                    timeTakenStopwatch.Restart();
                     continue;
                 }
 
@@ -63,9 +59,7 @@ internal static class CustomCostumePatches
                 CostumeDatabase.Instance.CostumeObjects.Add(res);
 
                 handle.Release();
-                totalTimeTaken.Add(timeTakenStopwatch.Elapsed);
-                Mod.Logger.Msg(ConsoleColor.DarkGreen, $"New custom CostumeObject registered : Key \"{location.PrimaryKey}\" : Time Taken {timeTakenStopwatch.Elapsed}");
-                timeTakenStopwatch.Restart();
+                Mod.Logger.Msg(ConsoleColor.DarkGreen, $"New custom CostumeObject registered : Key \"{location.PrimaryKey}\"");
             }
 
             timeTakenStopwatch.Stop();
