@@ -30,8 +30,6 @@ internal static class CustomCostumePatches
     {
         private static void Postfix(ref Il2CppSystem.Collections.IEnumerator __result)
         {
-            if (__result.Current != null) return;
-
             Mod.Logger.Msg("Injecting custom Addressable CostumeObjects into database. . .");
             var timeTakenStopwatch = new Stopwatch();
             var totalTimeTaken = new TimeSpan();
