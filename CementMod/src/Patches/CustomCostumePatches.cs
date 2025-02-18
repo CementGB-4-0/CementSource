@@ -15,7 +15,7 @@ internal static class CustomCostumePatches
         ushort num;
         try
         {
-            num = (ushort)(__instance.GetAllCostumeObjects().Count + 1);
+            num = (ushort)(__instance.searchSpeeder.GetKey(__instance.searchSpeeder.Count - 1) + 1);
         }
         catch (OverflowException)
         {
@@ -25,14 +25,15 @@ internal static class CustomCostumePatches
         return num;
     }
 
-    [HarmonyPatch(typeof(CostumeDatabase), nameof(CostumeDatabase.Load))]
+    [HarmonyPatch(typeof(CostumeDatabase._Load_d__12), nameof(CostumeDatabase._Load_d__12.MoveNext))]
     private static class CostumeDatabasePatch
     {
-        private static void Postfix(ref Il2CppSystem.Collections.IEnumerator __result)
+        private static void Postfix(bool __result, CostumeDatabase._Load_d__12 __instance)
         {
+            if (__result) return;
+
             Mod.Logger.Msg("Injecting custom Addressable CostumeObjects into database. . .");
             var timeTakenStopwatch = new Stopwatch();
-            var totalTimeTaken = new TimeSpan();
             timeTakenStopwatch.Start();
 
             foreach (var location in AssetUtilities.GetAllModdedResourceLocationsOfType<CostumeObject>())
@@ -44,7 +45,6 @@ internal static class CustomCostumePatches
                 {
                     Mod.Logger.Error($"Failed to load custom Addressable CostumeObject : Key \"{location.PrimaryKey}\" : OperationException {handle.OperationException?.ToString() ?? "null"}");
                     handle.Release();
-                    timeTakenStopwatch.Restart();
                     continue;
                 }
 
@@ -52,22 +52,20 @@ internal static class CustomCostumePatches
                 {
                     Mod.Logger.Error($"Handle loading Custom CostumeObject completed with no result : Key \"{location.PrimaryKey}\" : OperationException {handle.OperationException?.ToString() ?? "null"}");
                     handle.Release();
-                    timeTakenStopwatch.Restart();
                     continue;
                 }
 
                 var res = handle.Result;
-                res._uid = CostumeDatabase.Instance.NewUID();
-                CostumeDatabase.Instance.CostumeObjects.Add(res);
+                res._uid = __instance.__4__this.NewUID();
+                __instance.__4__this.CostumeObjects.Add(res);
+                __instance.__4__this.searchSpeeder.Add(res._uid, res);
 
                 handle.Release();
-                totalTimeTaken.Add(timeTakenStopwatch.Elapsed);
-                Mod.Logger.Msg(ConsoleColor.DarkGreen, $"New custom CostumeObject registered : Key \"{location.PrimaryKey}\" : Time Taken {timeTakenStopwatch.Elapsed}");
-                timeTakenStopwatch.Restart();
+                Mod.Logger.Msg(ConsoleColor.DarkGreen, $"New custom CostumeObject registered : Key \"{location.PrimaryKey}\"");
             }
 
             timeTakenStopwatch.Stop();
-            Mod.Logger.Msg(ConsoleColor.Green, $"Custom CostumeObject injection completed! Total time taken: {totalTimeTaken}");
+            Mod.Logger.Msg(ConsoleColor.Green, $"Custom CostumeObject injection completed! Total time taken: {timeTakenStopwatch.Elapsed}");
         }
     }
 }
