@@ -15,7 +15,7 @@ namespace CementGB.Mod.Modules.NetBeard;
 [RegisterTypeInIl2Cpp]
 public class ServerManager : MonoBehaviour
 {
-    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     internal static extern IntPtr MessageBox(int hWnd, String text, String caption, uint type);
 
     public const string DEFAULT_IP = "127.0.0.1";
