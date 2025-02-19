@@ -1,4 +1,4 @@
-﻿using CementGB.Mod.Utilities;
+using CementGB.Mod.Utilities;
 using Il2CppGB.Data;
 
 namespace CementGB.Mod.Patches;

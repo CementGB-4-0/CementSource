@@ -91,11 +91,13 @@ public static class AssetUtilities
         foreach (var value in _packAddressableKeys)
             allModdedKeys.AddRange(value.Value.Cast<Il2CppSystem.Collections.Generic.IEnumerable<Il2CppSystem.Object>>());
 
-        var allModdedLocations = Addressables.LoadResourceLocations(allModdedKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union).Acquire();
+        var allModdedLocations = Addressables.LoadResourceLocationsAsync(allModdedKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union);
         allModdedLocations.WaitForCompletion();
+
         if (allModdedLocations.Status != AsyncOperationStatus.Succeeded)
         {
             Mod.Logger.Error($"Failed to load modded resource locations! OperationException: {allModdedLocations.OperationException}");
+            allModdedLocations.Release();
             return [];
         }
 
@@ -107,7 +109,8 @@ public static class AssetUtilities
         }
 
         if (ret.Count == 0)
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, "Returned empty array! Type probably wasn't found in addressables.");
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Returned empty array! Type {typeof(T)} probably wasn't found in addressables.");
+        allModdedLocations.Release();
         return [.. ret];
     }
 
@@ -121,7 +124,7 @@ public static class AssetUtilities
         return false;
     }
 
-    public static ReadOnlyDictionary<string, Il2CppSystem.Object[]> PackAddressableKeys // { catalogPath: addressableKeys }
+    public static ReadOnlyDictionary<string, Il2CppSystem.Object[]> PackAddressableKeys // { modName: addressableKeys }
     {
         get
         {
@@ -148,9 +151,9 @@ public static class AssetUtilities
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        foreach (var dir in Directory.EnumerateDirectories(Mod.CustomContentPath))
+        foreach (var contentMod in Directory.EnumerateDirectories(Mod.CustomContentPath))
         {
-            var aaPath = Path.Combine(dir, "aa");
+            var aaPath = Path.Combine(contentMod, "aa");
 
             if (!Directory.Exists(aaPath)) continue;
 
@@ -180,7 +183,7 @@ public static class AssetUtilities
 
                 Addressables.AddResourceLocator(resourceLocator);
                 _moddedResourceLocators.Add(resourceLocator);
-                _packAddressableKeys.Add(catalogPath, resourceLocator.Keys.ToList());
+                _packAddressableKeys.Add(Path.GetFileNameWithoutExtension(contentMod), resourceLocator.Keys.ToList());
 
                 foreach (var key in resourceLocator.Keys.ToArray())
                 {
@@ -190,7 +193,6 @@ public static class AssetUtilities
                 Mod.Logger.Msg(ConsoleColor.Green, $"Content catalog for \"{addressablePackName}\" loaded OK");
                 OnModdedAddressableCatalogLoaded?.Invoke(catalogPath);
                 resourceLocatorHandle.Release();
-
             }
         }
 
