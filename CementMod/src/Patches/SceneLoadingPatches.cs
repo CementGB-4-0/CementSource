@@ -1,21 +1,63 @@
+using System;
 using System.Linq;
 using CementGB.Mod.Utilities;
+using GBMDK;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
+using Il2CppGB.Game.Data;
 using Il2CppTMPro;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceProviders;
 
 namespace CementGB.Mod.Patches;
 
+[HarmonyLib.HarmonyPatch(typeof(SceneData), nameof(SceneData.OnInternalLoad))]
+internal static class LoadDataPatch
+{
+    private static void Postfix(SceneData __instance)
+    {
+        var key = __instance.name.Split("-").First();
+        if (!AssetUtilities.IsModdedKey(key)) return;
+
+        var mapInfoArray = AssetUtilities.GetAllModdedResourceLocationsOfType<CustomMapInfo>()
+                         .Where(new Func<UnityEngine.ResourceManagement.ResourceLocations.IResourceLocation, bool>((loc) => { return loc.PrimaryKey == $"{key}-Info"; }))
+                         .ToArray();
+
+        CustomMapInfo info = null;
+        if (mapInfoArray.Length > 0)
+        {
+            var mapInfoLoc = mapInfoArray.First();
+
+            var infoHandle = Addressables.LoadAsset<CustomMapInfo>(mapInfoLoc).Acquire();
+            infoHandle.WaitForCompletion();
+
+            if (infoHandle.Status != UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded)
+            {
+                LoggingUtilities.VerboseLog(System.ConsoleColor.DarkRed, $"Failed to load CustomMapInfo from key \"{key}-Info\" : OperationException \"{infoHandle.OperationException.ToString()}\"");
+            }
+
+            if (infoHandle.Result == null)
+            {
+                LoggingUtilities.VerboseLog(System.ConsoleColor.DarkRed, $"Failed to load CustomMapInfo from key \"{key}-Info\" : Result returned null");
+            }
+
+            info = infoHandle.Result;
+            infoHandle.Release();
+        }
+
+        if (info != null && info.allowedGamemodes.Get().HasFlag(Il2CppGB.Gamemodes.GameModeEnum.Waves) && __instance._wavesData == null)
+            __instance._wavesData = UnityEngine.Object.FindObjectOfType<WavesData>();
+    }
+}
+
 [HarmonyLib.HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneListComplete))]
 internal static class OnSceneListCompletePatch
 {
-    public static readonly string[] BlacklistedSceneNames = new string[]
-    {
+    public static readonly string[] BlacklistedSceneNames =
+    [
         "_bootScene",
         "Menu"
-    };
+    ];
 
     private static void Postfix(ref Il2CppSystem.Object data)
     {
@@ -25,7 +67,7 @@ internal static class OnSceneListCompletePatch
         {
             if (sceneInstance.PrimaryKey.StartsWith("_") || BlacklistedSceneNames.Contains(sceneInstance.PrimaryKey))
             {
-                LoggingUtilities.VerboseLog(System.ConsoleColor.DarkRed, $"Skipped over scene with key {sceneInstance.PrimaryKey} because it contains characters that are blacklisted.");
+                LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Skipped over scene with key {sceneInstance.PrimaryKey} because it contains characters that are blacklisted.");
                 continue;
             }
 
@@ -42,7 +84,7 @@ internal static class OnSceneListCompletePatch
                 Key = sceneInstance.PrimaryKey + "-Data"
             });
 
-            Mod.Logger.Msg(System.ConsoleColor.DarkGreen, $"New custom stage registered : Key: {sceneInstance.PrimaryKey}");
+            Mod.Logger.Msg(ConsoleColor.DarkGreen, $"New custom stage registered : Key: {sceneInstance.PrimaryKey}");
         }
 
         data = sceneList;

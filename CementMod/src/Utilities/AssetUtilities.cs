@@ -91,11 +91,13 @@ public static class AssetUtilities
         foreach (var value in _packAddressableKeys)
             allModdedKeys.AddRange(value.Value.Cast<Il2CppSystem.Collections.Generic.IEnumerable<Il2CppSystem.Object>>());
 
-        var allModdedLocations = Addressables.LoadResourceLocations(allModdedKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union).Acquire();
+        var allModdedLocations = Addressables.LoadResourceLocationsAsync(allModdedKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union);
         allModdedLocations.WaitForCompletion();
+
         if (allModdedLocations.Status != AsyncOperationStatus.Succeeded)
         {
             Mod.Logger.Error($"Failed to load modded resource locations! OperationException: {allModdedLocations.OperationException}");
+            allModdedLocations.Release();
             return [];
         }
 
@@ -107,7 +109,8 @@ public static class AssetUtilities
         }
 
         if (ret.Count == 0)
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, "Returned empty array! Type probably wasn't found in addressables.");
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Returned empty array! Type {typeof(T)} probably wasn't found in addressables.");
+        allModdedLocations.Release();
         return [.. ret];
     }
 
