@@ -30,9 +30,7 @@ internal static class CustomCostumePatches
     {
         private static void Postfix(bool __result, CostumeDatabase._Load_d__12 __instance)
         {
-            if (__result) return;
-
-            Mod.Logger.Msg("Injecting custom Addressable CostumeObjects into database. . .");
+            Mod.Logger.Msg("Injecting custom Addressable CostumeObjects into vanilla databases. . .");
             var timeTakenStopwatch = new Stopwatch();
             timeTakenStopwatch.Start();
 

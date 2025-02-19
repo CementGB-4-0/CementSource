@@ -50,13 +50,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="ref\**\*.dll"></Reference>
-    
-    <!--
-      Removing redundant references
-    -->
-    <Reference Remove="ref\**\System.*.dll"></Reference>
-    <Reference Remove="ref\**\Microsoft.Win32.SystemEvents.dll"></Reference>
+    <PackageReference Include="GangBeasts.GameLibs" Version="1.26.0-gh13" />
+    <PackageReference Include="LavaGang.MelonLoader" Version="0.7.0"/>
+    <PackageReference Include="Il2CppInterop.Common" Version="1.4.6-ci.579" />
+		<PackageReference Include="Il2CppInterop.Runtime" Version="1.4.6-ci.579" />
+    <PackageReference Include="Il2CppInterop.HarmonySupport" Version="1.4.6-ci.579" />
+    <PackageReference Include="Iced" Version="1.21.0" />
+		<PackageReference Include="Mono.Cecil" Version="0.11.6" />
+		<PackageReference Include="HarmonyX" Version="2.10.2" />
+		<PackageReference Include="MonoMod" Version="22.7.31.1" />
+		<PackageReference Include="MonoMod.RuntimeDetour" Version="22.7.31.1" />
+		<PackageReference Include="MonoMod.Utils" Version="22.7.31.1" />
+		<PackageReference Include="Samboy063.Tomlet" Version="5.4.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,13 +74,6 @@
     <ReadLinesFromFile File="@(GameDirFile)">
       <Output TaskParameter="Lines" PropertyName="GameDir" />
     </ReadLinesFromFile>
-
-    <!-- 
-      Copy net6 and Il2CppAssemblies from game MelonLoader folder to ref folder (It is assumed that you
-    have these
-    folders already if you are contributing)
-    -->
-    <Exec Command=".\ref\copy_refs.bat &quot;$(GameDir)&quot;"></Exec>
   </Target>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
