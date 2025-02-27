@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace CementGB.Mod.Utilities;
 
 /// <summary>
-/// This class handles simple modded string localization, e.g. "STAGE_GRIND" -> "Grind"
+/// This class registers simple modded string localization, e.g. "STAGE_GRIND" -> "Grind"
 /// </summary>
 public static class ExtendedStringLoader
 {
