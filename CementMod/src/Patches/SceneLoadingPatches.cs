@@ -19,31 +19,23 @@ internal static class LoadDataPatch
         var key = __instance.name.Split("-").First();
         if (!AssetUtilities.IsModdedKey(key)) return;
 
-        var mapInfoArray = AssetUtilities.GetAllModdedResourceLocationsOfType<CustomMapInfo>()
-                         .Where(new Func<UnityEngine.ResourceManagement.ResourceLocations.IResourceLocation, bool>((loc) => { return loc.PrimaryKey == $"{key}-Info"; }))
-                         .ToArray();
+        var infoHandle = Addressables.LoadAsset<Il2CppSystem.Object>($"{key}-Info").Acquire();
+        infoHandle.WaitForCompletion();
 
-        CustomMapInfo info = null;
-        if (mapInfoArray.Length > 0)
+        if (infoHandle.Status != UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded)
         {
-            var mapInfoLoc = mapInfoArray.First();
-
-            var infoHandle = Addressables.LoadAsset<CustomMapInfo>(mapInfoLoc).Acquire();
-            infoHandle.WaitForCompletion();
-
-            if (infoHandle.Status != UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded)
-            {
-                LoggingUtilities.VerboseLog(System.ConsoleColor.DarkRed, $"Failed to load CustomMapInfo from key \"{key}-Info\" : OperationException \"{infoHandle.OperationException.ToString()}\"");
-            }
-
-            if (infoHandle.Result == null)
-            {
-                LoggingUtilities.VerboseLog(System.ConsoleColor.DarkRed, $"Failed to load CustomMapInfo from key \"{key}-Info\" : Result returned null");
-            }
-
-            info = infoHandle.Result;
-            infoHandle.Release();
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Failed to load CustomMapInfo from key \"{key}-Info\" : OperationException \"{infoHandle.OperationException.ToString()}\"");
         }
+
+        if (infoHandle.Result == null)
+        {
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Failed to load CustomMapInfo from key \"{key}-Info\" : Result returned null");
+            infoHandle.Release();
+            return;
+        }
+
+        var info = infoHandle.Result.Cast<CustomMapInfo>();
+        infoHandle.Release();
 
         if (info != null && info.allowedGamemodes.Get().HasFlag(Il2CppGB.Gamemodes.GameModeEnum.Waves) && __instance._wavesData == null)
             __instance._wavesData = UnityEngine.Object.FindObjectOfType<WavesData>();
