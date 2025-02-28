@@ -8,17 +8,26 @@ namespace GBMDK
     {
         private void Update()
         {
-            FindObjectOfType<OpaqueSurfaceFogRendererFeature>().SetActive(false);
+            var feature = FindObjectOfType<OpaqueSurfaceFogRendererFeature>();
+
+            if (feature)
+                feature.SetActive(false);
         }
 
         private void OnDisable()
         {
-            FindObjectOfType<OpaqueSurfaceFogRendererFeature>().SetActive(true);
+            var feature = FindObjectOfType<OpaqueSurfaceFogRendererFeature>();
+
+            if (feature)
+                feature.SetActive(false);
         }
 
         private void OnDestroy()
         {
-            FindObjectOfType<OpaqueSurfaceFogRendererFeature>().SetActive(true);
+            var feature = FindObjectOfType<OpaqueSurfaceFogRendererFeature>();
+
+            if (feature)
+                feature.SetActive(false);
         }
     }
 }
