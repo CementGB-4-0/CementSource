@@ -30,6 +30,9 @@ internal static class CustomCostumePatches
     {
         private static void Postfix(bool __result, CostumeDatabase._Load_d__12 __instance)
         {
+            if (__result)
+                return;
+
             Mod.Logger.Msg("Injecting custom Addressable CostumeObjects into vanilla databases. . .");
             var timeTakenStopwatch = new Stopwatch();
             timeTakenStopwatch.Start();
@@ -55,6 +58,10 @@ internal static class CustomCostumePatches
 
                 var res = handle.Result;
                 res._uid = __instance.__4__this.NewUID();
+
+                if (res._uid == 0)
+                    return;
+
                 __instance.__4__this.CostumeObjects.Add(res);
                 __instance.__4__this.searchSpeeder.Add(res._uid, res);
 
