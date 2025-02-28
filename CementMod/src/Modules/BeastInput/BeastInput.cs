@@ -33,7 +33,7 @@ public class BeastInput : MonoBehaviour
     {
         foreach (var actor in Actor.CachedActors)
         {
-            if (actor == null) continue;
+            if (!actor) continue;
 
             foreach (var combUnsplit in _keyCombChecks.Keys)
             {
@@ -128,7 +128,7 @@ public class BeastInput : MonoBehaviour
             if (fallbackId == -1)
             {
                 LoggingUtilities.VerboseLog("[BEAST INPUT] Can't get devices for an invalid input player.");
-                return System.Array.Empty<InputDevice>();
+                return [];
             }
 
             return UnityInputSystemManager.Instance.GetUser(fallbackId).pairedDevices.ToArray();
