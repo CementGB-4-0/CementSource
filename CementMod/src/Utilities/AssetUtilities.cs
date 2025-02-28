@@ -91,7 +91,7 @@ public static class AssetUtilities
         foreach (var value in _packAddressableKeys)
             allModdedKeys.AddRange(value.Value.Cast<Il2CppSystem.Collections.Generic.IEnumerable<Il2CppSystem.Object>>());
 
-        var allModdedLocations = Addressables.LoadResourceLocationsAsync(allModdedKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union);
+        var allModdedLocations = Addressables.LoadResourceLocations(allModdedKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union).Acquire();
         allModdedLocations.WaitForCompletion();
 
         if (allModdedLocations.Status != AsyncOperationStatus.Succeeded)
