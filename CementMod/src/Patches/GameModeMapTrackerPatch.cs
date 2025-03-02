@@ -1,11 +1,14 @@
+using System.Collections.Generic;
 using CementGB.Mod.Utilities;
 using GBMDK;
 using HarmonyLib;
 using Il2CppGB.Gamemodes;
-using System.Collections.Generic;
+using Il2CppSystem;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.ResourceManagement.ResourceProviders;
+using ConsoleColor = System.ConsoleColor;
 
 namespace CementGB.Mod.Patches;
 
@@ -16,7 +19,12 @@ internal static class GameModeMapTrackerPatch
     private static bool SceneNameAlreadyExists(GameModeMapTracker __instance, string sceneName)
     {
         foreach (var map in __instance.AvailableMaps)
-            if (map.MapName == sceneName) return true;
+        {
+            if (map.MapName == sceneName)
+            {
+                return true;
+            }
+        }
 
         return false;
     }
@@ -26,15 +34,16 @@ internal static class GameModeMapTrackerPatch
     {
         private static void LoadMapInfo(GameModeMapTracker __instance, IResourceLocation mapLocation)
         {
-            var infoHandle = Addressables.LoadAsset<Il2CppSystem.Object>($"{mapLocation.PrimaryKey}-Info").Acquire();
+            var infoHandle = Addressables.LoadAsset<Object>($"{mapLocation.PrimaryKey}-Info").Acquire();
             infoHandle.WaitForCompletion();
 
             ModeMapStatus modeMapStatus;
-            if (infoHandle.Status != UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded)
+            if (infoHandle.Status != AsyncOperationStatus.Succeeded)
             {
-                LoggingUtilities.VerboseLog(System.ConsoleColor.DarkYellow, $"Unable to load \"{mapLocation.PrimaryKey}-Info\" for gamemode selection : OperationException ${infoHandle.OperationException.ToString()}");
+                LoggingUtilities.VerboseLog(ConsoleColor.DarkYellow,
+                    $"Unable to load \"{mapLocation.PrimaryKey}-Info\" for gamemode selection : OperationException ${infoHandle.OperationException.ToString()}");
 
-                modeMapStatus = new(mapLocation.PrimaryKey, true)
+                modeMapStatus = new ModeMapStatus(mapLocation.PrimaryKey, true)
                 {
                     AllowedModesLocal = GameModeEnum.Melee,
                     AllowedModesOnline = GameModeEnum.Melee
@@ -43,7 +52,7 @@ internal static class GameModeMapTrackerPatch
             else
             {
                 var info = infoHandle.Result.Cast<CustomMapInfo>();
-                modeMapStatus = new(mapLocation.PrimaryKey, true)
+                modeMapStatus = new ModeMapStatus(mapLocation.PrimaryKey, true)
                 {
                     AllowedModesLocal = info != null ? info.allowedGamemodes.Get() : GameModeEnum.Melee,
                     AllowedModesOnline = GameModeEnum.Melee
@@ -51,7 +60,8 @@ internal static class GameModeMapTrackerPatch
             }
 
             __instance.AvailableMaps.Add(modeMapStatus);
-            LoggingUtilities.VerboseLog(System.ConsoleColor.DarkGreen, $"Registered allowed gamemodes and UI selector for custom scene \"{mapLocation.PrimaryKey}\"!");
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen,
+                $"Registered allowed gamemodes and UI selector for custom scene \"{mapLocation.PrimaryKey}\"!");
         }
 
         private static void Prefix(GameModeMapTracker __instance)
@@ -63,7 +73,11 @@ internal static class GameModeMapTrackerPatch
 
                 foreach (var mapLocation in mapLocations)
                 {
-                    if (SceneNameAlreadyExists(__instance, mapLocation.PrimaryKey)) continue;
+                    if (SceneNameAlreadyExists(__instance, mapLocation.PrimaryKey))
+                    {
+                        continue;
+                    }
+
                     ExtendedStringLoader.Register($"STAGE_{mapLocation.PrimaryKey.ToUpper()}", mapLocation.PrimaryKey);
 
                     LoadMapInfo(__instance, mapLocation);

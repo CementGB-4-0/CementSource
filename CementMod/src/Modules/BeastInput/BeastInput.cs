@@ -14,7 +14,7 @@ namespace CementGB.Mod.Modules.BeastInput;
 [RegisterTypeInIl2Cpp]
 public class BeastInput : MonoBehaviour
 {
-    private static Actor _cachedKeyboardActor = null;
+    private static Actor _cachedKeyboardActor;
     private static readonly Dictionary<string, Dictionary<Actor, bool>> _keyCombChecks = new();
     private static readonly Dictionary<string, List<Action<Actor>>> _keyCombCallbacks = new();
 
@@ -23,7 +23,10 @@ public class BeastInput : MonoBehaviour
         get
         {
             if (_cachedKeyboardActor == null)
+            {
                 GetBeastAssociatedWithKeyboard();
+            }
+
             return _cachedKeyboardActor;
         }
     }
@@ -33,8 +36,12 @@ public class BeastInput : MonoBehaviour
     {
         foreach (var actor in Actor.CachedActors)
         {
-            if (!actor) continue;
+            if (!actor)
+            {
+                continue;
+            }
 
+            var devices = GetDevicesFor(actor);
             foreach (var combUnsplit in _keyCombChecks.Keys)
             {
                 var comb = combUnsplit.Split('+');
@@ -44,7 +51,6 @@ public class BeastInput : MonoBehaviour
 
                 foreach (var keyCode in comb)
                 {
-                    var devices = GetDevicesFor(actor);
                     InputControl control = null;
                     foreach (var device in devices)
                     {
@@ -62,8 +68,11 @@ public class BeastInput : MonoBehaviour
                     if (!_keyCombChecks[combUnsplit].ContainsKey(actor) || !_keyCombChecks[combUnsplit][actor])
                     {
                         foreach (var callback in _keyCombCallbacks[combUnsplit])
+                        {
                             callback.Invoke(actor);
+                        }
                     }
+
                     _keyCombChecks[combUnsplit][actor] = true;
                 }
                 else
@@ -98,21 +107,32 @@ public class BeastInput : MonoBehaviour
         var joined = string.Join('+', sortedKeyCodes);
 
         if (!_keyCombChecks.ContainsKey(joined))
-            _keyCombChecks[joined] = new();
+        {
+            _keyCombChecks[joined] = new Dictionary<Actor, bool>();
+        }
 
         if (!_keyCombCallbacks.ContainsKey(joined))
-            _keyCombCallbacks[joined] = new();
+        {
+            _keyCombCallbacks[joined] = new List<Action<Actor>>();
+        }
+
         _keyCombCallbacks[joined].Add(callback);
     }
 
     private static int FallbackGetPlayerID(Actor actor)
     {
-        var bneastMenuState = FindObjectOfType<BeastMenuState>();
-        if (bneastMenuState == null) return -1;
-
-        foreach (var pointState in bneastMenuState._pointStates)
+        var beastMenuState = FindObjectOfType<BeastMenuState>();
+        if (!beastMenuState)
         {
-            if (pointState._beast != actor) continue;
+            return -1;
+        }
+
+        foreach (var pointState in beastMenuState._pointStates)
+        {
+            if (pointState._beast != actor)
+            {
+                continue;
+            }
 
             return pointState._linkedLocal.PlayerID;
         }
@@ -122,19 +142,20 @@ public class BeastInput : MonoBehaviour
 
     public static InputDevice[] GetDevicesFor(Actor actor)
     {
-        if (!actor.InputPlayer.valid)
+        if (actor.InputPlayer.valid)
         {
-            var fallbackId = FallbackGetPlayerID(actor);
-            if (fallbackId == -1)
-            {
-                LoggingUtilities.VerboseLog("[BEAST INPUT] Can't get devices for an invalid input player.");
-                return [];
-            }
+            return actor.InputPlayer.pairedDevices.ToArray();
+        }
 
+        var fallbackId = FallbackGetPlayerID(actor);
+        if (fallbackId != -1)
+        {
             return UnityInputSystemManager.Instance.GetUser(fallbackId).pairedDevices.ToArray();
         }
 
-        return actor.InputPlayer.pairedDevices.ToArray();
+        LoggingUtilities.VerboseLog("[BEAST INPUT] Can't get devices for an invalid input player.");
+        return [];
+
     }
 
     public static T GetDeviceFor<T>(Actor actor) where T : InputDevice
@@ -150,6 +171,7 @@ public class BeastInput : MonoBehaviour
 
             return UnityInputSystemManager.Instance.GetUser(fallbackId).pairedDevices[0] as T;
         }
+
         return actor.InputPlayer.pairedDevices[0] as T;
     }
 }

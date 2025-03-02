@@ -1,6 +1,6 @@
-﻿using CementGB.Mod;
+﻿using System.Reflection;
+using CementGB.Mod;
 using MelonLoader;
-using System.Reflection;
 using BuildInfo = CementGB.Mod.BuildInfo;
 
 [assembly: AssemblyTitle(BuildInfo.Description)]

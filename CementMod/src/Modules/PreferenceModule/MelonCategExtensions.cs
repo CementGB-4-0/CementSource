@@ -1,7 +1,8 @@
-﻿using MelonLoader;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using MelonLoader;
 
 namespace CementGB.Mod.Modules.PreferenceModule;
+
 public static class MelonCategExtensions
 {
     private static readonly Dictionary<MelonPreferences_Category, bool> isLivePref_Tracker = [];

@@ -3,6 +3,7 @@ using HarmonyLib;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Mod.Patches;
 
@@ -19,13 +20,14 @@ internal static class CustomAddressablesPatches
             __result = true;
             return false;
         }
+
         return true;
     }
 
-    [HarmonyPatch(typeof(Il2CppGB.Core.Resources.LoadLoadedItem), nameof(Il2CppGB.Core.Resources.LoadLoadedItem.Load))]
+    [HarmonyPatch(typeof(Resources.LoadLoadedItem), nameof(Resources.LoadLoadedItem.Load))]
     internal static class LoadLoadedItemPatch
     {
-        private static bool Prefix(Il2CppGB.Core.Resources.LoadLoadedItem __instance, ref AsyncOperationHandle __result)
+        private static bool Prefix(Resources.LoadLoadedItem __instance, ref AsyncOperationHandle __result)
         {
             if (AssetUtilities.IsModdedKey(__instance.Key))
             {

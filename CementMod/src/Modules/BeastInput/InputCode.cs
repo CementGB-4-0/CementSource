@@ -1,4 +1,5 @@
 ﻿namespace CementGB.Mod.Modules.BeastInput;
+
 public static class InputCode
 {
     public const string dpad = "dpad";
