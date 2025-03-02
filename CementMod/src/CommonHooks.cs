@@ -1,27 +1,29 @@
+using System;
 using CementGB.Mod.Utilities;
 using Il2CppGB.Game;
 using Il2CppGB.Setup;
 using MelonLoader;
-using System;
 
 namespace CementGB.Mod;
 
 /// <summary>
-/// Provides some useful shorthand hooks for certain in-game events.
+///     Provides some useful shorthand hooks for certain in-game events.
 /// </summary>
 public static class CommonHooks
 {
+    private static bool _menuFirstBoot;
+
+    public static bool GlobalInitialized =>
+        GlobalSceneLoader.Instance != null && GlobalSceneLoader.Instance.StartResourcesLoaded;
+
     /// <summary>
-    /// Fired when the Menu scene loads for the first time in the app's lifespan. Will reset on application quit.
+    ///     Fired when the Menu scene loads for the first time in the app's lifespan. Will reset on application quit.
     /// </summary>
     public static event Action OnMenuFirstBoot;
+
     public static event Action OnGameManagerCreated;
     public static event Action OnRoundStart;
     public static event Action OnRoundEnd;
-
-    public static bool GlobalInitialized => GlobalSceneLoader.Instance != null && GlobalSceneLoader.Instance.StartResourcesLoaded;
-
-    private static bool _menuFirstBoot;
 
     internal static void Initialize()
     {
@@ -41,6 +43,8 @@ public static class CommonHooks
         }
 
         if (AssetUtilities.IsModdedKey(sceneName))
+        {
             MelonCoroutines.Start(AssetUtilities.ReloadAddressableShaders());
+        }
     }
 }

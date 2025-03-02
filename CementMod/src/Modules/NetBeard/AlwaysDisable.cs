@@ -1,11 +1,12 @@
-﻿using UnityEngine;
+﻿using MelonLoader;
+using UnityEngine;
 
 namespace CementGB.Mod.Modules.NetBeard;
 
-[MelonLoader.RegisterTypeInIl2Cpp]
+[RegisterTypeInIl2Cpp]
 public class AlwaysDisable : MonoBehaviour
 {
-    void Update()
+    private void Update()
     {
         gameObject.SetActive(false); // Update only runs if the object is active so this wont tank performance
     }

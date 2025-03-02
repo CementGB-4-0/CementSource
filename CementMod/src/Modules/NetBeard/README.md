@@ -5,4 +5,6 @@
 </p>
 
 # NetBeard
-NetBeard is a networking module used for developing multiplayer mods for Gang Beasts. Documentation will be posted on the Cement documentation when it is written.
+
+NetBeard is a networking module used for developing multiplayer mods for Gang Beasts. Documentation will be posted on
+the Cement documentation when it is written.

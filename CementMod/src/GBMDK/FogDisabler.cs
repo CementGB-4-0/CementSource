@@ -1,33 +1,39 @@
 using Il2Cpp;
+using MelonLoader;
 using UnityEngine;
 
-namespace GBMDK
+namespace GBMDK;
+
+[RegisterTypeInIl2Cpp]
+public class FogDisabler : MonoBehaviour
 {
-    [MelonLoader.RegisterTypeInIl2Cpp]
-    public class FogDisabler : MonoBehaviour
+    private void Update()
     {
-        private void Update()
-        {
-            var feature = FindObjectOfType<OpaqueSurfaceFogRendererFeature>();
+        var feature = FindObjectOfType<OpaqueSurfaceFogRendererFeature>();
 
-            if (feature)
-                feature.SetActive(false);
+        if (feature)
+        {
+            feature.SetActive(false);
         }
+    }
 
-        private void OnDisable()
+    private void OnDisable()
+    {
+        var feature = FindObjectOfType<OpaqueSurfaceFogRendererFeature>();
+
+        if (feature)
         {
-            var feature = FindObjectOfType<OpaqueSurfaceFogRendererFeature>();
-
-            if (feature)
-                feature.SetActive(false);
+            feature.SetActive(false);
         }
+    }
 
-        private void OnDestroy()
+    private void OnDestroy()
+    {
+        var feature = FindObjectOfType<OpaqueSurfaceFogRendererFeature>();
+
+        if (feature)
         {
-            var feature = FindObjectOfType<OpaqueSurfaceFogRendererFeature>();
-
-            if (feature)
-                feature.SetActive(false);
+            feature.SetActive(false);
         }
     }
 }
