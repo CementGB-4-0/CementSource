@@ -118,6 +118,6 @@ public class Mod : MelonMod
         //CementCompContainer.AddComponent<NetBeard>();
         CementCompContainer.AddComponent<ServerManager>();
         CementCompContainer.AddComponent<Pool>();
-        CementCompContainer.AddComponent<BeastInput>();
+        //CementCompContainer.AddComponent<BeastInput>();
     }
 }
