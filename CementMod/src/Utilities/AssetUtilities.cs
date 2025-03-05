@@ -191,7 +191,7 @@ public static class AssetUtilities
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        foreach (var contentMod in Directory.EnumerateDirectories(Mod.CustomContentPath))
+        foreach (var contentMod in Directory.EnumerateDirectories(Mod.CustomContentPath,  "*", SearchOption.AllDirectories))
         {
             var aaPath = Path.Combine(contentMod, "aa");
 
@@ -228,7 +228,7 @@ public static class AssetUtilities
                     resourceLocatorHandle.Release();
                     continue;
                 }
-
+                
                 Addressables.AddResourceLocator(resourceLocator);
                 _moddedResourceLocators.Add(resourceLocator);
                 _packAddressableKeys.Add(Path.GetFileNameWithoutExtension(contentMod), resourceLocator.Keys.ToList());
@@ -249,7 +249,7 @@ public static class AssetUtilities
         CacheShaders();
     }
 
-    internal static void CacheShaders()
+    private static void CacheShaders()
     {
         Mod.Logger.Msg("Caching Addressable game shaders, please wait. . .");
         var stopwatch = new Stopwatch();
