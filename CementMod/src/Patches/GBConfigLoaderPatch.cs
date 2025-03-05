@@ -1,9 +1,12 @@
 using CementGB.Mod.Utilities;
 using HarmonyLib;
 using Il2CppGB.Data.Loading;
+using Il2CppGB.Gamemodes;
 using Il2CppGB.UI;
 using Il2CppSystem.Collections.Generic;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 
 namespace CementGB.Mod.Patches;
@@ -15,33 +18,40 @@ internal static class GBConfigLoaderPatch
     {
         private static void Postfix(MenuHandlerMaps __instance, ref List<string> __result)
         {
-            var masterMenuHandlers = UnityEngine.Object.FindObjectsOfType<MenuHandlerGamemodes>();
+            var masterMenuHandlers = Object.FindObjectsOfType<MenuHandlerGamemodes>();
 
             foreach (var masterMenuHandler in masterMenuHandlers)
             {
-                if (__instance.mapList[__instance.currentMapIndex].ToLower() != "random" || masterMenuHandler.type != MenuHandlerGamemodes.MenuType.Local)
+                if (__instance.mapList[__instance.currentMapIndex].ToLower() != "random" ||
+                    masterMenuHandler.type != MenuHandlerGamemodes.MenuType.Local)
+                {
                     continue; // Either map is not set to random or game is not local; don't do patch
+                }
 
                 foreach (var scene in AssetUtilities.GetAllModdedResourceLocationsOfType<SceneInstance>())
                 {
                     var handle = Addressables.LoadAsset<SceneData>(scene.PrimaryKey + "-Data").Acquire();
                     handle.WaitForCompletion();
 
-                    if (handle.Status != UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded)
+                    if (handle.Status != AsyncOperationStatus.Succeeded)
                     {
-                        Mod.Logger.Error($"Handle loading custom SceneData with key \"{scene.PrimaryKey}-Data\" for Random map rotation injection did not succeed. OperationException: {handle.OperationException}");
+                        Mod.Logger.Error(
+                            $"Handle loading custom SceneData with key \"{scene.PrimaryKey}-Data\" for Random map rotation injection did not succeed. OperationException: {handle.OperationException}");
                         handle.Release();
                         continue;
                     }
 
                     if (handle.Result == null)
                     {
-                        Mod.Logger.Error($"Handle loading custom SceneData with key \"{scene.PrimaryKey}-Data\" for Random map rotation injection did not return a result. This typically indicates an incorrect Addressables configuration in the modded project you're exporting from. OperationException: {handle.OperationException}");
+                        Mod.Logger.Error(
+                            $"Handle loading custom SceneData with key \"{scene.PrimaryKey}-Data\" for Random map rotation injection did not return a result. This typically indicates an incorrect Addressables configuration in the modded project you're exporting from. OperationException: {handle.OperationException}");
                         handle.Release();
                         continue;
                     }
 
-                    if ((handle.Result._wavesData == null && masterMenuHandler.CurrentGamemode == Il2CppGB.Gamemodes.GameModeEnum.Waves) || masterMenuHandler.CurrentGamemode != Il2CppGB.Gamemodes.GameModeEnum.Melee || masterMenuHandler.CurrentGamemode != Il2CppGB.Gamemodes.GameModeEnum.Waves)
+                    if ((handle.Result._wavesData == null && masterMenuHandler.CurrentGamemode == GameModeEnum.Waves) ||
+                        masterMenuHandler.CurrentGamemode != GameModeEnum.Melee ||
+                        masterMenuHandler.CurrentGamemode != GameModeEnum.Waves)
                     {
                         // Custom scene data has no waves data attached; this is not a waves map (or the gamemode isn't melee or waves)
                         handle.Release();

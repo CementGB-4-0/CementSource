@@ -1,25 +1,26 @@
-﻿using MelonLoader;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using MelonLoader;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace CementGB.Mod.Modules.PoolingModule;
 
 /// <summary>
-/// Allows users to register poolable prefabs, instantiate them, and pool instances of those prefabs.
-/// This is useful for when lots of objects need to be spawned in, because objects are reused, and don't need to be destroyed or created.
+///     Allows users to register poolable prefabs, instantiate them, and pool instances of those prefabs.
+///     This is useful for when lots of objects need to be spawned in, because objects are reused, and don't need to be
+///     destroyed or created.
 /// </summary>
 [RegisterTypeInIl2Cpp]
 public class Pool : MonoBehaviour
 {
     /// <summary>
-    /// Dictionary that gets a prefab from a given id
+    ///     Dictionary that gets a prefab from a given id
     /// </summary>
     private static readonly Dictionary<int, GameObject> idToObject = [];
 
     /// <summary>
-    /// Dictionary that gets a id from a given prefab
+    ///     Dictionary that gets a id from a given prefab
     /// </summary>
     private static readonly Dictionary<GameObject, int> objectToId = [];
 
@@ -27,7 +28,7 @@ public class Pool : MonoBehaviour
     private static readonly List<GameObject> pooledObjects = [];
 
     /// <summary>
-    /// Dictionary that corresponds ids to actions
+    ///     Dictionary that corresponds ids to actions
     /// </summary>
     private static readonly Dictionary<int, Action<GameObject>> resetActions = [];
 
@@ -43,7 +44,7 @@ public class Pool : MonoBehaviour
     }
 
     /// <summary>
-    /// Registers a prefab and reset action which allows users to instantiate objects with the pooling system.
+    ///     Registers a prefab and reset action which allows users to instantiate objects with the pooling system.
     /// </summary>
     /// <param name="prefab"></param>
     /// <param name="reset"></param>
@@ -67,7 +68,7 @@ public class Pool : MonoBehaviour
     }
 
     /// <summary>
-    /// Overload for RegisterPrefab
+    ///     Overload for RegisterPrefab
     /// </summary>
     /// <param name="prefab"></param>
     public static void RegisterPrefab(GameObject prefab)
@@ -76,7 +77,7 @@ public class Pool : MonoBehaviour
     }
 
     /// <summary>
-    /// Overload for RegisterPrefab
+    ///     Overload for RegisterPrefab
     /// </summary>
     /// <param name="prefab"></param>
     /// <param name="reset"></param>
@@ -86,7 +87,7 @@ public class Pool : MonoBehaviour
     }
 
     /// <summary>
-    /// Pools an object so that it can be instantiated later
+    ///     Pools an object so that it can be instantiated later
     /// </summary>
     /// <param name="gameObject"></param>
     public static void PoolObject(GameObject gameObject)
@@ -107,7 +108,7 @@ public class Pool : MonoBehaviour
     }
 
     /// <summary>
-    /// Instantiates a new object or finds another object with the same id. Base for all instantiate overloads.
+    ///     Instantiates a new object or finds another object with the same id. Base for all instantiate overloads.
     /// </summary>
     /// <param name="prefab"></param>
     /// <returns></returns>
@@ -154,14 +155,17 @@ public class Pool : MonoBehaviour
 
 
     /// <summary>
-    /// Overload for instantiate
+    ///     Overload for instantiate
     /// </summary>
     /// <param name="prefab"></param>
     /// <returns></returns>
     public static GameObject Instantiate(GameObject prefab)
     {
         var @object = BaseInstantiate(prefab);
-        if (@object == null) return null;
+        if (@object == null)
+        {
+            return null;
+        }
 
         // Resets object
         @object.transform.position = Vector3.zero;
@@ -172,7 +176,7 @@ public class Pool : MonoBehaviour
     }
 
     /// <summary>
-    /// Overload for instantiate
+    ///     Overload for instantiate
     /// </summary>
     /// <param name="prefab"></param>
     /// <param name="parent"></param>
@@ -180,7 +184,10 @@ public class Pool : MonoBehaviour
     public static GameObject Instantiate(GameObject prefab, Transform parent)
     {
         var @object = BaseInstantiate(prefab);
-        if (@object == null) return null;
+        if (@object == null)
+        {
+            return null;
+        }
 
         // Resets and sets values of object
         @object.transform.position = Vector3.zero;
@@ -192,7 +199,7 @@ public class Pool : MonoBehaviour
 
 
     /// <summary>
-    /// Overload for instantiate
+    ///     Overload for instantiate
     /// </summary>
     /// <param name="prefab"></param>
     /// <param name="position"></param>
@@ -200,7 +207,10 @@ public class Pool : MonoBehaviour
     public static GameObject Instantiate(GameObject prefab, Vector3 position)
     {
         var @object = BaseInstantiate(prefab);
-        if (@object == null) return null;
+        if (@object == null)
+        {
+            return null;
+        }
 
         // Resets and sets values of object
         @object.transform.position = position;
@@ -212,7 +222,7 @@ public class Pool : MonoBehaviour
 
 
     /// <summary>
-    /// Overload for instantiate
+    ///     Overload for instantiate
     /// </summary>
     /// <param name="prefab"></param>
     /// <param name="position"></param>
@@ -221,7 +231,10 @@ public class Pool : MonoBehaviour
     public static GameObject Instantiate(GameObject prefab, Vector3 position, Quaternion rotation)
     {
         var @object = BaseInstantiate(prefab);
-        if (@object == null) return null;
+        if (@object == null)
+        {
+            return null;
+        }
 
         // Resets and sets values of object
         @object.transform.position = position;
@@ -233,7 +246,7 @@ public class Pool : MonoBehaviour
 
 
     /// <summary>
-    /// Gets a pooled object from the pooled objects list, when given an id
+    ///     Gets a pooled object from the pooled objects list, when given an id
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
@@ -259,13 +272,16 @@ public class Pool : MonoBehaviour
         private int id;
 
         // Used to make sure the id only gets set once
-        private bool setId = false;
+        private bool setId;
 
         // Sets the id
         public void SetId(int id)
         {
             // Makes sure the id only gets set once
-            if (setId) return;
+            if (setId)
+            {
+                return;
+            }
 
             this.id = id;
             setId = true;

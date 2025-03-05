@@ -1,31 +1,54 @@
-using Il2CppInterop.Runtime;
-using System.Linq;
 using System;
-using System.Collections.Generic;
+using System.Collections;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Il2CppSystem.Collections.Generic;
+using Il2CppSystem.Linq;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
-using UnityEngine;
-using Il2CppSystem.Linq;
-using System.Collections.ObjectModel;
-using System.Collections;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using System.Diagnostics;
+using Object = Il2CppSystem.Object;
 
 namespace CementGB.Mod.Utilities;
 
 public static class AssetUtilities
 {
+    private static readonly System.Collections.Generic.Dictionary<string, List<Object>> _packAddressableKeys = [];
+    private static readonly System.Collections.Generic.List<IResourceLocator> _moddedResourceLocators = [];
+
+    private static readonly System.Collections.Generic.Dictionary<string, Shader> _cachedShaders = [];
+
+    public static ReadOnlyDictionary<string, Object[]> PackAddressableKeys // { modName: addressableKeys }
+    {
+        get
+        {
+            var dict = new System.Collections.Generic.Dictionary<string, Object[]>();
+
+            foreach (var kvp in _packAddressableKeys)
+            {
+                dict.Add(kvp.Key, kvp.Value.ToArray());
+            }
+
+            return new ReadOnlyDictionary<string, Object[]>(dict);
+        }
+    }
+
+    public static IResourceLocator[] ModdedResourceLocators => [.. _moddedResourceLocators];
+
     /// <summary>
-    /// Fires when a modded addressable catalog is registered into the game, after its keys are added to <see cref="PackAddressableKeys"/>.
-    /// Takes the catalog path as a parameter.
+    ///     Fires when a modded addressable catalog is registered into the game, after its keys are added to
+    ///     <see cref="PackAddressableKeys" />.
+    ///     Takes the catalog path as a parameter.
     /// </summary>
     public static event Action<string> OnModdedAddressableCatalogLoaded;
 
     /// <summary>
-    /// Shorthand for loading an AssetBundle's asset by name and type in way that prevents it from being garbage collected.
+    ///     Shorthand for loading an AssetBundle's asset by name and type in way that prevents it from being garbage collected.
     /// </summary>
     /// <typeparam name="T">The type of the asset to load.</typeparam>
     /// <param name="bundle">The bundle to load the asset from.</param>
@@ -45,71 +68,104 @@ public static class AssetUtilities
     }
 
     /// <summary>
-    /// Shorthand for loading an AssetBundle's asset by name and type in way that prevents it from being garbage collected. This method will execute the callback when async loading is complete.
+    ///     Shorthand for loading an AssetBundle's asset by name and type in way that prevents it from being garbage collected.
+    ///     This method will execute the callback when async loading is complete.
     /// </summary>
     /// <typeparam name="T">The type of the asset to load.</typeparam>
     /// <param name="bundle">The bundle to load the asset from.</param>
     /// <param name="name">The exact name of the asset to load.</param>
     /// <param name="onLoaded">The callback to execute once the asset loads. Takes the loaded asset as a parameter.</param>
-    public static void LoadPersistentAssetAsync<T>(this AssetBundle bundle, string name, Action<T> onLoaded) where T : UnityEngine.Object
+    public static void LoadPersistentAssetAsync<T>(this AssetBundle bundle, string name, Action<T> onLoaded)
+        where T : UnityEngine.Object
     {
         var request = bundle.LoadAssetAsync<T>(name);
 
-        request.add_completed((Il2CppSystem.Action<AsyncOperation>)((a) =>
+        request.add_completed((Il2CppSystem.Action<AsyncOperation>)(a =>
         {
-            if (request.asset == null) return;
+            if (request.asset == null)
+            {
+                return;
+            }
+
             var result = request.asset.TryCast<T>();
-            if (result == null) return;
+            if (result == null)
+            {
+                return;
+            }
+
             result.MakePersistent();
             onLoaded?.Invoke(result);
         }));
     }
 
-    public static void LoadAllAssetsPersistentAsync<T>(this AssetBundle bundle, Action<T> onLoaded) where T : UnityEngine.Object
+    public static void LoadAllAssetsPersistentAsync<T>(this AssetBundle bundle, Action<T> onLoaded)
+        where T : UnityEngine.Object
     {
         var request = bundle.LoadAllAssetsAsync<T>();
 
-        request.add_completed((Il2CppSystem.Action<AsyncOperation>)new Action<AsyncOperation>((a) =>
+        request.add_completed(new Action<AsyncOperation>(a =>
         {
-            if (request.asset == null) return;
+            if (request.asset == null)
+            {
+                return;
+            }
+
             var result = request.asset.TryCast<T>();
-            if (result == null) return;
+            if (result == null)
+            {
+                return;
+            }
+
             result.MakePersistent();
             onLoaded?.Invoke(result);
         }));
     }
 
     /// <summary>
-    /// Gets all custom-loaded IResourceLocations of a certain result type. Used to iterate through and find custom content addressable keys depending on type.
+    ///     Gets all custom-loaded IResourceLocations of a certain result type. Used to iterate through and find custom content
+    ///     addressable keys depending on type.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <returns>An array containing IResourceLocations that, if loaded, will result in the passed type. Will return an array even if empty.</returns>
-    public static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Il2CppSystem.Object
+    /// <returns>
+    ///     An array containing IResourceLocations that, if loaded, will result in the passed type. Will return an array
+    ///     even if empty.
+    /// </returns>
+    public static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Object
     {
-        List<IResourceLocation> ret = [];
-        Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object> allModdedKeys = new();
+        System.Collections.Generic.List<IResourceLocation> ret = [];
+        List<Object> allModdedKeys = new();
         foreach (var value in _packAddressableKeys)
-            allModdedKeys.AddRange(value.Value.Cast<Il2CppSystem.Collections.Generic.IEnumerable<Il2CppSystem.Object>>());
+        {
+            allModdedKeys.AddRange(value.Value.Cast<IEnumerable<Object>>());
+        }
 
-        var allModdedLocations = Addressables.LoadResourceLocations(allModdedKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union).Acquire();
+        var allModdedLocations = Addressables
+            .LoadResourceLocations(allModdedKeys.Cast<IList<Object>>(), Addressables.MergeMode.Union).Acquire();
         allModdedLocations.WaitForCompletion();
 
         if (allModdedLocations.Status != AsyncOperationStatus.Succeeded)
         {
-            Mod.Logger.Error($"Failed to load modded resource locations! OperationException: {allModdedLocations.OperationException}");
+            Mod.Logger.Error(
+                $"Failed to load modded resource locations! OperationException: {allModdedLocations.OperationException}");
             allModdedLocations.Release();
             return [];
         }
 
-        var result = allModdedLocations.Result.Cast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
+        var result = allModdedLocations.Result.Cast<List<IResourceLocation>>();
         foreach (var location in result)
         {
             if (location.ResourceType == Il2CppType.Of<T>())
+            {
                 ret.Add(location);
+            }
         }
 
         if (ret.Count == 0)
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Returned empty array! Type {typeof(T)} probably wasn't found in addressables.");
+        {
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
+                $"Returned empty array! Type {typeof(T)} probably wasn't found in addressables.");
+        }
+
         allModdedLocations.Release();
         return [.. ret];
     }
@@ -119,29 +175,13 @@ public static class AssetUtilities
         foreach (var moddedKeyish in _moddedResourceLocators)
         {
             if (moddedKeyish.Keys.Contains(key))
+            {
                 return true;
+            }
         }
+
         return false;
     }
-
-    public static ReadOnlyDictionary<string, Il2CppSystem.Object[]> PackAddressableKeys // { modName: addressableKeys }
-    {
-        get
-        {
-            var dict = new Dictionary<string, Il2CppSystem.Object[]>();
-
-            foreach (var kvp in _packAddressableKeys)
-            {
-                dict.Add(kvp.Key, kvp.Value.ToArray());
-            }
-
-            return new(dict);
-        }
-    }
-    private static readonly Dictionary<string, Il2CppSystem.Collections.Generic.List<Il2CppSystem.Object>> _packAddressableKeys = [];
-
-    public static IResourceLocator[] ModdedResourceLocators => [.. _moddedResourceLocators];
-    private static readonly List<IResourceLocator> _moddedResourceLocators = [];
 
     internal static void InitializeAddressables()
     {
@@ -151,11 +191,14 @@ public static class AssetUtilities
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        foreach (var contentMod in Directory.EnumerateDirectories(Mod.CustomContentPath))
+        foreach (var contentMod in Directory.EnumerateDirectories(Mod.CustomContentPath,  "*", SearchOption.AllDirectories))
         {
             var aaPath = Path.Combine(contentMod, "aa");
 
-            if (!Directory.Exists(aaPath)) continue;
+            if (!Directory.Exists(aaPath))
+            {
+                continue;
+            }
 
             foreach (var file in Directory.EnumerateFiles(aaPath, "catalog_*.json", SearchOption.AllDirectories))
             {
@@ -163,12 +206,16 @@ public static class AssetUtilities
 
                 var resourceLocatorHandle = Addressables.LoadContentCatalog(catalogPath).Acquire();
                 var addressablePackName = Path.GetDirectoryName(aaPath);
-                if (string.IsNullOrWhiteSpace(addressablePackName)) continue;
+                if (string.IsNullOrWhiteSpace(addressablePackName))
+                {
+                    continue;
+                }
 
                 resourceLocatorHandle.WaitForCompletion();
                 if (resourceLocatorHandle.Status != AsyncOperationStatus.Succeeded)
                 {
-                    Mod.Logger.Error($"Failed to load Addressable content catalog for \"{addressablePackName}\". OperationException: {resourceLocatorHandle.OperationException.ToString()}");
+                    Mod.Logger.Error(
+                        $"Failed to load Addressable content catalog for \"{addressablePackName}\". OperationException: {resourceLocatorHandle.OperationException.ToString()}");
                     resourceLocatorHandle.Release();
                     continue;
                 }
@@ -176,11 +223,12 @@ public static class AssetUtilities
                 var resourceLocator = resourceLocatorHandle.Result;
                 if (resourceLocator == null)
                 {
-                    Mod.Logger.Error($"Handle for modded Addressable content catalog returned no result. OperationException: {resourceLocatorHandle.OperationException.ToString()}");
+                    Mod.Logger.Error(
+                        $"Handle for modded Addressable content catalog returned no result. OperationException: {resourceLocatorHandle.OperationException.ToString()}");
                     resourceLocatorHandle.Release();
                     continue;
                 }
-
+                
                 Addressables.AddResourceLocator(resourceLocator);
                 _moddedResourceLocators.Add(resourceLocator);
                 _packAddressableKeys.Add(Path.GetFileNameWithoutExtension(contentMod), resourceLocator.Keys.ToList());
@@ -201,9 +249,7 @@ public static class AssetUtilities
         CacheShaders();
     }
 
-    private static readonly Dictionary<string, Shader> _cachedShaders = [];
-
-    internal static void CacheShaders()
+    private static void CacheShaders()
     {
         Mod.Logger.Msg("Caching Addressable game shaders, please wait. . .");
         var stopwatch = new Stopwatch();
@@ -212,24 +258,27 @@ public static class AssetUtilities
         foreach (var locator in Addressables.ResourceLocators.ToArray())
         {
             var locatorKeys = locator.Keys.ToList();
-            var handle = Addressables.LoadResourceLocations(locatorKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(), Addressables.MergeMode.Union, Il2CppType.Of<Shader>()).Acquire();
+            var handle = Addressables.LoadResourceLocations(locatorKeys.Cast<IList<Object>>(),
+                Addressables.MergeMode.Union, Il2CppType.Of<Shader>()).Acquire();
             handle.WaitForCompletion();
 
             if (handle.Status != AsyncOperationStatus.Succeeded)
             {
-                LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException.ToString()}\"");
+                LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
+                    $"Shader cache failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException.ToString()}\"");
                 stopwatch.Reset();
                 continue;
             }
 
             if (handle.Result == null)
             {
-                LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException?.ToString() ?? "NONE"}\"");
+                LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
+                    $"Shader cache returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException?.ToString() ?? "NONE"}\"");
                 stopwatch.Reset();
                 continue;
             }
 
-            var result = handle.Result.Cast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
+            var result = handle.Result.Cast<List<IResourceLocation>>();
             foreach (var location in result)
             {
                 var assetHandle = Addressables.LoadAssetAsync<Shader>(location).Acquire();
@@ -237,14 +286,16 @@ public static class AssetUtilities
 
                 if (assetHandle.Status != AsyncOperationStatus.Succeeded)
                 {
-                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE failed for location (Key \"{location.PrimaryKey}\")! : OperationException \"{assetHandle.OperationException.ToString() ?? "NONE"}\"");
+                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
+                        $"Shader cache ASSET HANDLE failed for location (Key \"{location.PrimaryKey}\")! : OperationException \"{assetHandle.OperationException.ToString() ?? "NONE"}\"");
                     assetHandle.Release();
                     continue;
                 }
 
                 if (assetHandle.Result == null)
                 {
-                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Shader cache ASSET HANDLE returned no result for location (Key \"{location.PrimaryKey}\")! : OperationException \"{assetHandle.OperationException.ToString() ?? "NONE"}\"");
+                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
+                        $"Shader cache ASSET HANDLE returned no result for location (Key \"{location.PrimaryKey}\")! : OperationException \"{assetHandle.OperationException.ToString() ?? "NONE"}\"");
                     assetHandle.Release();
                     continue;
                 }
@@ -252,9 +303,13 @@ public static class AssetUtilities
                 assetHandle.Result.hideFlags = HideFlags.DontUnloadUnusedAsset;
 
                 if (!_cachedShaders.ContainsKey(assetHandle.Result.name))
+                {
                     _cachedShaders.Add(assetHandle.Result.name, assetHandle.Result);
+                }
+
                 assetHandle.Release();
             }
+
             handle.Release();
         }
 
@@ -296,10 +351,12 @@ public static class AssetUtilities
         Mod.Logger.Warning("Reloading Addressable shaders. . .");
         Il2CppArrayBase<MeshRenderer> renderers;
         if (parent == null)
+        {
             renderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
+        }
         else
         {
-            var rendList = new List<MeshRenderer>();
+            var rendList = new System.Collections.Generic.List<MeshRenderer>();
             rendList.AddRange(parent.GetComponents<MeshRenderer>());
             rendList.AddRange(parent.GetComponentsInChildren<MeshRenderer>());
 
@@ -311,7 +368,9 @@ public static class AssetUtilities
             foreach (var material in meshRenderer.materials)
             {
                 if (_cachedShaders.ContainsKey(material.shader.name))
+                {
                     material.shader = _cachedShaders[material.shader.name];
+                }
             }
         }
     }

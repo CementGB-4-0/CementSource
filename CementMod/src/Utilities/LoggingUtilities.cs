@@ -6,9 +6,13 @@ namespace CementGB.Mod.Utilities;
 
 public static class LoggingUtilities
 {
-    public static void VerboseLog(ConsoleColor color, string message, [CallerMemberName] string callerName = null, [CallerLineNumber] int lineNumber = 0)
+    public static void VerboseLog(ConsoleColor color, string message, [CallerMemberName] string callerName = null,
+        [CallerLineNumber] int lineNumber = 0)
     {
-        if (!CementPreferences.VerboseMode) return;
+        if (!CementPreferences.VerboseMode)
+        {
+            return;
+        }
 
         var fullCallerName = callerName;
         foreach (var method in new StackTrace().GetFrames())
@@ -22,7 +26,9 @@ public static class LoggingUtilities
         Mod.Logger.Msg(color, callerName == null ? $"{message}" : $"[{fullCallerName}] {message} : Ln {lineNumber}");
     }
 
-    public static void VerboseLog(string message, [CallerMemberName] string callerName = null, [CallerLineNumber] int lineNumber = 0) =>
+    public static void VerboseLog(string message, [CallerMemberName] string callerName = null,
+        [CallerLineNumber] int lineNumber = 0)
+    {
         VerboseLog(ConsoleColor.DarkGray, message, callerName, lineNumber);
-
+    }
 }

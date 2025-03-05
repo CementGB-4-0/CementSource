@@ -1,88 +1,88 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 
-    <TargetFramework>net6</TargetFramework>
+        <TargetFramework>net6</TargetFramework>
 
-    <RootNamespace>CementGB.Mod</RootNamespace>
-    <AssemblyName>CementGB</AssemblyName>
-    
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <LangVersion>12</LangVersion>
-    <DefineConstants>$(DefineConstants);MELONLOADER</DefineConstants>
-    <Nullable>disable</Nullable>
-    <Optimize>false</Optimize>
+        <RootNamespace>CementGB.Mod</RootNamespace>
+        <AssemblyName>CementGB</AssemblyName>
 
-    <OutputType>Library</OutputType>
-    
-    <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with MelonLoader or the game -->
-	  <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->
-  </PropertyGroup>
-  
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>embedded</DebugType>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <LangVersion>12</LangVersion>
+        <DefineConstants>$(DefineConstants);MELONLOADER</DefineConstants>
+        <Nullable>disable</Nullable>
+        <Optimize>false</Optimize>
 
-    <ErrorReport>prompt</ErrorReport>
-    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+        <OutputType>Library</OutputType>
 
-    <OutputPath>bin\Debug\</OutputPath>
-    <WarningLevel>4</WarningLevel>
-    <!-- <DocumentationFile>CementDocs.xml</DocumentationFile> -->
-  </PropertyGroup>
+        <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with MelonLoader or the game -->
+        <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->
+    </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>false</DebugSymbols>
-    <DebugType>none</DebugType>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>embedded</DebugType>
 
-    <ErrorReport>prompt</ErrorReport>
-    <DefineConstants>$(DefineConstants);RELEASE;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
 
-    <OutputPath>bin\Release\</OutputPath>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+        <OutputPath>bin\Debug\</OutputPath>
+        <WarningLevel>4</WarningLevel>
+        <!-- <DocumentationFile>CementDocs.xml</DocumentationFile> -->
+    </PropertyGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Assets\**\*" />
-  </ItemGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>false</DebugSymbols>
+        <DebugType>none</DebugType>
 
-  <ItemGroup>
-    <PackageReference Include="GangBeasts.GameLibs" Version="1.26.0-gh13" />
-    <PackageReference Include="LavaGang.MelonLoader" Version="0.7.0"/>
-    <PackageReference Include="Il2CppInterop.Common" Version="1.4.6-ci.579" />
-		<PackageReference Include="Il2CppInterop.Runtime" Version="1.4.6-ci.579" />
-    <PackageReference Include="Il2CppInterop.HarmonySupport" Version="1.4.6-ci.579" />
-    <PackageReference Include="Iced" Version="1.21.0" />
-		<PackageReference Include="Mono.Cecil" Version="0.11.6" />
-		<PackageReference Include="HarmonyX" Version="2.10.2" />
-		<PackageReference Include="MonoMod" Version="22.7.31.1" />
-		<PackageReference Include="MonoMod.RuntimeDetour" Version="22.7.31.1" />
-		<PackageReference Include="MonoMod.Utils" Version="22.7.31.1" />
-		<PackageReference Include="Samboy063.Tomlet" Version="5.4.0" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
+        <ErrorReport>prompt</ErrorReport>
+        <DefineConstants>$(DefineConstants);RELEASE;TRACE</DefineConstants>
 
-  <ItemGroup>
-    <GameDirFile Include="..\game_dir.txt"></GameDirFile>
-  </ItemGroup>
+        <OutputPath>bin\Release\</OutputPath>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
 
-  <Target Name="BeforeRestore" BeforeTargets="Restore">
-    <!-- Read game_dir.txt into property -->
-    <ReadLinesFromFile File="@(GameDirFile)">
-      <Output TaskParameter="Lines" PropertyName="GameDir" />
-    </ReadLinesFromFile>
-  </Target>
+    <ItemGroup>
+        <EmbeddedResource Include="Assets\**\*"/>
+    </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <!-- Read game_dir.txt into property -->
-    <ReadLinesFromFile File="@(GameDirFile)">
-      <Output TaskParameter="Lines" PropertyName="GameDir" />
-    </ReadLinesFromFile>
+    <ItemGroup>
+        <PackageReference Include="GangBeasts.GameLibs" Version="1.26.0-gh13"/>
+        <PackageReference Include="LavaGang.MelonLoader" Version="0.7.0"/>
+        <PackageReference Include="Il2CppInterop.Common" Version="1.4.6-ci.579"/>
+        <PackageReference Include="Il2CppInterop.Runtime" Version="1.4.6-ci.579"/>
+        <PackageReference Include="Il2CppInterop.HarmonySupport" Version="1.4.6-ci.579"/>
+        <PackageReference Include="Iced" Version="1.21.0"/>
+        <PackageReference Include="Mono.Cecil" Version="0.11.6"/>
+        <PackageReference Include="HarmonyX" Version="2.10.2"/>
+        <PackageReference Include="MonoMod" Version="22.7.31.1"/>
+        <PackageReference Include="MonoMod.RuntimeDetour" Version="22.7.31.1"/>
+        <PackageReference Include="MonoMod.Utils" Version="22.7.31.1"/>
+        <PackageReference Include="Samboy063.Tomlet" Version="5.4.0"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+    </ItemGroup>
 
-    <!-- Copy the built mod dll into game Mods folder -->
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Mods" />
-  </Target>
+    <ItemGroup>
+        <GameDirFile Include="..\game_dir.txt"></GameDirFile>
+    </ItemGroup>
+
+    <Target Name="BeforeRestore" BeforeTargets="Restore">
+        <!-- Read game_dir.txt into property -->
+        <ReadLinesFromFile File="@(GameDirFile)">
+            <Output TaskParameter="Lines" PropertyName="GameDir"/>
+        </ReadLinesFromFile>
+    </Target>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+        <!-- Read game_dir.txt into property -->
+        <ReadLinesFromFile File="@(GameDirFile)">
+            <Output TaskParameter="Lines" PropertyName="GameDir"/>
+        </ReadLinesFromFile>
+
+        <!-- Copy the built mod dll into game Mods folder -->
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Mods"/>
+    </Target>
 </Project>
