@@ -15,13 +15,13 @@ internal static class CustomAddressablesPatches
     [HarmonyPrefix]
     private static bool LabelModdedKeysAsValid(AssetReference __instance, ref bool __result)
     {
-        if (AssetUtilities.IsModdedKey(__instance.RuntimeKey.ToString()))
+        if (!AssetUtilities.IsModdedKey(__instance.RuntimeKey.ToString()))
         {
-            __result = true;
-            return false;
+            return true;
         }
 
-        return true;
+        __result = true;
+        return false;
     }
 
     [HarmonyPatch(typeof(Resources.LoadLoadedItem), nameof(Resources.LoadLoadedItem.Load))]
