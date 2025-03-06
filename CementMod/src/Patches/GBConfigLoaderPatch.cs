@@ -1,4 +1,5 @@
 using CementGB.Mod.Utilities;
+using GBMDK;
 using HarmonyLib;
 using Il2CppGB.Data.Loading;
 using Il2CppGB.Gamemodes;
@@ -30,7 +31,7 @@ internal static class GBConfigLoaderPatch
 
                 foreach (var scene in AssetUtilities.GetAllModdedResourceLocationsOfType<SceneInstance>())
                 {
-                    var handle = Addressables.LoadAsset<SceneData>(scene.PrimaryKey + "-Data").Acquire();
+                    var handle = Addressables.LoadAsset<Il2CppSystem.Object>(scene.PrimaryKey + "-Info").Acquire();
                     handle.WaitForCompletion();
 
                     if (handle.Status != AsyncOperationStatus.Succeeded)
@@ -49,9 +50,9 @@ internal static class GBConfigLoaderPatch
                         continue;
                     }
 
-                    if ((handle.Result._wavesData == null && masterMenuHandler.CurrentGamemode == GameModeEnum.Waves) ||
-                        masterMenuHandler.CurrentGamemode != GameModeEnum.Melee ||
-                        masterMenuHandler.CurrentGamemode != GameModeEnum.Waves)
+                    var result = handle.Result.Cast<CustomMapInfo>();
+
+                    if (!result.allowedGamemodes.Get().HasFlag(masterMenuHandler.CurrentGamemode))
                     {
                         // Custom scene data has no waves data attached; this is not a waves map (or the gamemode isn't melee or waves)
                         handle.Release();
