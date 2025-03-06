@@ -44,7 +44,7 @@ internal static class CustomAddressablesPatches
         }
     }
 
-    public const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
+    private const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
     
     [HarmonyPatch(typeof(AddressablesRuntimeProperties), nameof(AddressablesRuntimeProperties.EvaluateProperty))]
     internal static class RuntimePropertiesPatch
