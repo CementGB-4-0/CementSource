@@ -1,7 +1,5 @@
 using CementGB.Mod.Utilities;
 using HarmonyLib;
-using Il2Cpp;
-using Il2CppSystem.IO;
 using MelonLoader.Utils;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
