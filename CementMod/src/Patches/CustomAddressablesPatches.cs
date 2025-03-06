@@ -1,7 +1,6 @@
 using CementGB.Mod.Utilities;
 using HarmonyLib;
 using Il2Cpp;
-using Il2CppSystem.Collections.Generic;
 using Il2CppSystem.IO;
 using MelonLoader.Utils;
 using UnityEngine;
@@ -52,11 +51,11 @@ internal static class CustomAddressablesPatches
     [HarmonyPatch(typeof(InitializationOperation), nameof(InitializationOperation.LoadProvider))]
     internal static class LoadProviderPatch
     {
-        private static void Prefix(AddressablesImpl addressables, ObjectInitializationData providerData, string providerSuffix)
+        private static bool Prefix(AddressablesImpl addressables, ObjectInitializationData providerData, string providerSuffix)
         {
             if (MelonEnvironment.ModsDirectory == Path.Combine(Application.dataPath, "..", "Mods") || !providerData.Id.Contains(Path.Combine(Application.dataPath, "..", "Mods")))
             {
-                return;
+                return true;
             }
             
             var indexOfExistingProvider = -1;
@@ -75,7 +74,7 @@ internal static class CustomAddressablesPatches
 
             //if not re-initializing, just use the old provider
             if (indexOfExistingProvider >= 0 && string.IsNullOrEmpty(providerSuffix))
-                return;
+                return false;
 
             var provider = providerData.CreateInstance<IResourceProvider>(newProviderId);
             if (provider != null)
@@ -95,6 +94,8 @@ internal static class CustomAddressablesPatches
             {
                 Addressables.LogWarningFormat("Addressables - Unable to load resource provider from {0}.", providerData);
             }
+
+            return false;
         }
     }
 }
