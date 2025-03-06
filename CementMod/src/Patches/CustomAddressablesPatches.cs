@@ -1,8 +1,14 @@
 using CementGB.Mod.Utilities;
 using HarmonyLib;
+using Il2Cpp;
+using Il2CppSystem.IO;
+using MelonLoader.Utils;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.AddressableAssets.Initialization;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceProviders;
+using UnityEngine.ResourceManagement.Util;
 using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Mod.Patches;
@@ -15,13 +21,13 @@ internal static class CustomAddressablesPatches
     [HarmonyPrefix]
     private static bool LabelModdedKeysAsValid(AssetReference __instance, ref bool __result)
     {
-        if (AssetUtilities.IsModdedKey(__instance.RuntimeKey.ToString()))
+        if (!AssetUtilities.IsModdedKey(__instance.RuntimeKey.ToString()))
         {
-            __result = true;
-            return false;
+            return true;
         }
 
-        return true;
+        __result = true;
+        return false;
     }
 
     [HarmonyPatch(typeof(Resources.LoadLoadedItem), nameof(Resources.LoadLoadedItem.Load))]
@@ -29,16 +35,29 @@ internal static class CustomAddressablesPatches
     {
         private static bool Prefix(Resources.LoadLoadedItem __instance, ref AsyncOperationHandle __result)
         {
-            if (AssetUtilities.IsModdedKey(__instance.Key))
+            if (!AssetUtilities.IsModdedKey(__instance.Key))
             {
-                __instance._finishedLoading = AsyncOperationStatus.None;
-                __instance._loadHandle = Addressables.LoadAssetAsync<ScriptableObject>(__instance.Key);
-
-                __result = __instance._loadHandle;
-                return false;
+                return true;
             }
 
-            return true;
+            __instance._finishedLoading = AsyncOperationStatus.None;
+            __instance._loadHandle = Addressables.LoadAssetAsync<ScriptableObject>(__instance.Key);
+
+            __result = __instance._loadHandle;
+            return false;
+        }
+    }
+
+    public const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
+    
+    [HarmonyPatch(typeof(AddressablesRuntimeProperties), nameof(AddressablesRuntimeProperties.EvaluateProperty))]
+    internal static class RuntimePropertiesPatch
+    {
+        private static bool Prefix(string name, ref string __result)
+        {
+            if (name != ModsDirectoryPropertyName) return true;
+            __result = MelonEnvironment.ModsDirectory;
+            return false;
         }
     }
 }
