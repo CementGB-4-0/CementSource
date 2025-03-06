@@ -48,53 +48,15 @@ internal static class CustomAddressablesPatches
         }
     }
 
-    [HarmonyPatch(typeof(InitializationOperation), nameof(InitializationOperation.LoadProvider))]
-    internal static class LoadProviderPatch
+    public const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
+    
+    [HarmonyPatch(typeof(AddressablesRuntimeProperties), nameof(AddressablesRuntimeProperties.EvaluateProperty))]
+    internal static class RuntimePropertiesPatch
     {
-        private static bool Prefix(AddressablesImpl addressables, ObjectInitializationData providerData, string providerSuffix)
+        private static bool Prefix(string name, ref string __result)
         {
-            if (MelonEnvironment.ModsDirectory == Path.Combine(Application.dataPath, "..", "Mods") || !providerData.Id.Contains(Path.Combine(Application.dataPath, "..", "Mods")))
-            {
-                return true;
-            }
-            
-            var indexOfExistingProvider = -1;
-            var newProviderId = string.IsNullOrEmpty(providerSuffix) ? providerData.Id.Replace($"{Application.dataPath}/../Mods", MelonEnvironment.ModsDirectory) : (providerData.Id.Replace($"{Application.dataPath}/../Mods", MelonEnvironment.ModsDirectory) + providerSuffix);
-            for (int i = 0; i < addressables.ResourceManager.ResourceProviders.Cast<ListWithEvents<IResourceProvider>>().Count; i++)
-            {
-                var rp = addressables.ResourceManager.ResourceProviders[i];
-                if (rp.ProviderId != newProviderId)
-                {
-                    continue;
-                }
-
-                indexOfExistingProvider = i;
-                break;
-            }
-
-            //if not re-initializing, just use the old provider
-            if (indexOfExistingProvider >= 0 && string.IsNullOrEmpty(providerSuffix))
-                return false;
-
-            var provider = providerData.CreateInstance<IResourceProvider>(newProviderId);
-            if (provider != null)
-            {
-                if (indexOfExistingProvider < 0 || !string.IsNullOrEmpty(providerSuffix))
-                {
-                    Addressables.LogFormat("Addressables - added provider {0} with id {1}.", provider.Cast<Il2CppSystem.Object>(), provider.ProviderId);
-                    addressables.ResourceManager.ResourceProviders.Cast<ListWithEvents<IResourceProvider>>().Add(provider);
-                }
-                else
-                {
-                    Addressables.LogFormat("Addressables - replacing provider {0} at index {1}.", provider.Cast<Il2CppSystem.Object>(), indexOfExistingProvider);
-                    addressables.ResourceManager.ResourceProviders[indexOfExistingProvider] = provider;
-                }
-            }
-            else
-            {
-                Addressables.LogWarningFormat("Addressables - Unable to load resource provider from {0}.", providerData);
-            }
-
+            if (name != ModsDirectoryPropertyName) return true;
+            __result = MelonEnvironment.ModsDirectory;
             return false;
         }
     }
