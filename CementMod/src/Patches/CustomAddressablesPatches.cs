@@ -1,14 +1,10 @@
 using CementGB.Mod.Utilities;
 using HarmonyLib;
-using Il2Cpp;
-using Il2CppSystem.IO;
 using MelonLoader.Utils;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.Initialization;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceProviders;
-using UnityEngine.ResourceManagement.Util;
 using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Mod.Patches;
