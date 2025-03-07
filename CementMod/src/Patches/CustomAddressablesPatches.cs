@@ -1,14 +1,10 @@
-using CementGB.Mod.Utilities;
+using CementGB.Mod.CustomContent;
 using HarmonyLib;
-using Il2Cpp;
-using Il2CppSystem.IO;
 using MelonLoader.Utils;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.Initialization;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceProviders;
-using UnityEngine.ResourceManagement.Util;
 using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Mod.Patches;
@@ -21,7 +17,7 @@ internal static class CustomAddressablesPatches
     [HarmonyPrefix]
     private static bool LabelModdedKeysAsValid(AssetReference __instance, ref bool __result)
     {
-        if (!AssetUtilities.IsModdedKey(__instance.RuntimeKey.ToString()))
+        if (!CustomAddressableRegistration.IsModdedKey(__instance.RuntimeKey.ToString()))
         {
             return true;
         }
@@ -35,7 +31,7 @@ internal static class CustomAddressablesPatches
     {
         private static bool Prefix(Resources.LoadLoadedItem __instance, ref AsyncOperationHandle __result)
         {
-            if (!AssetUtilities.IsModdedKey(__instance.Key))
+            if (!CustomAddressableRegistration.IsModdedKey(__instance.Key))
             {
                 return true;
             }

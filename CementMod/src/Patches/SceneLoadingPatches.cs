@@ -1,4 +1,5 @@
 using System.Linq;
+using CementGB.Mod.CustomContent;
 using CementGB.Mod.Utilities;
 using GBMDK;
 using HarmonyLib;
@@ -22,7 +23,7 @@ internal static class LoadDataPatch
     private static void Postfix(SceneData __instance)
     {
         var key = __instance.name.Split("-").First();
-        if (!AssetUtilities.IsModdedKey(key))
+        if (!CustomAddressableRegistration.IsModdedKey(key))
         {
             return;
         }
@@ -102,7 +103,7 @@ internal static class SetSubTitlePatch
 {
     private static bool Prefix(LoadScreenDisplayHandler __instance, ref string name)
     {
-        if (AssetUtilities.IsModdedKey(name))
+        if (CustomAddressableRegistration.IsModdedKey(name))
         {
             __instance._subTitle.GetComponent<TextMeshProUGUI>().text = name;
             return false;

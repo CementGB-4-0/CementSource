@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using CementGB.Mod.CustomContent;
 using CementGB.Mod.Modules.NetBeard;
 using CementGB.Mod.Modules.PoolingModule;
 using CementGB.Mod.Utilities;
@@ -99,7 +100,7 @@ public class Mod : MelonMod
 
         CreateCementComponents();
 
-        AssetUtilities.InitializeAddressables();
+        CustomAddressableRegistration.InitializeAddressables();
     }
 
     private static void FileStructure()
