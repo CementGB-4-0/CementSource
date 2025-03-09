@@ -12,6 +12,8 @@ namespace CementGB.Mod.Patches;
 [HarmonyPatch]
 internal static class CustomAddressablesPatches
 {
+    private const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
+
     // Game has failsafes in order to prevent loading invalid assets, bypass them
     [HarmonyPatch(typeof(AssetReference), "RuntimeKeyIsValid")]
     [HarmonyPrefix]
@@ -44,8 +46,6 @@ internal static class CustomAddressablesPatches
         }
     }
 
-    private const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
-    
     [HarmonyPatch(typeof(AddressablesRuntimeProperties), nameof(AddressablesRuntimeProperties.EvaluateProperty))]
     internal static class RuntimePropertiesPatch
     {
