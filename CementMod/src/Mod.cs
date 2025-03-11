@@ -15,7 +15,7 @@ internal static class BuildInfo
     public const string Description = null;
     public const string Company = "CementGB";
     public const string Version = "4.0.0";
-    public const string DownloadLink = "https://api.github.com/repos/HueSamai/CementSource/releases/latest";
+    public const string DownloadLink = "https://api.github.com/repos/CementGB-4-0/CementSource/releases/latest";
 }
 
 /// <summary>
