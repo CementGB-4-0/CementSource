@@ -1,12 +1,12 @@
 name: Update Thunderstore page
 on:
     release:
-        types: [published]
+        types: [published, edited]
 jobs:
     publish:
         runs-on: ubuntu-latest
         steps:
-        - name: Fetch Sources
+        - name: Checkout
           uses: actions/checkout@v4
           with:
             ref: ${{ github.event.release.tag_name }}
@@ -20,9 +20,9 @@ jobs:
             namespace: CementGB
             name: CementGB
             description: A general-purpose modding API for Gang Beasts.
-            version: ${{ github.event.release.tag_name }}
+            version: 4.0.${${{ github.run_number }}+9} # Offset by number of pre-existing preview versions.
             communities: Gang Beasts
             categories: mods
-
+ 
         - name: Output URL
           run: echo "Published Thunderstore package to ${{ steps.publish.outputs.url }}"
