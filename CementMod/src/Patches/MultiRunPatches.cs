@@ -28,7 +28,6 @@ internal static class MultiRunPatches
             __instance._online.CheckSetup();
             __instance._network.CheckSetup();
             return false;
-
         }
     }
 }
