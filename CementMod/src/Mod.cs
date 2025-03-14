@@ -40,7 +40,7 @@ public class Mod : MelonMod
     internal static MelonLogger.Instance Logger =>
         Melon<Mod>.Logger; // For if you're tired of the singleton pattern I guess
 
-    internal static GameObject CementCompContainer
+    private static GameObject CementCompContainer
     {
         get
         {
