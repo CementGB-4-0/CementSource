@@ -45,7 +45,7 @@ internal static class CustomAddressablesPatches
             return false;
         }
     }
-
+  
     [HarmonyPatch(typeof(AddressablesRuntimeProperties), nameof(AddressablesRuntimeProperties.EvaluateProperty))]
     internal static class RuntimePropertiesPatch
     {
