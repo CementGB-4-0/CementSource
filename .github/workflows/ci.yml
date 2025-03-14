@@ -1,0 +1,28 @@
+name: Nightly build
+
+on:
+    workflow_dispatch:
+    push:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-dotnet@v4
+              with:
+                dotnet-version: |
+                  6.x
+                  9.x
+            - run: dotnet test
+            - run: dotnet build -o . --configuration Release /p:VersionSuffix=ci.${{github.run_number}}
+            - uses: actions/upload-artifact@v4
+              with: 
+                name: dll-artifact
+                path: ./CementGB.dll
+                overwrite: true
+            - uses: actions/upload-artifact@v4
+              with:
+                name: xml-artifact
+                path: ./CementGB.xml
+                overwrite: true
