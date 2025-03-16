@@ -13,7 +13,7 @@ namespace CementGB.Mod.Patches;
 internal static class GBConfigLoaderPatch
 {
     [HarmonyPatch(typeof(MenuHandlerMaps), nameof(MenuHandlerMaps.GetCurrentSelectedLevels))]
-    private static class LoadRotationConfigPatch
+    private static class GetCurrentSelectedLevelsPatch
     {
         private static void Postfix(MenuHandlerMaps __instance, ref List<string> __result)
         {
