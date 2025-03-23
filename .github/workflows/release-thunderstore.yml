@@ -16,7 +16,7 @@ jobs:
         - name: Parse version number
           id: patch_number
           run: |
-            $patch_number=$((${{ github.run_number }} + 9))
+            patch_number=$((${{ github.run_number }} + 9))
             echo "$patch_number" >> $GITHUB_OUTPUT
 
         - uses: dhkatz/thunderstore-publish@v1.0.1
