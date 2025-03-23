@@ -17,7 +17,7 @@ jobs:
           id: patch_number
           run: |
             patch_number=$((${{ github.run_number }} + 9))
-            echo "$patch_number" >> $GITHUB_OUTPUT
+            echo "patch_number=$patch_number" >> $GITHUB_OUTPUT
 
         - uses: dhkatz/thunderstore-publish@v1.0.1
           id: publish
