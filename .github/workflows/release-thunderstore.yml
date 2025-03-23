@@ -26,7 +26,7 @@ jobs:
             namespace: CementGB
             name: CementGB
             description: A general-purpose modding API for Gang Beasts.
-            version: 4.0.${{ steps.patch_number.outputs.* }} # Offset by number of pre-existing preview versions.
+            version: 4.0.${{ steps.patch_number.outputs.patch_number }} # Offset by number of pre-existing preview versions.
             communities: gang-beasts
             categories: mods
  
