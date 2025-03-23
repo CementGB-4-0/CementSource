@@ -13,6 +13,12 @@ jobs:
             fetch-depth: 0
             filter: tree:0
 
+        - name: Parse version number
+          id: patch_number
+          run: |
+            patch_number=$((${{ github.run_number }} + 9))
+            echo "patch_number=$patch_number" >> $GITHUB_OUTPUT
+
         - uses: dhkatz/thunderstore-publish@v1.0.1
           id: publish
           with:
@@ -20,8 +26,8 @@ jobs:
             namespace: CementGB
             name: CementGB
             description: A general-purpose modding API for Gang Beasts.
-            version: 4.0.${${{ github.run_number }}+9} # Offset by number of pre-existing preview versions.
-            communities: Gang Beasts
+            version: 4.0.${{ steps.patch_number.outputs.patch_number }} # Offset by number of pre-existing preview versions.
+            communities: gang-beasts
             categories: mods
  
         - name: Output URL
