@@ -406,3 +406,5 @@ game_dir.txt
 # Ignore staged Cement build artifacts
 CementGB.xml
 CementGB.dll
+
+.idea
