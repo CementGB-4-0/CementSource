@@ -8,16 +8,6 @@ using UnityEngine;
 
 namespace CementGB.Mod;
 
-internal static class BuildInfo
-{
-    public const string Name = "Cement";
-    public const string Author = "HueSamai // dotpy";
-    public const string Description = null;
-    public const string Company = "CementGB";
-    public const string Version = "4.0.0";
-    public const string DownloadLink = "https://api.github.com/repos/CementGB-4-0/CementSource/releases/latest";
-}
-
 /// <summary>
 ///     The main entrypoint for Cement. This is where everything initializes from. Public members include important paths
 ///     and MelonMod overrides.
