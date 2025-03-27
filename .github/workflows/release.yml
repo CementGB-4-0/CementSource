@@ -1,0 +1,60 @@
+name: Release new Cement version
+
+on:
+    push:
+      branches: master
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+            filter: tree:0
+
+        - run: sudo apt install curl
+
+        - uses: actions/setup-dotnet@v4
+          with:
+            dotnet-version: |
+              6.x
+              9.x
+        
+        - name: Install GitVersion
+          uses: gittools/actions/gitversion/setup@v3.1.11
+          with:
+            versionSpec: '6.0.x'
+            
+        - name: Determine Build Version
+          id: version_step
+          uses: gittools/actions/gitversion/execute@v3.1.11
+
+        - run: dotnet build -o ./dist/ --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
+
+        - uses: gittools/actions/gitreleasemanager/create@v3.1.11
+          if: ${{ !env.ACT }}
+          name: Create release with GitReleaseManager
+          with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+            owner: ${{ github.event.repository.owner }}
+            repository: ${{ github.event.repository.name }}
+            name: v${{ steps.version_step.outputs.majorMinorPatch }}-preview.${{ steps.version_step.outputs.preReleaseNumber }}
+            assets:  |
+              dist/CementGB.dll
+
+        - uses: dhkatz/thunderstore-publish@v1.0.1
+          if: ${{ !env.ACT }}
+          id: publish-thunderstore
+          with:
+            token: ${{ secrets.TS_TOKEN }}
+            namespace: CementGB
+            name: CementGB
+            description: A general-purpose modding API for Gang Beasts.
+            version: ${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ github.run_number }} # Thunderstore doesn't allow pre-release notation in version
+            communities: gang-beasts
+            categories: mods
+ 
+        - name: Output URL
+          if: ${{ !env.ACT }}
+          run: echo "Published Thunderstore package to ${{ steps.publish-thunderstore.outputs.url }}"
