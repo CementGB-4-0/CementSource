@@ -42,8 +42,8 @@ jobs:
           name: Create release with GitReleaseManager
           with:
             token: ${{ secrets.GITHUB_TOKEN }}
-            owner: ${{ github.event.repository.owner }}
-            repository: ${{ github.event.repository.name }}
+            owner: "CementGB-4-0"
+            repository: "CementSource"
             name: v${{ steps.version_step.outputs.majorMinorPatch }}-preview.${{ steps.version_step.outputs.preReleaseNumber }}
             assets:  |
               dist/CementGB.dll
