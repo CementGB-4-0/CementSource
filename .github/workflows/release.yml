@@ -44,7 +44,7 @@ jobs:
             title: "v${{steps.version_step.outputs.majorMinorPatch}}-preview.${{ steps.version_step.outputs.preReleaseNumber }}"
             files: |
               dist/CementGB.dll
-
+              
         - uses: dhkatz/thunderstore-publish@v1.0.1
           if: ${{ !env.ACT }}
           id: publish-thunderstore
@@ -53,7 +53,7 @@ jobs:
             namespace: CementGB
             name: CementGB
             description: A general-purpose modding API for Gang Beasts.
-            version: ${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ github.run_number }} # Thunderstore doesn't allow pre-release notation in version
+            version: ${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }} # Thunderstore doesn't allow pre-release notation in version
             communities: gang-beasts
             categories: mods
  
