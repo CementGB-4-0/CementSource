@@ -48,7 +48,7 @@ jobs:
             files: |
               dist/Mods/CementGB.dll
               
-        - uses: dhkatz/thunderstore-publish@v1.0.1
+        - uses: GreenTF/upload-thunderstore-package@v4.3
           if: ${{ !env.ACT }}
           id: publish-thunderstore
           with:
@@ -57,7 +57,7 @@ jobs:
             name: CementGB
             version: ${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }} # Thunderstore doesn't allow pre-release notation in version
             file: CementGB-CementGB-${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }}.zip
-            communities: gang-beasts
+            community: gang-beasts
             categories: mods
             path: |
               ${{ github.workspace }}
