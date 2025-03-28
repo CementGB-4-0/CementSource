@@ -25,11 +25,6 @@ jobs:
           uses: gittools/actions/gitversion/setup@v3.1.11
           with:
             versionSpec: '6.0.x'
-
-        - name: Install GitReleaseManager
-          uses: gittools/actions/gitreleasemanager/setup@v3.1.11
-          with:
-            versionSpec: '0.18.x'
             
         - name: Determine Build Version
           id: version_step
