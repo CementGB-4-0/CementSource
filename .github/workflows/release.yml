@@ -42,11 +42,12 @@ jobs:
           name: Create release with GitReleaseManager
           with:
             token: ${{ secrets.GITHUB_TOKEN }}
+            isPreRelease: true
             owner: "CementGB-4-0"
             repository: "CementSource"
             name: v${{ steps.version_step.outputs.majorMinorPatch }}-preview.${{ steps.version_step.outputs.preReleaseNumber }}
-            assets:  |
-              dist/CementGB.dll
+            assets: |
+              ${{ github.workspace }}/dist/CementGB.dll
 
         - uses: dhkatz/thunderstore-publish@v1.0.1
           if: ${{ !env.ACT }}
