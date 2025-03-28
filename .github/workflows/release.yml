@@ -39,7 +39,7 @@ jobs:
           if: ${{ !env.ACT }}
           with:
             repo_token: "${{ secrets.GITHUB_TOKEN }}"
-            automatic_release_tag: "v${{steps.version_step.outputs.majorMinorPatch}}-preview.${{ steps.version_step.outputs.preReleaseNumber }}"
+            automatic_release_tag: "latest"
             prerelease: true
             title: "v${{steps.version_step.outputs.majorMinorPatch}}-preview.${{ steps.version_step.outputs.preReleaseNumber }}"
             files: |
@@ -56,6 +56,8 @@ jobs:
             version: ${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }} # Thunderstore doesn't allow pre-release notation in version
             communities: gang-beasts
             categories: mods
+            path: |
+              dist/
  
         - name: Output URL
           if: ${{ !env.ACT }}
