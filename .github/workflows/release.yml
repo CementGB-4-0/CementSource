@@ -36,6 +36,7 @@ jobs:
         - run: |
             dotnet build -o dist/Mods --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
             rm dist/Mods/CementGB.deps.json
+            zip -r CementGB-CementGB-${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }}.zip dist
 
         - uses: "marvinpinto/action-automatic-releases@latest"
           if: ${{ !env.ACT }}
@@ -54,12 +55,10 @@ jobs:
             token: ${{ secrets.TS_TOKEN }}
             namespace: CementGB
             name: CementGB
-            description: A general-purpose modding API for Gang Beasts.
             version: ${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }} # Thunderstore doesn't allow pre-release notation in version
+            file: CementGB-CementGB-${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }}.zip
             communities: gang-beasts
             categories: mods
-            path: |
-              ${{ github.workspace }}/dist
 
  
         - name: Output URL
