@@ -32,8 +32,10 @@ jobs:
           uses: gittools/actions/gitversion/execute@v3.1.11
 
         - run: |
-            dotnet build -o dist/Mods --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
-            rm dist/Mods/CementGB.deps.json
+            mkdir /dist
+            mv dist/* /dist/*
+            dotnet build -o /dist/Mods --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
+            rm /dist/Mods/CementGB.deps.json
 
         - uses: "marvinpinto/action-automatic-releases@latest"
           if: ${{ !env.ACT }}
@@ -43,7 +45,7 @@ jobs:
             prerelease: true
             title: "v${{steps.version_step.outputs.majorMinorPatch}}-preview.${{ steps.version_step.outputs.preReleaseNumber }}"
             files: |
-              dist/Mods/CementGB.dll
+              /dist/Mods/CementGB.dll
               
         - uses: dhkatz/thunderstore-publish@v1.0.1
           if: ${{ !env.ACT }}
@@ -57,7 +59,7 @@ jobs:
             communities: gang-beasts
             categories: mods
             path: |
-              ${{ github.workspace }}/dist/
+              /dist/
 
  
         - name: Output URL
