@@ -35,7 +35,9 @@ jobs:
           id: version_step
           uses: gittools/actions/gitversion/execute@v3.1.11
 
-        - run: dotnet build -o ./dist/ --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
+        - run: |
+            dotnet build -o dist/ --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
+            rm dist/CementGB.deps.json
 
         - uses: gittools/actions/gitreleasemanager/create@v3.1.11
           if: ${{ !env.ACT }}
