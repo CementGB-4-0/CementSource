@@ -33,7 +33,6 @@ jobs:
 
         - run: |
             dotnet build -o dist/Mods --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
-            cp README.md dist/
             rm dist/Mods/CementGB.deps.json
 
         - uses: "marvinpinto/action-automatic-releases@latest"
@@ -58,7 +57,7 @@ jobs:
             communities: gang-beasts
             categories: mods
             path: |
-              ${{ github.workspace }}}/dist
+              ${{ github.workspace }}}/dist/
 
  
         - name: Output URL
