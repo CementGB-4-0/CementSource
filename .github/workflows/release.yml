@@ -43,7 +43,7 @@ jobs:
             prerelease: true
             title: "v${{steps.version_step.outputs.majorMinorPatch}}-preview.${{ steps.version_step.outputs.preReleaseNumber }}"
             files: |
-              dist/CementGB.dll
+              dist/Mods/CementGB.dll
               
         - uses: dhkatz/thunderstore-publish@v1.0.1
           if: ${{ !env.ACT }}
