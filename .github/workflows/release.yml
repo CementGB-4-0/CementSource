@@ -59,6 +59,8 @@ jobs:
             file: CementGB-CementGB-${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }}.zip
             communities: gang-beasts
             categories: mods
+            path: |
+              ${{ github.workspace }}
 
  
         - name: Output URL
