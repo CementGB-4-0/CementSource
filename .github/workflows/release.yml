@@ -25,22 +25,28 @@ jobs:
           uses: gittools/actions/gitversion/setup@v3.1.11
           with:
             versionSpec: '6.0.x'
+
+        - name: Install GitReleaseManager
+          uses: gittools/actions/gitreleasemanager/setup@v3.1.11
+          with:
+            versionSpec: '0.18.x'
             
         - name: Determine Build Version
           id: version_step
           uses: gittools/actions/gitversion/execute@v3.1.11
 
-        - run: dotnet build -o ./dist/ --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
+        - run: |
+            dotnet build -o dist/ --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
+            rm dist/CementGB.deps.json
 
-        - uses: gittools/actions/gitreleasemanager/create@v3.1.11
+        - uses: "marvinpinto/action-automatic-releases@latest"
           if: ${{ !env.ACT }}
-          name: Create release with GitReleaseManager
           with:
-            token: ${{ secrets.GITHUB_TOKEN }}
-            owner: ${{ github.event.repository.owner }}
-            repository: ${{ github.event.repository.name }}
-            name: v${{ steps.version_step.outputs.majorMinorPatch }}-preview.${{ steps.version_step.outputs.preReleaseNumber }}
-            assets:  |
+            repo_token: "${{ secrets.GITHUB_TOKEN }}"
+            automatic_release_tag: "latest"
+            prerelease: true
+            title: "${{steps.version_step.outputs.majorMinorPatch}}-preview.${{ steps.version_step.outputs.preReleaseNumber }}"
+            files: |
               dist/CementGB.dll
 
         - uses: dhkatz/thunderstore-publish@v1.0.1
