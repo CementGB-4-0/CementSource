@@ -32,9 +32,9 @@ jobs:
           uses: gittools/actions/gitversion/execute@v3.1.11
 
         - run: |
-            dotnet build -o dist/ --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
+            dotnet build -o dist/Mods --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
             cp README.md dist/
-            rm dist/CementGB.deps.json
+            rm dist/Mods/CementGB.deps.json
 
         - uses: "marvinpinto/action-automatic-releases@latest"
           if: ${{ !env.ACT }}
