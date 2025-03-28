@@ -58,7 +58,7 @@ jobs:
             communities: gang-beasts
             categories: mods
             path: |
-              ./dist
+              ${{ github.workspace }}}/dist
 
  
         - name: Output URL
