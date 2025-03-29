@@ -36,7 +36,7 @@ jobs:
         - run: |
             dotnet build -o dist/Mods --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
             rm dist/Mods/CementGB.deps.json
-            cd dist; zip -r CementGB-CementGB-${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }}.zip *
+            cd dist; zip -r ../CementGB-CementGB-${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }}.zip *
 
         - uses: "marvinpinto/action-automatic-releases@latest"
           if: ${{ !env.ACT }}
