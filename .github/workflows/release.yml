@@ -14,15 +14,15 @@ jobs:
             fetch-depth: 0
             filter: tree:0
 
-        - run: |
-            sudo apt install curl
-            sudo apt install zip
-
         - uses: actions/setup-dotnet@v4
           with:
             dotnet-version: |
               6.x
               9.x
+
+        - run: |
+            sudo apt install curl
+            sudo apt install zip
         
         - name: Install GitVersion
           uses: gittools/actions/gitversion/setup@v3.1.11
@@ -46,23 +46,5 @@ jobs:
             prerelease: true
             title: "v${{steps.version_step.outputs.majorMinorPatch}}-preview.${{ steps.version_step.outputs.preReleaseNumber }}"
             files: |
+              CementGB-CementGB-${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }}.zip
               dist/Mods/CementGB.dll
-              
-        - uses: GreenTF/upload-thunderstore-package@v4.3
-          if: ${{ !env.ACT }}
-          id: publish-thunderstore
-          with:
-            token: ${{ secrets.TS_TOKEN }}
-            namespace: CementGB
-            name: CementGB
-            version: ${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }} # Thunderstore doesn't allow pre-release notation in version
-            file: CementGB-CementGB-${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }}.zip
-            community: gang-beasts
-            categories: mods
-            path: |
-              ${{ github.workspace }}
-
- 
-        - name: Output URL
-          if: ${{ !env.ACT }}
-          run: echo "Published Thunderstore package to ${{ steps.publish-thunderstore.outputs.url }}"
