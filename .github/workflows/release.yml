@@ -6,6 +6,7 @@ on:
 jobs:
     publish:
         runs-on: ubuntu-latest
+        permissions: write-all
         steps:
         - name: Checkout
           uses: actions/checkout@v4
@@ -13,31 +14,29 @@ jobs:
             fetch-depth: 0
             filter: tree:0
 
-        - run: sudo apt install curl
-
         - uses: actions/setup-dotnet@v4
           with:
             dotnet-version: |
               6.x
               9.x
+
+        - run: |
+            sudo apt install curl
+            sudo apt install zip
         
         - name: Install GitVersion
           uses: gittools/actions/gitversion/setup@v3.1.11
           with:
             versionSpec: '6.0.x'
-
-        - name: Install GitReleaseManager
-          uses: gittools/actions/gitreleasemanager/setup@v3.1.11
-          with:
-            versionSpec: '0.18.x'
             
         - name: Determine Build Version
           id: version_step
           uses: gittools/actions/gitversion/execute@v3.1.11
 
         - run: |
-            dotnet build -o dist/ --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
-            rm dist/CementGB.deps.json
+            dotnet build -o dist/Mods --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
+            rm dist/Mods/CementGB.deps.json
+            cd dist; zip -r ../CementGB-CementGB-${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }}.zip *
 
         - uses: "marvinpinto/action-automatic-releases@latest"
           if: ${{ !env.ACT }}
@@ -45,22 +44,7 @@ jobs:
             repo_token: "${{ secrets.GITHUB_TOKEN }}"
             automatic_release_tag: "latest"
             prerelease: true
-            title: "${{steps.version_step.outputs.majorMinorPatch}}-preview.${{ steps.version_step.outputs.preReleaseNumber }}"
+            title: "v${{steps.version_step.outputs.majorMinorPatch}}-preview.${{ steps.version_step.outputs.preReleaseNumber }}"
             files: |
-              dist/CementGB.dll
-
-        - uses: dhkatz/thunderstore-publish@v1.0.1
-          if: ${{ !env.ACT }}
-          id: publish-thunderstore
-          with:
-            token: ${{ secrets.TS_TOKEN }}
-            namespace: CementGB
-            name: CementGB
-            description: A general-purpose modding API for Gang Beasts.
-            version: ${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ github.run_number }} # Thunderstore doesn't allow pre-release notation in version
-            communities: gang-beasts
-            categories: mods
- 
-        - name: Output URL
-          if: ${{ !env.ACT }}
-          run: echo "Published Thunderstore package to ${{ steps.publish-thunderstore.outputs.url }}"
+              CementGB-CementGB-${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }}.zip
+              dist/Mods/CementGB.dll
