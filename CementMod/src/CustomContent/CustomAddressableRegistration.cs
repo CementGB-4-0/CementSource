@@ -117,9 +117,7 @@ public static class CustomAddressableRegistration
 
             foreach (var file in Directory.EnumerateFiles(aaPath, "catalog_*.json", SearchOption.AllDirectories))
             {
-                var catalogPath = file;
-
-                var resourceLocatorHandle = Addressables.LoadContentCatalog(catalogPath).Acquire();
+                var resourceLocatorHandle = Addressables.LoadContentCatalog(file).Acquire();
                 var addressablePackName = Path.GetDirectoryName(aaPath);
                 if (string.IsNullOrWhiteSpace(addressablePackName))
                 {
@@ -154,7 +152,7 @@ public static class CustomAddressableRegistration
                 }
 
                 Mod.Logger.Msg(ConsoleColor.Green, $"Content catalog for \"{addressablePackName}\" loaded OK");
-                OnModdedAddressableCatalogLoaded?.Invoke(catalogPath);
+                OnModdedAddressableCatalogLoaded?.Invoke(file);
                 resourceLocatorHandle.Release();
             }
         }
@@ -165,9 +163,8 @@ public static class CustomAddressableRegistration
 
     public static bool IsModdedKey(string key)
     {
-        for (var i = 0; i < _moddedResourceLocators.Count; i++)
+        foreach (var moddedKeyish in _moddedResourceLocators)
         {
-            var moddedKeyish = _moddedResourceLocators[i];
             if (moddedKeyish.Keys.Contains(key))
             {
                 return true;
