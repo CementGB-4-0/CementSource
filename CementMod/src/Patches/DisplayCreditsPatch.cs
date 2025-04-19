@@ -15,12 +15,12 @@ internal static class DisplayCreditsPatch
 
         private static void Prefix(DisplayCredits __instance)
         {
-            if (textAsset == null)
-            {
-                textAsset = new TextAsset(
-                    $"{EmbeddedUtilities.ReadEmbeddedText(Melon<Mod>.Instance.MelonAssembly.Assembly, "CementGB.Mod.Assets.CreditsText.txt")}\n\n{__instance.textFile.text}");
-                __instance.textFile = textAsset;
-            }
+            if (textAsset != null)
+                return;
+
+            textAsset = new TextAsset(
+                $"{EmbeddedUtilities.ReadEmbeddedText(Melon<Mod>.Instance.MelonAssembly.Assembly, "CementGB.Mod.Assets.CreditsText.txt")}\n\n{__instance.textFile.text}");
+            __instance.textFile = textAsset;
         }
     }
 }

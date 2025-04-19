@@ -1,0 +1,50 @@
+name: Release new Cement version
+
+on:
+    push:
+      branches: master
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        permissions: write-all
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+            filter: tree:0
+
+        - uses: actions/setup-dotnet@v4
+          with:
+            dotnet-version: |
+              6.x
+              9.x
+
+        - run: |
+            sudo apt install curl
+            sudo apt install zip
+        
+        - name: Install GitVersion
+          uses: gittools/actions/gitversion/setup@v3.1.11
+          with:
+            versionSpec: '6.0.x'
+            
+        - name: Determine Build Version
+          id: version_step
+          uses: gittools/actions/gitversion/execute@v3.1.11
+
+        - run: |
+            dotnet build -o dist/Mods --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}
+            rm dist/Mods/CementGB.deps.json
+            cd dist; zip -r ../CementGB-CementGB-${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }}.zip *
+
+        - uses: "marvinpinto/action-automatic-releases@latest"
+          if: ${{ !env.ACT }}
+          with:
+            repo_token: "${{ secrets.GITHUB_TOKEN }}"
+            automatic_release_tag: "latest"
+            prerelease: true
+            title: "v${{steps.version_step.outputs.majorMinorPatch}}-preview.${{ steps.version_step.outputs.preReleaseNumber }}"
+            files: |
+              CementGB-CementGB-${{ steps.version_step.outputs.major }}.${{ steps.version_step.outputs.minor }}.${{ steps.version_step.outputs.preReleaseNumber }}.zip
+              dist/Mods/CementGB.dll

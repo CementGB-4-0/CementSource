@@ -1,0 +1,47 @@
+name: Nightly build
+
+on:
+    workflow_dispatch:
+    push:
+      branches:
+        develop
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - run: sudo apt install curl
+
+            - uses: actions/setup-dotnet@v4
+              with:
+                dotnet-version: |
+                  6.x
+                  9.x
+
+            - name: Install GitVersion
+              uses: gittools/actions/gitversion/setup@v3.1.11
+              with:
+                versionSpec: '6.0.x'
+                
+            - name: Determine Build Version
+              id: version_step
+              uses: gittools/actions/gitversion/execute@v3.1.11
+
+            - uses: actions/setup-dotnet@v4
+              with:
+                dotnet-version: |
+                  6.x
+                  9.x
+
+            - run: dotnet build CementMod -o ./build/ --configuration Release /p:Version=${{ steps.version_step.outputs.majorMinorPatch }}.${{ github.run_number }}
+
+            - uses: actions/upload-artifact@v4
+              if: ${{ !env.ACT }}
+              with: 
+                name: output-artifact
+                path: |
+                  ./build/CementGB.dll
+                  ./build/CementGB.xml
+                overwrite: true

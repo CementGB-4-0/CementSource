@@ -24,11 +24,11 @@ public static class AssetUtilities
     /// <returns>The loaded asset with <c>hideFlags</c> set to <c>HideFlags.DontUnloadUnusedAsset</c></returns>
     public static T LoadPersistentAsset<T>(this AssetBundle bundle, string name) where T : UnityEngine.Object
     {
-        var asset = bundle.LoadAsset(name);
+        var asset = bundle.LoadAsset<T>(name);
 
         if (asset != null)
         {
-            asset.hideFlags = HideFlags.DontUnloadUnusedAsset;
+            asset.MakePersistent();
             return asset.TryCast<T>();
         }
 

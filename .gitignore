@@ -402,4 +402,9 @@ FodyWeavers.xsd
 **/ref/net6
 Staging/
 game_dir.txt
-CementDocs.xml
+
+# Ignore staged Cement build artifacts
+CementGB.xml
+CementGB.dll
+
+.idea

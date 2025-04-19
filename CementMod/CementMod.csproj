@@ -7,6 +7,8 @@
 
         <RootNamespace>CementGB.Mod</RootNamespace>
         <AssemblyName>CementGB</AssemblyName>
+        <Author>CementGB Team</Author>
+        <Version>4.0.0</Version>
 
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <LangVersion>12</LangVersion>
@@ -15,6 +17,10 @@
         <Optimize>false</Optimize>
 
         <OutputType>Library</OutputType>
+        <DocumentationFile>CementGB.xml</DocumentationFile>
+
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 
         <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with MelonLoader or the game -->
         <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->
@@ -30,7 +36,6 @@
 
         <OutputPath>bin\Debug\</OutputPath>
         <WarningLevel>4</WarningLevel>
-        <!-- <DocumentationFile>CementDocs.xml</DocumentationFile> -->
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -66,23 +71,41 @@
     </ItemGroup>
 
     <ItemGroup>
-        <GameDirFile Include="..\game_dir.txt"></GameDirFile>
+        <GameDirFile Include="$(SolutionDir)\game_dir.txt"></GameDirFile>
     </ItemGroup>
 
-    <Target Name="BeforeRestore" BeforeTargets="Restore">
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'@(GameDirFile)' != ''">
         <!-- Read game_dir.txt into property -->
         <ReadLinesFromFile File="@(GameDirFile)">
             <Output TaskParameter="Lines" PropertyName="GameDir"/>
         </ReadLinesFromFile>
+        
+        <!-- Copy the built mod dll into game Mods folder -->
+        <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Mods"/>
     </Target>
 
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <!-- Read game_dir.txt into property -->
-        <ReadLinesFromFile File="@(GameDirFile)">
-            <Output TaskParameter="Lines" PropertyName="GameDir"/>
-        </ReadLinesFromFile>
-
-        <!-- Copy the built mod dll into game Mods folder -->
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Mods"/>
+    <Target Name="AddGeneratedFile" BeforeTargets="BeforeCompile;CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(IntermediateOutputPath)GeneratedFile.cs">
+        <PropertyGroup>
+            <MelonLoaderModAuthor Condition="'$(MelonLoaderModAuthor)' == ''">$(Author)</MelonLoaderModAuthor>
+            <MelonLoaderModName Condition="'$(MelonLoaderModName)' == ''">$(AssemblyName)</MelonLoaderModName>
+            <MelonLoaderModVersion Condition="'$(MelonLoaderModVersion)' == ''">$(Version)</MelonLoaderModVersion>
+            <GeneratedText><![CDATA[
+namespace $(RootNamespace)
+{
+    internal static class MyPluginInfo
+    {
+        public const string Author = "$(MelonLoaderModAuthor)"%3B
+        public const string Name = "$(MelonLoaderModName)"%3B
+        public const string Version = "$(MelonLoaderModVersion)"%3B
+    }
+}
+      ]]></GeneratedText>
+            <GeneratedFilePath>$(IntermediateOutputPath)/MyPluginInfo.cs</GeneratedFilePath>
+        </PropertyGroup>
+        <ItemGroup>
+            <Compile Include="$(GeneratedFilePath)" />
+            <FileWrites Include="$(GeneratedFilePath)" />
+        </ItemGroup>
+        <WriteLinesToFile Lines="$(GeneratedText)" File="$(GeneratedFilePath)" WriteOnlyWhenDifferent="true" Overwrite="true" />
     </Target>
 </Project>

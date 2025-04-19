@@ -15,29 +15,28 @@ namespace CementGB.Mod.Modules.NetBeard;
 [RegisterTypeInIl2Cpp]
 public class ServerManager : MonoBehaviour
 {
-    public const string DEFAULT_IP = "127.0.0.1";
-    public const int DEFAULT_PORT = 5999;
+    public const string DefaultIP = "127.0.0.1";
+    public const int DefaultPort = 5999;
 
     private static readonly string
-        _ip = CommandLineParser.Instance.GetValueForKey("-ip", false); // set to server via vanilla code
+        IpArg = CommandLineParser.Instance.GetValueForKey("-ip", false); // set to server via vanilla code
 
     private static readonly string
-        _port = CommandLineParser.Instance.GetValueForKey("-port", false); // set to server via vanilla code
+        PortArg = CommandLineParser.Instance.GetValueForKey("-port", false); // set to server via vanilla code
 
     private static bool _autoLaunchUpdateEnabled = IsClientJoiner && !DontAutoStart;
 
     public static bool IsServer => Environment.GetCommandLineArgs().Contains("-SERVER");
-
     public static bool IsClientJoiner =>
         !IsServer &&
-        (!string.IsNullOrWhiteSpace(_ip) ||
+        (!string.IsNullOrWhiteSpace(IpArg) ||
          !string.IsNullOrWhiteSpace(
-             _port)); // TODO: Auto start as client (similar to NetworkBootstrapper.AutoRunServer) if this is true
+             PortArg)); // TODO: Auto start as client (similar to NetworkBootstrapper.AutoRunServer) if this is true
 
     public static bool IsForwardedHost => IsClientJoiner && Environment.GetCommandLineArgs().Contains("-FWD");
     public static bool DontAutoStart => Environment.GetCommandLineArgs().Contains("-DONT-AUTOSTART");
-    public static string IP => string.IsNullOrWhiteSpace(_ip) ? DEFAULT_IP : _ip;
-    public static int Port => string.IsNullOrWhiteSpace(_port) ? DEFAULT_PORT : int.Parse(_port);
+    public static string IP => string.IsNullOrWhiteSpace(IpArg) ? DefaultIP : IpArg;
+    public static int Port => string.IsNullOrWhiteSpace(PortArg) ? DefaultPort : int.Parse(PortArg);
 
     private void Awake()
     {
@@ -61,10 +60,10 @@ public class ServerManager : MonoBehaviour
 
         if (IsServer)
         {
-            LoggingUtilities.VerboseLog("Setting up pre-boot dedicated server overrides. . .");
+            Mod.Logger.Msg("Setting up pre-boot dedicated server overrides. . .");
             AudioListener.pause = true;
             NetworkBootstrapper.IsDedicatedServer = true;
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen, "Done!");
+            Mod.Logger.Msg(ConsoleColor.Green, "Done!");
         }
     }
 
@@ -85,7 +84,7 @@ public class ServerManager : MonoBehaviour
         if ((IsClientJoiner && !IsForwardedHost) || IsServer)
         {
             LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
-            LoggingUtilities.VerboseLog("Added DevelopmentTestServer to lobby object.");
+            Mod.Logger.Msg(ConsoleColor.Green, "Added DevelopmentTestServer to lobby object.");
         }
 
         if (IsServer)
@@ -100,6 +99,6 @@ public class ServerManager : MonoBehaviour
         FindObjectOfType<NetworkBootstrapper>().AutoRunServer = IsServer && !DontAutoStart;
         UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.DedicatedServer, null, "", "DGS");
         GameObject.Find("Global(Clone)/LevelLoadSystem").SetActive(false);
-        Mod.Logger.Msg(ConsoleColor.DarkGreen, "Done!");
+        Mod.Logger.Msg(ConsoleColor.Green, "Done!");
     }
 }
