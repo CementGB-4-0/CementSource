@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.InteropServices;
-using CementGB.Mod.Utilities;
 using Il2Cpp;
 using Il2CppCoatsink.UnityServices;
 using Il2CppGB.Core.Bootstrappers;
@@ -27,6 +26,7 @@ public class ServerManager : MonoBehaviour
     private static bool _autoLaunchUpdateEnabled = IsClientJoiner && !DontAutoStart;
 
     public static bool IsServer => Environment.GetCommandLineArgs().Contains("-SERVER");
+
     public static bool IsClientJoiner =>
         !IsServer &&
         (!string.IsNullOrWhiteSpace(IpArg) ||
