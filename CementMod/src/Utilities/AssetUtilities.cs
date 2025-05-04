@@ -1,38 +1,49 @@
 using System;
-using System.Collections;
-using System.Diagnostics;
-using Il2CppInterop.Runtime;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using Il2CppSystem.Collections.Generic;
-using Il2CppSystem.Linq;
+using Il2CppInterop.Runtime.InteropTypes;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceLocations;
-using Object = Il2CppSystem.Object;
 
 namespace CementGB.Mod.Utilities;
 
 public static class AssetUtilities
 {
+    public static bool HandleSynchronousAddressableOperation<T>(this AsyncOperationHandle<T> handle, string key = null) where T : Il2CppObjectBase
+    {
+        var acquiredHandle = handle.Acquire();
+        acquiredHandle.WaitForCompletion();
+        
+        var res = acquiredHandle.Result;
+
+        if (acquiredHandle.Status != AsyncOperationStatus.Succeeded || acquiredHandle.Result == null)
+        {
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Failed to load asset from synchronous addressable handle! | OperationException: {acquiredHandle.OperationException.ToString()} | Result == null: {acquiredHandle.Result == null} | Key: \"{key ?? "null"}\"");
+            acquiredHandle.Release();
+            return false;
+        }
+        
+        var obj = res.TryCast<UnityEngine.Object>();
+        if (obj)
+            obj.MakePersistent();
+        acquiredHandle.Release();
+        
+        return true;
+    }
+    
     /// <summary>
     ///     Shorthand for loading an AssetBundle's asset by name and type in way that prevents it from being garbage collected.
     /// </summary>
     /// <typeparam name="T">The type of the asset to load.</typeparam>
     /// <param name="bundle">The bundle to load the asset from.</param>
     /// <param name="name">The exact name of the asset to load.</param>
-    /// <returns>The loaded asset with <c>hideFlags</c> set to <c>HideFlags.DontUnloadUnusedAsset</c></returns>
+    /// <returns>The loaded asset with <c>hideFlags</c> set persistently.</returns>
     public static T LoadPersistentAsset<T>(this AssetBundle bundle, string name) where T : UnityEngine.Object
     {
         var asset = bundle.LoadAsset<T>(name);
 
-        if (asset != null)
-        {
-            asset.MakePersistent();
-            return asset.TryCast<T>();
-        }
-
-        return null;
+        if (!asset)
+            return null;
+        asset.MakePersistent();
+        return asset;
     }
 
     /// <summary>
@@ -89,74 +100,6 @@ public static class AssetUtilities
         }));
     }
 
-    private static void CacheShaders()
-    {
-        Mod.Logger.Msg("Caching Addressable game shaders, please wait. . .");
-        var stopwatch = new Stopwatch();
-        stopwatch.Start();
-
-        foreach (var locator in Addressables.ResourceLocators.ToArray())
-        {
-            var locatorKeys = locator.Keys.ToList();
-            var handle = Addressables.LoadResourceLocations(locatorKeys.Cast<IList<Object>>(),
-                Addressables.MergeMode.Union, Il2CppType.Of<Shader>()).Acquire();
-            handle.WaitForCompletion();
-
-            if (handle.Status != AsyncOperationStatus.Succeeded)
-            {
-                LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
-                    $"Shader cache failed for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException.ToString()}\"");
-                stopwatch.Reset();
-                continue;
-            }
-
-            if (handle.Result == null)
-            {
-                LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
-                    $"Shader cache returned no result for locator (ID \"{locator.LocatorId}\")! : OperationException \"{handle.OperationException?.ToString() ?? "NONE"}\"");
-                stopwatch.Reset();
-                continue;
-            }
-
-            var result = handle.Result.Cast<List<IResourceLocation>>();
-            foreach (var location in result)
-            {
-                var assetHandle = Addressables.LoadAssetAsync<Shader>(location).Acquire();
-                assetHandle.WaitForCompletion();
-
-                if (assetHandle.Status != AsyncOperationStatus.Succeeded)
-                {
-                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
-                        $"Shader cache ASSET HANDLE failed for location (Key \"{location.PrimaryKey}\")! : OperationException \"{assetHandle.OperationException.ToString() ?? "NONE"}\"");
-                    assetHandle.Release();
-                    continue;
-                }
-
-                if (assetHandle.Result == null)
-                {
-                    LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
-                        $"Shader cache ASSET HANDLE returned no result for location (Key \"{location.PrimaryKey}\")! : OperationException \"{assetHandle.OperationException.ToString() ?? "NONE"}\"");
-                    assetHandle.Release();
-                    continue;
-                }
-
-                assetHandle.Result.hideFlags = HideFlags.DontUnloadUnusedAsset;
-
-                if (!_cachedShaders.ContainsKey(assetHandle.Result.name))
-                {
-                    _cachedShaders.Add(assetHandle.Result.name, assetHandle.Result);
-                }
-
-                assetHandle.Release();
-            }
-
-            handle.Release();
-        }
-
-        stopwatch.Stop();
-        Mod.Logger.Msg(ConsoleColor.Green, $"Shader caching done! Total time taken: {stopwatch.Elapsed}");
-    }
-
     /*     /// <summary>
         /// A hacky Coroutine that calls Shader.Find on all materials on the passed GameObject and children, or all objects in the scene if not specified, and passes in the name of the current shader, setting the Material.shader value.
         /// </summary>
@@ -184,34 +127,4 @@ public static class AssetUtilities
                 }
             }
         } */
-
-    public static IEnumerator ReloadAddressableShaders(GameObject parent = null)
-    {
-        yield return new WaitForEndOfFrame();
-        Mod.Logger.Warning("Reloading Addressable shaders. . .");
-        Il2CppArrayBase<MeshRenderer> renderers;
-        if (parent == null)
-        {
-            renderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
-        }
-        else
-        {
-            var rendList = new System.Collections.Generic.List<MeshRenderer>();
-            rendList.AddRange(parent.GetComponents<MeshRenderer>());
-            rendList.AddRange(parent.GetComponentsInChildren<MeshRenderer>());
-
-            renderers = new Il2CppReferenceArray<MeshRenderer>([.. rendList]);
-        }
-
-        foreach (var meshRenderer in renderers)
-        {
-            foreach (var material in meshRenderer.materials)
-            {
-                if (_cachedShaders.ContainsKey(material.shader.name))
-                {
-                    material.shader = _cachedShaders[material.shader.name];
-                }
-            }
-        }
-    }
 }

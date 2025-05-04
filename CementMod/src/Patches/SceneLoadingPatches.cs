@@ -68,30 +68,28 @@ internal static class OnSceneListCompletePatch
     {
         var sceneList = data.Cast<AddressableDataCache>();
 
-        foreach (var sceneInstance in AssetUtilities.GetAllModdedResourceLocationsOfType<SceneInstance>())
+        foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
         {
-            if (sceneInstance.PrimaryKey.StartsWith("_") || BlacklistedSceneNames.Contains(sceneInstance.PrimaryKey))
+            if (mapRef.SceneName.StartsWith("_") || BlacklistedSceneNames.Contains(mapRef.SceneName))
             {
                 LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
-                    $"Skipped over scene with key {sceneInstance.PrimaryKey} because it contains characters that are blacklisted.");
+                    $"Skipped over scene with key {mapRef.SceneName} because it contains characters that are blacklisted.");
                 continue;
             }
 
-            var sceneRef = new AssetReference(sceneInstance.PrimaryKey);
-
             sceneList._assets.Add(new AddressableDataCache.AssetData
             {
-                Asset = sceneRef,
-                Key = sceneInstance.PrimaryKey
+                Asset = mapRef.SceneData._sceneRef,
+                Key = mapRef.SceneName
             });
 
             Resources._assetList.Add(
-                new Resources.LoadLoadedItem(new AssetReference($"{sceneInstance.PrimaryKey}-Data"))
+                new Resources.LoadLoadedItem(new AssetReference(mapRef.SceneData.name))
                 {
-                    Key = sceneInstance.PrimaryKey + "-Data"
+                    Key = mapRef.SceneData.name
                 });
 
-            Mod.Logger.Msg(ConsoleColor.DarkGreen, $"New custom stage registered : Key: {sceneInstance.PrimaryKey}");
+            Mod.Logger.Msg(ConsoleColor.DarkGreen, $"New custom stage registered : Key: {mapRef.SceneData.name}");
         }
 
         data = sceneList;

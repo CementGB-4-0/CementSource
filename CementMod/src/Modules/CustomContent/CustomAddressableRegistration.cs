@@ -1,0 +1,186 @@
+using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using CementGB.Mod.Utilities;
+using GBMDK;
+using Il2CppGB.Data.Loading;
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.InteropTypes;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Il2CppSystem.Collections.Generic;
+using Il2CppSystem.Linq;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.AddressableAssets.ResourceLocators;
+using UnityEngine.ResourceManagement.ResourceLocations;
+using Object = Il2CppSystem.Object;
+
+namespace CementGB.Mod.CustomContent;
+
+public static class CustomAddressableRegistration
+{
+    private static readonly System.Collections.Generic.Dictionary<string, List<Object>> _packAddressableKeys = [];
+    private static readonly System.Collections.Generic.List<IResourceLocator> _moddedResourceLocators = [];
+    private static readonly System.Collections.Generic.List<CustomMapRefHolder> _customMaps = [];
+
+    public static ReadOnlyCollection<CustomMapRefHolder> CustomMaps => _customMaps.AsReadOnly();
+    public static ReadOnlyDictionary<string, string[]> PackAddressableKeys // { modName: addressableKeys }
+    {
+        get
+        {
+            var dict = new System.Collections.Generic.Dictionary<string, string[]>();
+            
+            foreach (var kvp in _packAddressableKeys)
+            {
+                var addrKeys = new List<string>();
+                
+                foreach (var uncastedString in kvp.Value.ToArray())
+                    addrKeys.Add(uncastedString.ToString()); 
+                dict.Add(kvp.Key, addrKeys.ToArray());
+            }
+
+            return new ReadOnlyDictionary<string, string[]>(dict);
+        }
+    }
+    public static ReadOnlyCollection<IResourceLocator> ModdedResourceLocators => _moddedResourceLocators.AsReadOnly();
+    
+    /// <summary>
+    ///     Gets all custom-loaded IResourceLocations of a certain result type. Used to iterate through and find custom content
+    ///     addressable keys depending on type.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns>
+    ///     An array containing IResourceLocations that, if loaded, will result in the passed type. Will return an array
+    ///     even if empty.
+    /// </returns>
+    private static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Object
+    {
+        System.Collections.Generic.List<IResourceLocation> ret = [];
+        var allModdedKeys = new List<Object>();
+
+        foreach (var kvp in PackAddressableKeys)
+        {
+            foreach (var key in kvp.Value)
+            {
+                allModdedKeys.Add(key);
+            }
+        }
+
+        var allModdedLocations = Addressables
+            .LoadResourceLocationsAsync(allModdedKeys.Cast<IList<Object>>(), Addressables.MergeMode.Union);
+
+        if (!allModdedLocations.HandleSynchronousAddressableOperation())
+            return [];
+
+        var result = allModdedLocations.Result.Cast<List<IResourceLocation>>();
+        foreach (var location in result)
+        {
+            if (location.ResourceType == Il2CppType.Of<T>())
+                ret.Add(location);
+        }
+
+        if (ret.Count == 0)
+        {
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
+                $"Returned empty array! Type {typeof(T)} probably wasn't found in Addressables.");
+        }
+
+        allModdedLocations.Release();
+        return [.. ret];
+    }
+    
+    public static bool IsModdedKey(string key) 
+        => _moddedResourceLocators.Any(moddedKeyish => moddedKeyish.Keys.Contains(key));
+
+    public static bool IsValidSceneDataName(string name) 
+        => name.Split("-Data").Length <= 1;
+
+    internal static void Initialize()
+    {
+        InitializeContentCatalogs();
+        InitializeMapReferences();
+    }
+
+    private static void InitializeContentCatalogs()
+    {
+        _packAddressableKeys.Clear();
+        Mod.Logger.Msg("Starting initialization of modded Addressable content catalogs. . .");
+
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        foreach (var contentMod in Directory.EnumerateDirectories(Mod.CustomContentPath,  "*", SearchOption.AllDirectories))
+        {
+            var aaPath = Path.Combine(contentMod, "aa");
+
+            if (!Directory.Exists(aaPath))
+                continue;
+
+            foreach (var file in Directory.EnumerateFiles(aaPath, "catalog_*.json", SearchOption.AllDirectories))
+            {
+                var resourceLocatorHandle = Addressables.LoadContentCatalogAsync(file);
+                if (!resourceLocatorHandle.HandleSynchronousAddressableOperation())
+                    continue;
+                
+                var addressablePackName = Path.GetFileNameWithoutExtension(Path.GetDirectoryName(aaPath));
+                if (string.IsNullOrWhiteSpace(addressablePackName))
+                    continue;
+
+                var resourceLocator = resourceLocatorHandle.Result;
+                Addressables.AddResourceLocator(resourceLocator);
+                
+                _moddedResourceLocators.Add(resourceLocator);
+                _packAddressableKeys.Add(Path.GetFileNameWithoutExtension(contentMod), resourceLocator.Keys.ToList());
+
+                foreach (var key in resourceLocator.Keys.ToArray())
+                    LoggingUtilities.VerboseLog($"Stored key from content catalog for \"{addressablePackName}\" : {key.ToString()}");
+
+                Mod.Logger.Msg(ConsoleColor.Green, $"Content catalog for \"{addressablePackName}\" loaded OK");
+                resourceLocatorHandle.Release();
+            }
+        }
+
+        stopwatch.Stop();
+        Mod.Logger.Msg(ConsoleColor.Green, $"Done custom content catalogs! Total time taken: {stopwatch.Elapsed}");
+    }
+
+    private static void InitializeMapReferences()
+    {
+        foreach (var sceneDataLoc in GetAllModdedResourceLocationsOfType<SceneData>())
+        {
+            var castedSceneDataHandle = Addressables.LoadAssetAsync<ScriptableObject>(sceneDataLoc);
+            if (!castedSceneDataHandle.HandleSynchronousAddressableOperation())
+                continue;
+            
+            var castedSceneData = castedSceneDataHandle.Result.Cast<SceneData>();
+
+            if (!IsValidSceneDataName(sceneDataLoc.PrimaryKey))
+            {
+                Mod.Logger.Error($"Custom SceneData {sceneDataLoc.PrimaryKey} is not named correctly! The stage it belongs to will not be loaded.");
+                continue;
+            }
+
+            if (castedSceneData.name != sceneDataLoc.PrimaryKey)
+            {
+                Mod.Logger.Error($"Custom SceneData of key {sceneDataLoc.PrimaryKey} has differing Object name from Addressable key! The stage it belongs to will not be loaded.");
+                continue;
+            }
+
+            var parsedSceneName = sceneDataLoc.PrimaryKey.Split("-Data")[0];
+            var sceneInfoHandle = Addressables.LoadAssetAsync<CustomMapInfo>(parsedSceneName);
+            if (!sceneInfoHandle.HandleSynchronousAddressableOperation())
+                continue;
+
+            var refHolder = new CustomMapRefHolder(sceneDataLoc, sceneInfoHandle.Result);
+            if (!refHolder.IsValid)
+            {
+                Mod.Logger.Error($"Custom map reference holder is not valid! | Info: {(refHolder.sceneInfo ? refHolder.sceneInfo.ToString() : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData : "null")}");
+                continue;
+            }
+            
+            _customMaps.Add(refHolder);
+        }
+    }
+}

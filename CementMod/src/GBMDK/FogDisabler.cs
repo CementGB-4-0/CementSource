@@ -12,9 +12,7 @@ public class FogDisabler : MonoBehaviour
         var feature = FindObjectOfType<OpaqueSurfaceFogRendererFeature>();
 
         if (feature)
-        {
             feature.SetActive(false);
-        }
     }
 
     private void OnDisable()
@@ -22,9 +20,7 @@ public class FogDisabler : MonoBehaviour
         var feature = FindObjectOfType<OpaqueSurfaceFogRendererFeature>();
 
         if (feature)
-        {
             feature.SetActive(false);
-        }
     }
 
     private void OnDestroy()
@@ -32,8 +28,6 @@ public class FogDisabler : MonoBehaviour
         var feature = FindObjectOfType<OpaqueSurfaceFogRendererFeature>();
 
         if (feature)
-        {
             feature.SetActive(false);
-        }
     }
 }

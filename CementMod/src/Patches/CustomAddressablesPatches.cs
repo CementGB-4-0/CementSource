@@ -13,7 +13,7 @@ namespace CementGB.Mod.Patches;
 internal static class CustomAddressablesPatches
 {
     private const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
-
+    
     // Game has failsafes in order to prevent loading invalid assets, bypass them
     [HarmonyPatch(typeof(AssetReference), "RuntimeKeyIsValid")]
     [HarmonyPrefix]
@@ -39,13 +39,13 @@ internal static class CustomAddressablesPatches
             }
 
             __instance._finishedLoading = AsyncOperationStatus.None;
-            __instance._loadHandle = Addressables.LoadAssetAsync<ScriptableObject>(__instance.Key);
+            __instance._loadHandle = Addressables.LoadAssetAsync<Il2CppSystem.Object>(__instance.Key);
 
             __result = __instance._loadHandle;
             return false;
         }
     }
-  
+    
     [HarmonyPatch(typeof(AddressablesRuntimeProperties), nameof(AddressablesRuntimeProperties.EvaluateProperty))]
     internal static class RuntimePropertiesPatch
     {

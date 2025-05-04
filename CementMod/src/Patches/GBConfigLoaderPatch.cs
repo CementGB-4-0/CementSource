@@ -1,3 +1,4 @@
+using CementGB.Mod.CustomContent;
 using CementGB.Mod.Utilities;
 using GBMDK;
 using HarmonyLib;
@@ -27,38 +28,17 @@ internal static class GBConfigLoaderPatch
                     continue; // Either map is not set to random or game is not local; don't do patch
                 }
 
-                foreach (var scene in AssetUtilities.GetAllModdedResourceLocationsOfType<SceneInstance>())
+                foreach (var scene in CustomAddressableRegistration.CustomMaps)
                 {
-                    var handle = Addressables.LoadAsset<Il2CppSystem.Object>(scene.PrimaryKey + "-Info").Acquire();
-                    handle.WaitForCompletion();
-
-                    if (handle.Status != AsyncOperationStatus.Succeeded)
-                    {
-                        Mod.Logger.Error(
-                            $"Handle loading custom SceneData with key \"{scene.PrimaryKey}-Data\" for Random map rotation injection did not succeed. OperationException: {handle.OperationException}");
-                        handle.Release();
-                        continue;
-                    }
-
-                    if (handle.Result == null)
-                    {
-                        Mod.Logger.Error(
-                            $"Handle loading custom SceneData with key \"{scene.PrimaryKey}-Data\" for Random map rotation injection did not return a result. This typically indicates an incorrect Addressables configuration in the modded project you're exporting from. OperationException: {handle.OperationException}");
-                        handle.Release();
-                        continue;
-                    }
-
-                    var result = handle.Result.Cast<CustomMapInfo>();
-
+                    var result = scene.sceneInfo;
+                    
                     if (!result.allowedGamemodes.Get().HasFlag(masterMenuHandler.CurrentGamemode))
                     {
                         // Custom scene data has no waves data attached; this is not a waves map (or the gamemode isn't melee or waves)
-                        handle.Release();
                         continue;
                     }
 
-                    handle.Release();
-                    __result.Add(scene.PrimaryKey);
+                    __result.Add(scene.SceneData._sceneRef.RuntimeKey.ToString());
                 }
             }
         }
