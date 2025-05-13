@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using CementGB.Mod.CustomContent;
 using CementGB.Mod.Utilities;
@@ -7,10 +6,8 @@ using HarmonyLib;
 using Il2CppGB.Core;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
-using Il2CppGB.Game.Data;
 using Il2CppGB.Gamemodes;
 using Il2CppTMPro;
-using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using ConsoleColor = System.ConsoleColor;
@@ -18,6 +15,16 @@ using Object = Il2CppSystem.Object;
 using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Mod.Patches;
+
+[HarmonyPatch(typeof(SceneLoadTask), nameof(SceneLoadTask.OnDataLoaded))]
+internal static class SceneLoadTaskOnDataLoadedPatch
+{
+    private static void Postfix(AsyncOperationStatus status)
+    {
+        if (status == AsyncOperationStatus.Failed)
+            Global.Instance.SceneLoader.LoadMainMenuWithLoadingScreen();
+    }
+}
 
 [HarmonyPatch(typeof(SceneData), nameof(SceneData.OnInternalLoad))]
 internal static class LoadDataPatch
@@ -50,8 +57,8 @@ internal static class LoadDataPatch
         var info = infoHandle.Result.Cast<CustomMapInfo>();
         infoHandle.Release();
 
-        if (info == null || !info.allowedGamemodes.Get().HasFlag(GameModeEnum.Waves) ||
-            __instance._wavesData != null) return;
+        if (!info || !info.allowedGamemodes.Get().HasFlag(GameModeEnum.Waves) ||
+            __instance._wavesData) return;
         
         string[] wavesMaps =
         {
@@ -60,17 +67,6 @@ internal static class LoadDataPatch
             "Rooftop",
             "Subway"
         };
-        foreach (string wavesMap in wavesMaps)
-        {
-            var sceneDataReference = Global.Instance.SceneLoader._sceneList[wavesMap];
-            Resources.LoadLoadedAsset(sceneDataReference, wavesMap + "-Data", out var _,
-                new Action<AsyncOperationStatus, AssetReference, Object>(Action));
-        }
-    }
-
-    private static void Action(AsyncOperationStatus status, AssetReference reference, Object data)
-    {
-        throw new NotImplementedException();
     }
 }
 
