@@ -63,9 +63,7 @@ public class Mod : MelonMod
         // Initialize static classes that need initializing
         CementPreferences.Initialize();
         CommonHooks.Initialize();
-        CustomAddressableRegistration.Initialize();
-        AddressableShaderCache.Initialize();
-
+        
         //Script.ReloadScripts();
     }
 
@@ -90,6 +88,7 @@ public class Mod : MelonMod
     {
         base.OnLateInitializeMelon();
 
+        CustomAddressableRegistration.Initialize();
         CreateCementComponents();
     }
 

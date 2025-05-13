@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using CementGB.Mod.CustomContent;
 using CementGB.Mod.Utilities;
@@ -8,12 +9,13 @@ using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
 using Il2CppGB.Game.Data;
 using Il2CppGB.Gamemodes;
-using Il2CppSystem;
 using Il2CppTMPro;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceProviders;
 using ConsoleColor = System.ConsoleColor;
+using Object = Il2CppSystem.Object;
+using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Mod.Patches;
 
@@ -48,17 +50,34 @@ internal static class LoadDataPatch
         var info = infoHandle.Result.Cast<CustomMapInfo>();
         infoHandle.Release();
 
-        if (info != null && info.allowedGamemodes.Get().HasFlag(GameModeEnum.Waves) && __instance._wavesData == null)
+        if (info == null || !info.allowedGamemodes.Get().HasFlag(GameModeEnum.Waves) ||
+            __instance._wavesData != null) return;
+        
+        string[] wavesMaps =
         {
-            __instance._wavesData = UnityEngine.Object.FindObjectOfType<WavesData>();
+            "Grind",
+            "Incinerator",
+            "Rooftop",
+            "Subway"
+        };
+        foreach (string wavesMap in wavesMaps)
+        {
+            var sceneDataReference = Global.Instance.SceneLoader._sceneList[wavesMap];
+            Resources.LoadLoadedAsset(sceneDataReference, wavesMap + "-Data", out var _,
+                new Action<AsyncOperationStatus, AssetReference, Object>(Action));
         }
+    }
+
+    private static void Action(AsyncOperationStatus status, AssetReference reference, Object data)
+    {
+        throw new NotImplementedException();
     }
 }
 
 [HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneListComplete))]
 internal static class OnSceneListCompletePatch
 {
-    public static readonly string[] BlacklistedSceneNames =
+    private static readonly string[] BlacklistedSceneNames =
     [
         "_bootScene",
         "Menu"
@@ -66,7 +85,10 @@ internal static class OnSceneListCompletePatch
 
     private static void Postfix(ref Object data)
     {
-        var sceneList = data.Cast<AddressableDataCache>();
+        var sceneList = data.TryCast<AddressableDataCache>();
+
+        if (!sceneList)
+            return;
 
         foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
         {
@@ -89,7 +111,7 @@ internal static class OnSceneListCompletePatch
                     Key = mapRef.SceneData.name
                 });
 
-            Mod.Logger.Msg(ConsoleColor.DarkGreen, $"New custom stage registered : Key: {mapRef.SceneData.name}");
+            Mod.Logger.Msg(ConsoleColor.DarkGreen, $"New custom stage registered : Key: {mapRef.SceneName}");
         }
 
         data = sceneList;
@@ -101,12 +123,9 @@ internal static class SetSubTitlePatch
 {
     private static bool Prefix(LoadScreenDisplayHandler __instance, ref string name)
     {
-        if (CustomAddressableRegistration.IsModdedKey(name))
-        {
-            __instance._subTitle.GetComponent<TextMeshProUGUI>().text = name;
-            return false;
-        }
-
-        return true;
+        if (!CustomAddressableRegistration.IsModdedKey(name)) return true;
+        __instance._subTitle.GetComponent<TextMeshProUGUI>().text = name;
+        
+        return false;
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -7,11 +8,9 @@ using CementGB.Mod.Utilities;
 using GBMDK;
 using Il2CppGB.Data.Loading;
 using Il2CppInterop.Runtime;
-using Il2CppInterop.Runtime.InteropTypes;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppSystem.Collections.Generic;
 using Il2CppSystem.Linq;
-using UnityEngine;
+using MelonLoader;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement.ResourceLocations;
@@ -21,11 +20,12 @@ namespace CementGB.Mod.CustomContent;
 
 public static class CustomAddressableRegistration
 {
+    public static event Action ContentCatalogsFinished;
+    
     private static readonly System.Collections.Generic.Dictionary<string, List<Object>> _packAddressableKeys = [];
     private static readonly System.Collections.Generic.List<IResourceLocator> _moddedResourceLocators = [];
     private static readonly System.Collections.Generic.List<CustomMapRefHolder> _customMaps = [];
 
-    public static ReadOnlyCollection<CustomMapRefHolder> CustomMaps => _customMaps.AsReadOnly();
     public static ReadOnlyDictionary<string, string[]> PackAddressableKeys // { modName: addressableKeys }
     {
         get
@@ -45,7 +45,8 @@ public static class CustomAddressableRegistration
         }
     }
     public static ReadOnlyCollection<IResourceLocator> ModdedResourceLocators => _moddedResourceLocators.AsReadOnly();
-    
+    public static ReadOnlyCollection<CustomMapRefHolder> CustomMaps => _customMaps.AsReadOnly();
+
     /// <summary>
     ///     Gets all custom-loaded IResourceLocations of a certain result type. Used to iterate through and find custom content
     ///     addressable keys depending on type.
@@ -69,7 +70,7 @@ public static class CustomAddressableRegistration
         }
 
         var allModdedLocations = Addressables
-            .LoadResourceLocationsAsync(allModdedKeys.Cast<IList<Object>>(), Addressables.MergeMode.Union);
+            .LoadResourceLocations(allModdedKeys.Cast<IList<Object>>(), Addressables.MergeMode.Union);
 
         if (!allModdedLocations.HandleSynchronousAddressableOperation())
             return [];
@@ -95,15 +96,16 @@ public static class CustomAddressableRegistration
         => _moddedResourceLocators.Any(moddedKeyish => moddedKeyish.Keys.Contains(key));
 
     public static bool IsValidSceneDataName(string name) 
-        => name.Split("-Data").Length <= 1;
+        => name.Split("-Data").Length >= 1;
 
     internal static void Initialize()
     {
-        InitializeContentCatalogs();
-        InitializeMapReferences();
+        ContentCatalogsFinished += AddressableShaderCache.Initialize;
+        ContentCatalogsFinished += () => MelonCoroutines.Start(InitializeMapReferences());
+        MelonCoroutines.Start(InitializeContentCatalogs());
     }
 
-    private static void InitializeContentCatalogs()
+    private static IEnumerator InitializeContentCatalogs()
     {
         _packAddressableKeys.Clear();
         Mod.Logger.Msg("Starting initialization of modded Addressable content catalogs. . .");
@@ -111,8 +113,10 @@ public static class CustomAddressableRegistration
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        foreach (var contentMod in Directory.EnumerateDirectories(Mod.CustomContentPath,  "*", SearchOption.AllDirectories))
+        foreach (var contentMod in Directory.EnumerateDirectories(Mod.CustomContentPath, "*",
+                     SearchOption.AllDirectories))
         {
+            var addressablePackName = Path.GetFileNameWithoutExtension(contentMod);
             var aaPath = Path.Combine(contentMod, "aa");
 
             if (!Directory.Exists(aaPath))
@@ -121,40 +125,49 @@ public static class CustomAddressableRegistration
             foreach (var file in Directory.EnumerateFiles(aaPath, "catalog_*.json", SearchOption.AllDirectories))
             {
                 var resourceLocatorHandle = Addressables.LoadContentCatalogAsync(file);
-                if (!resourceLocatorHandle.HandleSynchronousAddressableOperation())
-                    continue;
-                
-                var addressablePackName = Path.GetFileNameWithoutExtension(Path.GetDirectoryName(aaPath));
-                if (string.IsNullOrWhiteSpace(addressablePackName))
-                    continue;
+                yield return resourceLocatorHandle.HandleAsynchronousAddressableOperation();
 
+                if (!AssetUtilities.IsHandleSuccess(resourceLocatorHandle))
+                {
+                    Mod.Logger.Error(
+                        $"Failed to load resource locator for content catalog in Addressable pack \"{addressablePackName}\"!");
+                    continue;
+                }
                 var resourceLocator = resourceLocatorHandle.Result;
                 Addressables.AddResourceLocator(resourceLocator);
-                
+
                 _moddedResourceLocators.Add(resourceLocator);
-                _packAddressableKeys.Add(Path.GetFileNameWithoutExtension(contentMod), resourceLocator.Keys.ToList());
+                _packAddressableKeys.Add(addressablePackName, resourceLocator.Keys.ToList());
 
                 foreach (var key in resourceLocator.Keys.ToArray())
-                    LoggingUtilities.VerboseLog($"Stored key from content catalog for \"{addressablePackName}\" : {key.ToString()}");
+                    LoggingUtilities.VerboseLog(
+                        $"Stored key from content catalog for \"{addressablePackName}\" : {key.ToString()}");
 
                 Mod.Logger.Msg(ConsoleColor.Green, $"Content catalog for \"{addressablePackName}\" loaded OK");
-                resourceLocatorHandle.Release();
             }
         }
 
         stopwatch.Stop();
         Mod.Logger.Msg(ConsoleColor.Green, $"Done custom content catalogs! Total time taken: {stopwatch.Elapsed}");
+        ContentCatalogsFinished?.Invoke();
     }
 
-    private static void InitializeMapReferences()
+    private static IEnumerator InitializeMapReferences()
     {
+        Mod.Logger.Msg("Starting initialization of custom map references. . .");
         foreach (var sceneDataLoc in GetAllModdedResourceLocationsOfType<SceneData>())
         {
-            var castedSceneDataHandle = Addressables.LoadAssetAsync<ScriptableObject>(sceneDataLoc);
-            if (!castedSceneDataHandle.HandleSynchronousAddressableOperation())
+            var castedSceneDataHandle = Addressables.LoadAssetAsync<SceneData>(sceneDataLoc);
+            yield return castedSceneDataHandle.HandleAsynchronousAddressableOperation();
+
+            if (!AssetUtilities.IsHandleSuccess(castedSceneDataHandle))
                 continue;
             
-            var castedSceneData = castedSceneDataHandle.Result.Cast<SceneData>();
+            var castedSceneData = castedSceneDataHandle.Result;
+            if (!castedSceneData)
+                continue;
+            
+            LoggingUtilities.VerboseLog($"Found ResourceLocation (key \"{sceneDataLoc.PrimaryKey}\" holding resource castable to type {typeof(SceneData)}. . .");
 
             if (!IsValidSceneDataName(sceneDataLoc.PrimaryKey))
             {
@@ -169,11 +182,13 @@ public static class CustomAddressableRegistration
             }
 
             var parsedSceneName = sceneDataLoc.PrimaryKey.Split("-Data")[0];
-            var sceneInfoHandle = Addressables.LoadAssetAsync<CustomMapInfo>(parsedSceneName);
-            if (!sceneInfoHandle.HandleSynchronousAddressableOperation())
-                continue;
+            var sceneInfoHandle = Addressables.LoadAssetAsync<Object>($"{parsedSceneName}-Info");
+            yield return sceneInfoHandle.HandleAsynchronousAddressableOperation();
 
-            var refHolder = new CustomMapRefHolder(sceneDataLoc, sceneInfoHandle.Result);
+            if (!AssetUtilities.IsHandleSuccess(sceneInfoHandle))
+                continue;
+            
+            var refHolder = new CustomMapRefHolder(sceneDataLoc, sceneInfoHandle.Result.TryCast<CustomMapInfo>());
             if (!refHolder.IsValid)
             {
                 Mod.Logger.Error($"Custom map reference holder is not valid! | Info: {(refHolder.sceneInfo ? refHolder.sceneInfo.ToString() : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData : "null")}");

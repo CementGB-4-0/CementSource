@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Il2CppInterop.Runtime.InteropTypes;
 using UnityEngine;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -7,24 +8,41 @@ namespace CementGB.Mod.Utilities;
 
 public static class AssetUtilities
 {
-    public static bool HandleSynchronousAddressableOperation<T>(this AsyncOperationHandle<T> handle, string key = null) where T : Il2CppObjectBase
+    public static bool IsHandleSuccess(AsyncOperationHandle handle)
+        => handle.IsValid() && handle.Status == AsyncOperationStatus.Succeeded && handle.Result != null;
+    
+    public static IEnumerator HandleAsynchronousAddressableOperation<T>(this AsyncOperationHandle<T> handle) where T : Il2CppObjectBase
     {
-        var acquiredHandle = handle.Acquire();
-        acquiredHandle.WaitForCompletion();
+        if (!handle.IsDone)
+            yield return handle;
         
-        var res = acquiredHandle.Result;
-
-        if (acquiredHandle.Status != AsyncOperationStatus.Succeeded || acquiredHandle.Result == null)
+        if (!IsHandleSuccess(handle))
         {
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Failed to load asset from synchronous addressable handle! | OperationException: {acquiredHandle.OperationException.ToString()} | Result == null: {acquiredHandle.Result == null} | Key: \"{key ?? "null"}\"");
-            acquiredHandle.Release();
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Failed to load asset from asynchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {(!handle.IsValid() || handle.Result == null)}");
+            if (handle.IsValid()) handle.Release();
+            yield break;
+        }
+        var res = handle.Result;
+        
+        var obj = res.TryCast<UnityEngine.Object>();
+        if (obj)
+            obj.MakePersistent();
+    }
+    
+    public static bool HandleSynchronousAddressableOperation<T>(this AsyncOperationHandle<T> handle) where T : Il2CppObjectBase
+    {
+        var res = handle.WaitForCompletion();
+        
+        if (!IsHandleSuccess(handle))
+        {
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Failed to load asset from synchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {(!handle.IsValid() || handle.Result == null)}");
+            handle.Release();
             return false;
         }
         
         var obj = res.TryCast<UnityEngine.Object>();
         if (obj)
             obj.MakePersistent();
-        acquiredHandle.Release();
         
         return true;
     }
@@ -62,15 +80,11 @@ public static class AssetUtilities
         request.add_completed((Il2CppSystem.Action<AsyncOperation>)(a =>
         {
             if (request.asset == null)
-            {
                 return;
-            }
 
             var result = request.asset.TryCast<T>();
             if (result == null)
-            {
                 return;
-            }
 
             result.MakePersistent();
             onLoaded?.Invoke(result);
@@ -85,15 +99,11 @@ public static class AssetUtilities
         request.add_completed(new Action<AsyncOperation>(a =>
         {
             if (request.asset == null)
-            {
                 return;
-            }
 
             var result = request.asset.TryCast<T>();
             if (result == null)
-            {
                 return;
-            }
 
             result.MakePersistent();
             onLoaded?.Invoke(result);
