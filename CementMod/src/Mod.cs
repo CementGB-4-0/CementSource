@@ -61,6 +61,7 @@ public class Mod : MelonMod
         FileStructure();
 
         // Initialize static classes that need initializing
+        if (!CementPreferences.VerboseMode) Logger.Msg(System.ConsoleColor.White, "Verbose Mode disabled! Enable verbose mode in UserData/CementGB/CementGB.cfg for more detailed logging.");
         CementPreferences.Initialize();
         CommonHooks.Initialize();
         
