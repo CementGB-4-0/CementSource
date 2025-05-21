@@ -23,7 +23,7 @@ public static class LoggingUtilities
             }
         }
 
-        Mod.Logger.Msg(color, callerName == null ? $"{message}" : $"[{fullCallerName}] {message} : Ln {lineNumber}");
+        Mod.Logger.Msg(color, callerName == null ? $"{message}" : $"[{fullCallerName}] {message} | Ln {lineNumber}");
     }
 
     public static void VerboseLog(string message, [CallerMemberName] string callerName = null,

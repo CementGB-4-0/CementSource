@@ -1,20 +1,30 @@
 using System.Linq;
+using CementGB.Mod.CustomContent;
 using CementGB.Mod.Utilities;
 using GBMDK;
 using HarmonyLib;
 using Il2CppGB.Core;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
-using Il2CppGB.Game.Data;
 using Il2CppGB.Gamemodes;
-using Il2CppSystem;
 using Il2CppTMPro;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceProviders;
 using ConsoleColor = System.ConsoleColor;
+using Object = Il2CppSystem.Object;
+using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Mod.Patches;
+
+[HarmonyPatch(typeof(SceneLoadTask), nameof(SceneLoadTask.OnDataLoaded))]
+internal static class SceneLoadTaskOnDataLoadedPatch
+{
+    private static void Postfix(AsyncOperationStatus status)
+    {
+        if (status == AsyncOperationStatus.Failed)
+            Global.Instance.SceneLoader.LoadMainMenuWithLoadingScreen();
+    }
+}
 
 [HarmonyPatch(typeof(SceneData), nameof(SceneData.OnInternalLoad))]
 internal static class LoadDataPatch
@@ -22,7 +32,7 @@ internal static class LoadDataPatch
     private static void Postfix(SceneData __instance)
     {
         var key = __instance.name.Split("-").First();
-        if (!AssetUtilities.IsModdedKey(key))
+        if (!CustomAddressableRegistration.IsModdedKey(key))
         {
             return;
         }
@@ -47,17 +57,23 @@ internal static class LoadDataPatch
         var info = infoHandle.Result.Cast<CustomMapInfo>();
         infoHandle.Release();
 
-        if (info != null && info.allowedGamemodes.Get().HasFlag(GameModeEnum.Waves) && __instance._wavesData == null)
+        if (!info || !info.allowedGamemodes.Get().HasFlag(GameModeEnum.Waves) ||
+            __instance._wavesData) return;
+        
+        string[] wavesMaps =
         {
-            __instance._wavesData = UnityEngine.Object.FindObjectOfType<WavesData>();
-        }
+            "Grind",
+            "Incinerator",
+            "Rooftop",
+            "Subway"
+        };
     }
 }
 
 [HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneListComplete))]
 internal static class OnSceneListCompletePatch
 {
-    public static readonly string[] BlacklistedSceneNames =
+    private static readonly string[] BlacklistedSceneNames =
     [
         "_bootScene",
         "Menu"
@@ -65,32 +81,33 @@ internal static class OnSceneListCompletePatch
 
     private static void Postfix(ref Object data)
     {
-        var sceneList = data.Cast<AddressableDataCache>();
+        var sceneList = data.TryCast<AddressableDataCache>();
 
-        foreach (var sceneInstance in AssetUtilities.GetAllModdedResourceLocationsOfType<SceneInstance>())
+        if (!sceneList)
+            return;
+
+        foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
         {
-            if (sceneInstance.PrimaryKey.StartsWith("_") || BlacklistedSceneNames.Contains(sceneInstance.PrimaryKey))
+            if (mapRef.SceneName.StartsWith("_") || BlacklistedSceneNames.Contains(mapRef.SceneName))
             {
                 LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
-                    $"Skipped over scene with key {sceneInstance.PrimaryKey} because it contains characters that are blacklisted.");
+                    $"Skipped over scene with key {mapRef.SceneName} because it contains characters that are blacklisted.");
                 continue;
             }
 
-            var sceneRef = new AssetReference(sceneInstance.PrimaryKey);
-
             sceneList._assets.Add(new AddressableDataCache.AssetData
             {
-                Asset = sceneRef,
-                Key = sceneInstance.PrimaryKey
+                Asset = mapRef.SceneData._sceneRef,
+                Key = mapRef.SceneName
             });
 
             Resources._assetList.Add(
-                new Resources.LoadLoadedItem(new AssetReference($"{sceneInstance.PrimaryKey}-Data"))
+                new Resources.LoadLoadedItem(new AssetReference(mapRef.SceneData.name))
                 {
-                    Key = sceneInstance.PrimaryKey + "-Data"
+                    Key = mapRef.SceneData.name
                 });
 
-            Mod.Logger.Msg(ConsoleColor.DarkGreen, $"New custom stage registered : Key: {sceneInstance.PrimaryKey}");
+            Mod.Logger.Msg(ConsoleColor.DarkGreen, $"New custom stage registered : Key: {mapRef.SceneName}");
         }
 
         data = sceneList;
@@ -102,12 +119,9 @@ internal static class SetSubTitlePatch
 {
     private static bool Prefix(LoadScreenDisplayHandler __instance, ref string name)
     {
-        if (AssetUtilities.IsModdedKey(name))
-        {
-            __instance._subTitle.GetComponent<TextMeshProUGUI>().text = name;
-            return false;
-        }
-
-        return true;
+        if (!CustomAddressableRegistration.IsModdedKey(name)) return true;
+        __instance._subTitle.GetComponent<TextMeshProUGUI>().text = name;
+        
+        return false;
     }
 }

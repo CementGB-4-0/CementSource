@@ -1,5 +1,5 @@
 using System;
-using CementGB.Mod.Utilities;
+using CementGB.Mod.CustomContent;
 using Il2CppGB.Game;
 using Il2CppGB.Setup;
 using MelonLoader;
@@ -42,9 +42,7 @@ public static class CommonHooks
             OnMenuFirstBoot?.Invoke();
         }
 
-        if (AssetUtilities.IsModdedKey(sceneName))
-        {
-            MelonCoroutines.Start(AssetUtilities.ReloadAddressableShaders());
-        }
+        if (CustomAddressableRegistration.IsModdedKey(sceneName))
+            MelonCoroutines.Start(AddressableShaderCache.ReloadAddressableShaders());
     }
 }

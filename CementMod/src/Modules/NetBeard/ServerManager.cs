@@ -33,7 +33,7 @@ public class ServerManager : MonoBehaviour
          !string.IsNullOrWhiteSpace(
              PortArg)); // TODO: Auto start as client (similar to NetworkBootstrapper.AutoRunServer) if this is true
 
-    public static bool IsForwardedHost => IsClientJoiner && Environment.GetCommandLineArgs().Contains("-FWD");
+    public static bool IsForwardedHost => !IsServer && Environment.GetCommandLineArgs().Contains("-FWD");
     public static bool DontAutoStart => Environment.GetCommandLineArgs().Contains("-DONT-AUTOSTART");
     public static string IP => string.IsNullOrWhiteSpace(IpArg) ? DefaultIP : IpArg;
     public static int Port => string.IsNullOrWhiteSpace(PortArg) ? DefaultPort : int.Parse(PortArg);
@@ -58,13 +58,12 @@ public class ServerManager : MonoBehaviour
             }
         }
 
-        if (IsServer)
-        {
-            Mod.Logger.Msg("Setting up pre-boot dedicated server overrides. . .");
-            AudioListener.pause = true;
-            NetworkBootstrapper.IsDedicatedServer = true;
-            Mod.Logger.Msg(ConsoleColor.Green, "Done!");
-        }
+        if (!IsServer) return;
+        
+        Mod.Logger.Msg("Setting up pre-boot dedicated server overrides. . .");
+        AudioListener.pause = true;
+        NetworkBootstrapper.IsDedicatedServer = true;
+        Mod.Logger.Msg(ConsoleColor.Green, "Done!");
     }
 
     private void Update()

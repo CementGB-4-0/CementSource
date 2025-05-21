@@ -7,7 +7,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace CementGB.Mod.Patches;
-
+/*
 internal static class CustomCostumePatches
 {
     private static ushort NewUID(this CostumeDatabase __instance)
@@ -83,3 +83,4 @@ internal static class CustomCostumePatches
         }
     }
 }
+*/
