@@ -12,6 +12,7 @@ using Il2CppSystem.Collections.Generic;
 using Il2CppSystem.Linq;
 using MelonLoader;
 using UnityEngine.AddressableAssets;
+using UnityEngine.AddressableAssets.Initialization;
 using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using Object = Il2CppSystem.Object;
@@ -21,6 +22,8 @@ namespace CementGB.Mod.CustomContent;
 public static class CustomAddressableRegistration
 {
     public static event Action ContentCatalogsFinished;
+
+    private const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
     
     private static readonly System.Collections.Generic.Dictionary<string, List<Object>> _packAddressableKeys = [];
     private static readonly System.Collections.Generic.List<IResourceLocator> _moddedResourceLocators = [];
@@ -59,36 +62,29 @@ public static class CustomAddressableRegistration
     private static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Object
     {
         System.Collections.Generic.List<IResourceLocation> ret = [];
-        var allModdedKeys = new List<Object>();
 
-        foreach (var kvp in PackAddressableKeys)
+        foreach (var locator in _moddedResourceLocators)
         {
-            foreach (var key in kvp.Value)
+            foreach (var key in locator.Keys.ToArray())
             {
-                allModdedKeys.Add(key);
+                var locateRes = locator.Locate(key, Il2CppType.Of<T>(), out var locatorLocations);
+                LoggingUtilities.VerboseLog($"Locator of ID {locator.LocatorId} returned {locateRes.ToString().ToUpper()} locating key {key.ToString()}. . .");
+
+                var locatorLocationsCasted = locatorLocations?.TryCast<List<IResourceLocation>>();
+                if (locatorLocationsCasted == null)
+                    continue;
+                
+                foreach (var location in locatorLocationsCasted.ToArray())
+                    ret.Add(location);
             }
-        }
-
-        var allModdedLocations = Addressables
-            .LoadResourceLocations(allModdedKeys.Cast<IList<Object>>(), Addressables.MergeMode.Union);
-
-        if (!allModdedLocations.HandleSynchronousAddressableOperation())
-            return [];
-
-        var result = allModdedLocations.Result.Cast<List<IResourceLocation>>();
-        foreach (var location in result)
-        {
-            if (location.ResourceType == Il2CppType.Of<T>())
-                ret.Add(location);
         }
 
         if (ret.Count == 0)
         {
             LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
-                $"Returned empty array! Type {typeof(T)} probably wasn't found in Addressables.");
+                $"Returned empty array! Type {Il2CppType.Of<T>().ToString()} probably wasn't found in modded Addressables.");
         }
 
-        allModdedLocations.Release();
         return [.. ret];
     }
     
@@ -113,6 +109,8 @@ public static class CustomAddressableRegistration
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
+        AddressablesRuntimeProperties.SetPropertyValue(ModsDirectoryPropertyName, Mod.CustomContentPath);
+        LoggingUtilities.VerboseLog($"Set Addressable runtime property \"{ModsDirectoryPropertyName}\" to value \"{AddressablesRuntimeProperties.EvaluateProperty(ModsDirectoryPropertyName)}\"");
         foreach (var contentMod in Directory.EnumerateDirectories(Mod.CustomContentPath, "*",
                      SearchOption.AllDirectories))
         {
@@ -120,7 +118,10 @@ public static class CustomAddressableRegistration
             var aaPath = Path.Combine(contentMod, "aa");
 
             if (!Directory.Exists(aaPath))
+            {
+                LoggingUtilities.VerboseLog($"Skipping over folder \"{addressablePackName}\" searching for content catalogs because it does not contain an \"aa\" folder. . ."); 
                 continue;
+            }
 
             foreach (var file in Directory.EnumerateFiles(aaPath, "catalog_*.json", SearchOption.AllDirectories))
             {
@@ -141,7 +142,7 @@ public static class CustomAddressableRegistration
 
                 foreach (var key in resourceLocator.Keys.ToArray())
                     LoggingUtilities.VerboseLog(
-                        $"Stored key from content catalog for \"{addressablePackName}\" : {key.ToString()}");
+                        $"Stored key from content catalog for \"{addressablePackName}\" | Key: {key.ToString()} | Locatable == True? : {resourceLocator.Locate(key, Il2CppType.Of<Object>(), out _)}");
 
                 Mod.Logger.Msg(ConsoleColor.Green, $"Content catalog for \"{addressablePackName}\" loaded OK");
             }
@@ -155,6 +156,8 @@ public static class CustomAddressableRegistration
     private static IEnumerator InitializeMapReferences()
     {
         Mod.Logger.Msg("Starting initialization of custom map references. . .");
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
         foreach (var sceneDataLoc in GetAllModdedResourceLocationsOfType<SceneData>())
         {
             var castedSceneDataHandle = Addressables.LoadAssetAsync<SceneData>(sceneDataLoc);
@@ -196,6 +199,9 @@ public static class CustomAddressableRegistration
             }
             
             _customMaps.Add(refHolder);
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen, $"Custom map reference constructed successfully. | SceneName: {refHolder.SceneName}");
         }
+        stopwatch.Stop();
+        Mod.Logger.Msg(ConsoleColor.Green, $"Custom map reference initialization complete! {CustomMaps.Count} maps found in {stopwatch.ElapsedMilliseconds}ms");
     }
 }
