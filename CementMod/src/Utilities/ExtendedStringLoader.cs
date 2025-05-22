@@ -21,13 +21,10 @@ public static class ExtendedStringLoader
     /// <param name="value">Can be any string in any format. Will replace appearances of <paramref name="key" />.</param>
     public static void Register(string key, string value)
     {
-        if (items.ContainsKey(key))
+        if (!items.TryAdd(key, value))
         {
             LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
                 $"'{key}' has already been registered in ExtendedStringLoader");
-            return;
         }
-
-        items[key] = value;
     }
 }
