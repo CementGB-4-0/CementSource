@@ -173,7 +173,7 @@ public static class CustomAddressableRegistration
             if (!castedSceneData)
                 continue;
             
-            LoggingUtilities.VerboseLog($"Found ResourceLocation (key \"{sceneDataLoc.PrimaryKey}\" holding resource castable to type {typeof(SceneData)}. . .");
+            LoggingUtilities.VerboseLog($"Found ResourceLocation (key \"{sceneDataLoc.PrimaryKey}\") holding resource castable to type {typeof(SceneData)}. . .");
 
             if (!IsValidSceneDataName(sceneDataLoc.PrimaryKey))
             {
