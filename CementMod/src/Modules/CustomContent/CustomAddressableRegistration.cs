@@ -145,7 +145,7 @@ public static class CustomAddressableRegistration
 
                 foreach (var key in resourceLocator.Keys.ToArray())
                     LoggingUtilities.VerboseLog(
-                        $"Stored key from content catalog for \"{addressablePackName}\" | Key: {key.ToString()} | Locatable == True? : {resourceLocator.Locate(key, Il2CppType.Of<Object>(), out _)}");
+                        $"Stored key from content catalog for \"{addressablePackName}\" | Key: {key.ToString()}");
 
                 Mod.Logger.Msg(ConsoleColor.Green, $"Content catalog for \"{addressablePackName}\" loaded OK");
             }
