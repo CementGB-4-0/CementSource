@@ -73,9 +73,12 @@ public static class CustomAddressableRegistration
                 var locatorLocationsCasted = locatorLocations?.TryCast<List<IResourceLocation>>();
                 if (locatorLocationsCasted == null)
                     continue;
-                
+
                 foreach (var location in locatorLocationsCasted.ToArray())
-                    ret.Add(location);
+                {
+                    if (!ret.Where((resourceLocation => resourceLocation.PrimaryKey == location.PrimaryKey)).Any())
+                        ret.Add(location);
+                }
             }
         }
 
