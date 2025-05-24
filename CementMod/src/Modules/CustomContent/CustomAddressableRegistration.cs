@@ -21,9 +21,9 @@ namespace CementGB.Mod.CustomContent;
 
 public static class CustomAddressableRegistration
 {
+    public const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
+    
     public static event Action ContentCatalogsFinished;
-
-    private const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
     
     private static readonly System.Collections.Generic.Dictionary<string, List<Object>> _packAddressableKeys = [];
     private static readonly System.Collections.Generic.List<IResourceLocator> _moddedResourceLocators = [];
