@@ -39,7 +39,7 @@ public class CustomMapRefHolder(IResourceLocation sceneDataLoc, CustomMapInfo cu
     {
         get
         {
-            return sceneDataLoc != null && sceneInfo;
+            return sceneDataLoc != null;
         }
     }
 }

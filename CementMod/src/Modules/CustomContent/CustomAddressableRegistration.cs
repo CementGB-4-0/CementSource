@@ -185,13 +185,18 @@ public static class CustomAddressableRegistration
             }
 
             var parsedSceneName = sceneDataLoc.PrimaryKey.Split("-Data")[0];
-            var sceneInfoHandle = Addressables.LoadAssetAsync<Object>($"{parsedSceneName}-Info");
+            var sceneInfoHandle = Addressables.LoadAssetAsync<CustomMapInfo>($"{parsedSceneName}-Info");
             yield return sceneInfoHandle.HandleAsynchronousAddressableOperation();
 
             if (!AssetUtilities.IsHandleSuccess(sceneInfoHandle))
+                sceneInfoHandle = null;
+            else if (sceneInfoHandle.Result.name != parsedSceneName)
+            {
+                Mod.Logger.Error($"Custom map info of key {parsedSceneName}-Info has differing Object name from Addressable key! The stage it belongs to will not be loaded for any gamemode other than Melee.");
                 continue;
+            }
             
-            var refHolder = new CustomMapRefHolder(sceneDataLoc, sceneInfoHandle.Result.TryCast<CustomMapInfo>());
+            var refHolder = new CustomMapRefHolder(sceneDataLoc, sceneInfoHandle?.Result);
             if (!refHolder.IsValid)
             {
                 Mod.Logger.Error($"Custom map reference holder is not valid! | Info: {(refHolder.sceneInfo ? refHolder.sceneInfo.ToString() : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData : "null")}");
