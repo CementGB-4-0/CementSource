@@ -202,7 +202,7 @@ public static class CustomAddressableRegistration
             var refHolder = new CustomMapRefHolder(sceneDataLoc, sceneInfoHandle?.Result);
             if (!refHolder.IsValid)
             {
-                Mod.Logger.Error($"Custom map reference holder is not valid! | Info: {(refHolder.sceneInfo ? refHolder.sceneInfo.ToString() : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData : "null")}");
+                Mod.Logger.Error($"Custom map reference holder is not valid! | Info: {(refHolder.sceneInfo ? refHolder.sceneInfo.name : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData.name : "null")}");
                 continue;
             }
             
