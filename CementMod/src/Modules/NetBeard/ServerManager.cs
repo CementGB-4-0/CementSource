@@ -46,13 +46,13 @@ public class ServerManager : MonoBehaviour
         {
             if (IsForwardedHost)
             {
-                MessageBox(0,
+                LoggingUtilities.MessageBox(0,
                     $"Gang Beasts is loading in FWD mode. This will open a server on port {Port} upon creating a local game for LAN or port-forwarded players to join.\nIf this is unintended, please remove the launch argument \"-FWD\" from the Gang Beasts executable.",
                     "Warning", 0);
             }
             else if (IsClientJoiner)
             {
-                MessageBox(0,
+                LoggingUtilities.MessageBox(0,
                     "Gang Beasts is loading in Joiner mode. This will unlock a panel allowing you to join a server with a specific IP and port.\nIf this is unintended, please remove the launch arguments \"-ip\" and \"-port\" from the Gang Beasts executable.",
                     "Warning", 0);
             }
@@ -74,9 +74,6 @@ public class ServerManager : MonoBehaviour
             _autoLaunchUpdateEnabled = false;
         }
     }
-
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    internal static extern IntPtr MessageBox(int hWnd, string text, string caption, uint type);
 
     private static void OnBoot()
     {
