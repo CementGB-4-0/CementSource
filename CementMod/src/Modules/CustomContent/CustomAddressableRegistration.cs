@@ -99,12 +99,12 @@ public static class CustomAddressableRegistration
 
     internal static void Initialize()
     {
-        ContentCatalogsFinished += AddressableShaderCache.Initialize;
-        ContentCatalogsFinished += () => MelonCoroutines.Start(InitializeMapReferences());
-        MelonCoroutines.Start(InitializeContentCatalogs());
+        InitializeContentCatalogs();
+        InitializeMapReferences();
+        AddressableShaderCache.Initialize();
     }
 
-    private static IEnumerator InitializeContentCatalogs()
+    private static void InitializeContentCatalogs()
     {
         _packAddressableKeys.Clear();
         Mod.Logger.Msg("Starting initialization of modded Addressable content catalogs. . .");
@@ -129,7 +129,7 @@ public static class CustomAddressableRegistration
             foreach (var file in Directory.EnumerateFiles(aaPath, "catalog_*.json", SearchOption.AllDirectories))
             {
                 var resourceLocatorHandle = Addressables.LoadContentCatalogAsync(file);
-                yield return resourceLocatorHandle.HandleAsynchronousAddressableOperation();
+                resourceLocatorHandle.HandleSynchronousAddressableOperation();
 
                 if (!AssetUtilities.IsHandleSuccess(resourceLocatorHandle))
                 {
@@ -153,10 +153,9 @@ public static class CustomAddressableRegistration
 
         stopwatch.Stop();
         Mod.Logger.Msg(ConsoleColor.Green, $"Done custom content catalogs! Total time taken: {stopwatch.Elapsed}");
-        ContentCatalogsFinished?.Invoke();
     }
 
-    private static IEnumerator InitializeMapReferences()
+    private static void InitializeMapReferences()
     {
         Mod.Logger.Msg("Starting initialization of custom map references. . .");
         var stopwatch = new Stopwatch();
@@ -164,7 +163,7 @@ public static class CustomAddressableRegistration
         foreach (var sceneDataLoc in GetAllModdedResourceLocationsOfType<SceneData>())
         {
             var castedSceneDataHandle = Addressables.LoadAssetAsync<SceneData>(sceneDataLoc);
-            yield return castedSceneDataHandle.HandleAsynchronousAddressableOperation();
+            castedSceneDataHandle.HandleSynchronousAddressableOperation();
 
             if (!AssetUtilities.IsHandleSuccess(castedSceneDataHandle))
                 continue;
@@ -189,7 +188,7 @@ public static class CustomAddressableRegistration
 
             var parsedSceneName = sceneDataLoc.PrimaryKey.Split("-Data")[0];
             var sceneInfoHandle = Addressables.LoadAssetAsync<CustomMapInfo>($"{parsedSceneName}-Info");
-            yield return sceneInfoHandle.HandleAsynchronousAddressableOperation();
+            sceneInfoHandle.HandleSynchronousAddressableOperation();
 
             if (!AssetUtilities.IsHandleSuccess(sceneInfoHandle))
                 sceneInfoHandle = null;
