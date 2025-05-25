@@ -30,7 +30,7 @@ internal static class GBConfigLoaderPatch
                     if (result && !result.allowedGamemodes.Get().HasFlag(masterMenuHandler.CurrentGamemode))
                         continue;
 
-                    __result.Add(scene.SceneName);
+                    __result.Insert(Random.Range(0, __result.Count-1), scene.SceneName);
                 }
             }
         }
