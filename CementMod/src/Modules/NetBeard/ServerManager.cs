@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Runtime.InteropServices;
 using CementGB.Mod.Utilities;
 using Il2Cpp;
 using Il2CppCoatsink.UnityServices;
@@ -33,7 +32,7 @@ public class ServerManager : MonoBehaviour
          !string.IsNullOrWhiteSpace(
              PortArg)); // TODO: Auto start as client (similar to NetworkBootstrapper.AutoRunServer) if this is true
 
-    public static bool IsForwardedHost => IsClientJoiner && Environment.GetCommandLineArgs().Contains("-FWD");
+    public static bool IsForwardedHost => !IsServer && Environment.GetCommandLineArgs().Contains("-FWD");
     public static bool DontAutoStart => Environment.GetCommandLineArgs().Contains("-DONT-AUTOSTART");
     public static string IP => string.IsNullOrWhiteSpace(IpArg) ? DefaultIP : IpArg;
     public static int Port => string.IsNullOrWhiteSpace(PortArg) ? DefaultPort : int.Parse(PortArg);
@@ -46,25 +45,24 @@ public class ServerManager : MonoBehaviour
         {
             if (IsForwardedHost)
             {
-                MessageBox(0,
+                LoggingUtilities.MessageBox(0,
                     $"Gang Beasts is loading in FWD mode. This will open a server on port {Port} upon creating a local game for LAN or port-forwarded players to join.\nIf this is unintended, please remove the launch argument \"-FWD\" from the Gang Beasts executable.",
                     "Warning", 0);
             }
             else if (IsClientJoiner)
             {
-                MessageBox(0,
+                LoggingUtilities.MessageBox(0,
                     "Gang Beasts is loading in Joiner mode. This will unlock a panel allowing you to join a server with a specific IP and port.\nIf this is unintended, please remove the launch arguments \"-ip\" and \"-port\" from the Gang Beasts executable.",
                     "Warning", 0);
             }
         }
 
-        if (IsServer)
-        {
-            Mod.Logger.Msg("Setting up pre-boot dedicated server overrides. . .");
-            AudioListener.pause = true;
-            NetworkBootstrapper.IsDedicatedServer = true;
-            Mod.Logger.Msg(ConsoleColor.Green, "Done!");
-        }
+        if (!IsServer) return;
+        
+        Mod.Logger.Msg("Setting up pre-boot dedicated server overrides. . .");
+        AudioListener.pause = true;
+        NetworkBootstrapper.IsDedicatedServer = true;
+        Mod.Logger.Msg(ConsoleColor.Green, "Done!");
     }
 
     private void Update()
@@ -75,9 +73,6 @@ public class ServerManager : MonoBehaviour
             _autoLaunchUpdateEnabled = false;
         }
     }
-
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    internal static extern IntPtr MessageBox(int hWnd, string text, string caption, uint type);
 
     private static void OnBoot()
     {

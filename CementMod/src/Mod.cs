@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using CementGB.Mod.CustomContent;
 using CementGB.Mod.Modules.NetBeard;
 using CementGB.Mod.Modules.PoolingModule;
 using CementGB.Mod.Utilities;
@@ -60,9 +61,10 @@ public class Mod : MelonMod
         FileStructure();
 
         // Initialize static classes that need initializing
+        if (!CementPreferences.VerboseMode) Logger.Msg(System.ConsoleColor.White, "Verbose Mode disabled! Enable verbose mode in UserData/CementGB/CementGB.cfg for more detailed logging.");
         CementPreferences.Initialize();
         CommonHooks.Initialize();
-
+        
         //Script.ReloadScripts();
     }
 
@@ -87,9 +89,8 @@ public class Mod : MelonMod
     {
         base.OnLateInitializeMelon();
 
+        CustomAddressableRegistration.Initialize();
         CreateCementComponents();
-
-        AssetUtilities.InitializeAddressables();
     }
 
     private static void FileStructure()
