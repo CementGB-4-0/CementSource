@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -10,7 +9,6 @@ using Il2CppGB.Data.Loading;
 using Il2CppInterop.Runtime;
 using Il2CppSystem.Collections.Generic;
 using Il2CppSystem.Linq;
-using MelonLoader;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.Initialization;
 using UnityEngine.AddressableAssets.ResourceLocators;
@@ -21,14 +19,15 @@ namespace CementGB.Mod.CustomContent;
 
 public static class CustomAddressableRegistration
 {
-    public const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
-    
-    public static event Action ContentCatalogsFinished;
+    private const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
     
     private static readonly System.Collections.Generic.Dictionary<string, List<Object>> _packAddressableKeys = [];
     private static readonly System.Collections.Generic.List<IResourceLocator> _moddedResourceLocators = [];
     private static readonly System.Collections.Generic.List<CustomMapRefHolder> _customMaps = [];
 
+    /// <summary>
+    /// Dictionary lookup for all modded Addressable keys (as strings), sorted by mod name.
+    /// </summary>
     public static ReadOnlyDictionary<string, string[]> PackAddressableKeys // { modName: addressableKeys }
     {
         get
@@ -47,19 +46,25 @@ public static class CustomAddressableRegistration
             return new ReadOnlyDictionary<string, string[]>(dict);
         }
     }
+    /// <summary>
+    /// A collection of all content catalogs loaded by Cement. Read-only.
+    /// </summary>
     public static ReadOnlyCollection<IResourceLocator> ModdedResourceLocators => _moddedResourceLocators.AsReadOnly();
+    /// <summary>
+    /// A collection of all valid maps loaded by Cement. Read-only.
+    /// </summary>
     public static ReadOnlyCollection<CustomMapRefHolder> CustomMaps => _customMaps.AsReadOnly();
 
     /// <summary>
     ///     Gets all custom-loaded IResourceLocations of a certain result type. Used to iterate through and find custom content
-    ///     addressable keys depending on type.
+    ///     addressable locations depending on type.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns>
     ///     An array containing IResourceLocations that, if loaded, will result in the passed type. Will return an array
     ///     even if empty.
     /// </returns>
-    private static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Object
+    public static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Object
     {
         System.Collections.Generic.List<IResourceLocation> ret = [];
 
@@ -91,10 +96,15 @@ public static class CustomAddressableRegistration
         return [.. ret];
     }
     
+    /// <summary>
+    /// Checks if the passed string matches the key of any Cement-loaded Addressable.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
     public static bool IsModdedKey(string key) 
         => _moddedResourceLocators.Any(moddedKeyish => moddedKeyish.Keys.Contains(key));
 
-    public static bool IsValidSceneDataName(string name) 
+    private static bool IsValidSceneDataName(string name) 
         => name.Split("-Data").Length >= 1;
 
     internal static void Initialize()
@@ -201,7 +211,7 @@ public static class CustomAddressableRegistration
             var refHolder = new CustomMapRefHolder(sceneDataLoc, sceneInfoHandle?.Result);
             if (!refHolder.IsValid)
             {
-                Mod.Logger.Error($"Custom map reference holder is not valid! | Info: {(refHolder.sceneInfo ? refHolder.sceneInfo.name : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData.name : "null")}");
+                Mod.Logger.Error($"Custom map reference holder is not valid! | Info: {(refHolder.SceneInfo ? refHolder.SceneInfo.name : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData.name : "null")}");
                 continue;
             }
             

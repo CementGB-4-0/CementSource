@@ -17,6 +17,11 @@ public static class AddressableShaderCache
 {
     private static readonly System.Collections.Generic.Dictionary<string, Shader> CachedShaders = [];
     
+    /// <summary>
+    /// Reloads Addressable shaders in the current scene. If <paramref name="parent"/> is specified, it will only reload shaders in the GameObject and all children.
+    /// </summary>
+    /// <param name="parent"></param>
+    /// <returns></returns>
     public static System.Collections.IEnumerator ReloadAddressableShaders(GameObject parent = null)
     {
         yield return new WaitForEndOfFrame();

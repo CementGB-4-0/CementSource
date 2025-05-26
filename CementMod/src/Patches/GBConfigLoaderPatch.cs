@@ -23,7 +23,7 @@ internal static class GBConfigLoaderPatch
             {
                 foreach (var scene in CustomAddressableRegistration.CustomMaps)
                 {
-                    var result = scene.sceneInfo;
+                    var result = scene.SceneInfo;
                     if ((!result && masterMenuHandler.CurrentGamemode != GameModeEnum.Melee))
                         continue;
                     
