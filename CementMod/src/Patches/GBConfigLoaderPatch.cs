@@ -21,6 +21,9 @@ internal static class GBConfigLoaderPatch
 
             foreach (var masterMenuHandler in masterMenuHandlers)
             {
+                if (masterMenuHandler.type == MenuHandlerGamemodes.MenuType.Online)
+                    continue;
+                
                 foreach (var scene in CustomAddressableRegistration.CustomMaps)
                 {
                     var result = scene.sceneInfo;
