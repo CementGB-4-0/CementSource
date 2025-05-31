@@ -3,6 +3,7 @@ using System.Linq;
 using CementGB.Mod.Utilities;
 using Il2Cpp;
 using Il2CppCoatsink.UnityServices;
+using Il2CppGB.Core;
 using Il2CppGB.Core.Bootstrappers;
 using Il2CppGB.Platform.Lobby;
 using MelonLoader;
@@ -26,6 +27,7 @@ public class ServerManager : MonoBehaviour
     private static bool _autoLaunchUpdateEnabled = IsClientJoiner && !DontAutoStart;
 
     public static bool IsServer => Environment.GetCommandLineArgs().Contains("-SERVER");
+
     public static bool IsClientJoiner =>
         !IsServer &&
         (!string.IsNullOrWhiteSpace(IpArg) ||
@@ -58,7 +60,7 @@ public class ServerManager : MonoBehaviour
         }
 
         if (!IsServer) return;
-        
+
         Mod.Logger.Msg("Setting up pre-boot dedicated server overrides. . .");
         AudioListener.pause = true;
         NetworkBootstrapper.IsDedicatedServer = true;
@@ -78,22 +80,22 @@ public class ServerManager : MonoBehaviour
     {
         if ((IsClientJoiner && !IsForwardedHost) || IsServer)
         {
+            UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.DedicatedServer, null, "",
+                "DGS");
+            NetworkBootstrapper.IsDedicatedServer = IsServer;
             LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
             Mod.Logger.Msg(ConsoleColor.Green, "Added DevelopmentTestServer to lobby object.");
         }
 
         if (IsServer)
-        {
             ServerBoot();
-        }
     }
 
     private static void ServerBoot()
     {
         Mod.Logger.Msg("Setting up server boot...");
         FindObjectOfType<NetworkBootstrapper>().AutoRunServer = IsServer && !DontAutoStart;
-        UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.DedicatedServer, null, "", "DGS");
-        GameObject.Find("Global(Clone)/LevelLoadSystem").SetActive(false);
+        MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
         Mod.Logger.Msg(ConsoleColor.Green, "Done!");
     }
 }

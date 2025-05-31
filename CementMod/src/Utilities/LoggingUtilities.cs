@@ -9,7 +9,7 @@ public static class LoggingUtilities
 {
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     internal static extern IntPtr MessageBox(int hWnd, string text, string caption, uint type);
-    
+
     public static void VerboseLog(ConsoleColor color, string message, [CallerMemberName] string callerName = null,
         [CallerLineNumber] int lineNumber = 0)
     {

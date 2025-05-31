@@ -5,7 +5,6 @@ using Il2CppGB.Data.Loading;
 using Il2CppTMPro;
 using UnityEngine.AddressableAssets;
 using ConsoleColor = System.ConsoleColor;
-using Object = Il2CppSystem.Object;
 using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Mod.Patches;
@@ -23,20 +22,21 @@ internal static class OnSceneListCompletePatch
         foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
         {
             var sceneDataRef = new AssetReference(mapRef.SceneData.name);
-            
+
             Resources._assetList.Add(
                 new Resources.LoadLoadedItem(sceneDataRef)
                 {
                     Key = mapRef.SceneData.name
                 });
-            
+
             sceneList._assets.Add(new AddressableDataCache.AssetData
             {
                 Asset = sceneDataRef,
                 Key = mapRef.SceneName
             });
 
-            Mod.Logger.Msg(ConsoleColor.DarkGreen, $"New custom stage registered in SceneLoader : Key: {mapRef.SceneName}");
+            Mod.Logger.Msg(ConsoleColor.DarkGreen,
+                $"New custom stage registered in SceneLoader : Key: {mapRef.SceneName}");
         }
     }
 }
@@ -48,7 +48,7 @@ internal static class SetSubTitlePatch
     {
         if (!CustomAddressableRegistration.IsModdedKey(name)) return true;
         __instance._subTitle.GetComponent<TextMeshProUGUI>().text = name;
-        
+
         return false;
     }
 }
