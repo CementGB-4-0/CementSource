@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using CementGB.Mod.Utilities;
 using Il2Cpp;
@@ -22,7 +22,13 @@ namespace CementGB.Mod.Modules.NetBeard;
 [RegisterTypeInIl2Cpp]
 public class ServerManager : MonoBehaviour
 {
+    /// <summary>
+    /// The default IP setting for the server.
+    /// </summary>
     public const string DefaultIP = "127.0.0.1";
+    /// <summary>
+    /// The default Port setting for the server.
+    /// </summary>
     public const int DefaultPort = 5999;
 
     private const string ServerLogPrefix = "[SERVER]";
@@ -35,17 +41,34 @@ public class ServerManager : MonoBehaviour
 
     private static bool _autoLaunchUpdateEnabled = IsClientJoiner && !DontAutoStart;
 
+    /// <summary>
+    /// True if the -SERVER argument is passed to the Gang Beasts executable.
+    /// </summary>
     public static bool IsServer => Environment.GetCommandLineArgs().Contains("-SERVER");
-
+    /// <summary>
+    /// True if <see cref="IsServer"/> is false, but the ip and port are provided. Unlocks the DevelopmentTestServerUI.
+    /// </summary>
     public static bool IsClientJoiner =>
         !IsServer &&
         (!string.IsNullOrWhiteSpace(IpArg) ||
          !string.IsNullOrWhiteSpace(
              PortArg)); // TODO: Auto start as client (similar to NetworkBootstrapper.AutoRunServer) if this is true
 
+    /// <summary>
+    /// True if the -SERVER argument is not passed, but the -FWD argument is. Forwards a local game to an ip and port.
+    /// </summary>
     public static bool IsForwardedHost => !IsServer && Environment.GetCommandLineArgs().Contains("-FWD");
+    /// <summary>
+    /// True if the -DONT-AUTOSTART argument is passed. Will prevent the server or client from automatically joining the server as soon as it can.
+    /// </summary>
     public static bool DontAutoStart => Environment.GetCommandLineArgs().Contains("-DONT-AUTOSTART");
+    /// <summary>
+    /// The IP provided in launch arguments, or <see cref="DefaultIP"/> if none is provided.
+    /// </summary>
     public static string IP => string.IsNullOrWhiteSpace(IpArg) ? DefaultIP : IpArg;
+    /// <summary>
+    /// The Port provided in launch arguments, or <see cref="DefaultPort"/> if none is provided.
+    /// </summary>
     public static int Port => string.IsNullOrWhiteSpace(PortArg) ? DefaultPort : int.Parse(PortArg);
 
     private void Awake()

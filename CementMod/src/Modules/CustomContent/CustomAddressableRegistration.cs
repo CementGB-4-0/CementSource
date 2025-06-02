@@ -25,6 +25,9 @@ public static class CustomAddressableRegistration
     private static readonly System.Collections.Generic.List<IResourceLocator> _moddedResourceLocators = [];
     private static readonly System.Collections.Generic.List<CustomMapRefHolder> _customMaps = [];
 
+    /// <summary>
+    /// Dictionary lookup for all modded Addressable keys (as strings), sorted by mod name.
+    /// </summary>
     public static ReadOnlyDictionary<string, string[]> PackAddressableKeys // { modName: addressableKeys }
     {
         get
@@ -45,18 +48,21 @@ public static class CustomAddressableRegistration
     }
 
     public static ReadOnlyCollection<IResourceLocator> ModdedResourceLocators => _moddedResourceLocators.AsReadOnly();
+    /// <summary>
+    /// A collection of all valid maps loaded by Cement. Read-only.
+    /// </summary>
     public static ReadOnlyCollection<CustomMapRefHolder> CustomMaps => _customMaps.AsReadOnly();
 
     /// <summary>
     ///     Gets all custom-loaded IResourceLocations of a certain result type. Used to iterate through and find custom content
-    ///     addressable keys depending on type.
+    ///     addressable locations depending on type.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns>
     ///     An array containing IResourceLocations that, if loaded, will result in the passed type. Will return an array
     ///     even if empty.
     /// </returns>
-    private static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Object
+    public static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Object
     {
         System.Collections.Generic.List<IResourceLocation> ret = [];
 
