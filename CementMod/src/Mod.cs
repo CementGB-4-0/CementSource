@@ -1,11 +1,21 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections;
+using System.IO;
+using System.Linq;
 using CementGB.Mod.CustomContent;
 using CementGB.Mod.Modules.NetBeard;
 using CementGB.Mod.Modules.PoolingModule;
 using CementGB.Mod.Utilities;
+using Il2Cpp;
+using Il2CppGB.Config;
+using Il2CppGB.Core;
+using Il2CppGB.UI;
+using Il2CppGB.UI.Menu;
 using MelonLoader;
 using MelonLoader.Utils;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
 namespace CementGB.Mod;
 
@@ -27,6 +37,13 @@ public class Mod : MelonMod
     public static readonly string CustomContentPath = MelonEnvironment.ModsDirectory;
 
     private static GameObject _cementCompContainer;
+    private static bool _mapArgDidTheThing = false;
+
+    public static string
+        MapArg => CommandLineParser.Instance.GetValueForKey("-map", false);
+
+    public static bool
+        DebugArg => Environment.GetCommandLineArgs().Contains("-debug");
 
     internal static MelonLogger.Instance Logger =>
         Melon<Mod>.Logger; // For if you're tired of the singleton pattern I guess
@@ -66,7 +83,7 @@ public class Mod : MelonMod
                 "Verbose Mode disabled! Enable verbose mode in UserData/CementGB/CementGB.cfg for more detailed logging.");
         CementPreferences.Initialize();
         CommonHooks.Initialize();
-
+        
         //Script.ReloadScripts();
     }
 
@@ -105,11 +122,49 @@ public class Mod : MelonMod
     {
         CementCompContainer = new GameObject("CMTSingletons");
         Object.DontDestroyOnLoad(CementCompContainer);
-        CementCompContainer.hideFlags = HideFlags.DontUnloadUnusedAsset;
+        CementCompContainer.MakePersistent();
 
         //CementCompContainer.AddComponent<NetBeard>();
         CementCompContainer.AddComponent<ServerManager>();
         CementCompContainer.AddComponent<Pool>();
         //CementCompContainer.AddComponent<BeastInput>();
+    }
+
+    public override void OnUpdate()
+    {
+        if (SceneManager.GetActiveScene().name != "Menu" ||
+            !Global.Instance.SceneLoader || string.IsNullOrWhiteSpace(MapArg) || _mapArgDidTheThing && (!ServerManager.IsServer || ServerManager.DontAutoStart)) return;
+
+        _mapArgDidTheThing = true;
+
+        MelonCoroutines.Start(JumpToMap());
+    }
+
+    private IEnumerator JumpToMap()
+    {
+        yield return new WaitForEndOfFrame();
+        var localBeastMenuObj = GameObject.Find("Managers/Menu/Beast Menu/Canvas/Local Beast Select Menu");
+        while (!localBeastMenuObj)
+        {
+            yield return new WaitForEndOfFrame();
+            localBeastMenuObj = GameObject.Find("Managers/Menu/Beast Menu/Canvas/Local Beast Select Menu");
+        }
+        
+        if (!localBeastMenuObj.active)
+        {
+            var menuControllerObj = GameObject.Find("Managers/Menu");
+            while (!menuControllerObj)
+            {
+                yield return new WaitForEndOfFrame();
+                menuControllerObj = GameObject.Find("Managers/Menu");
+            }
+            
+            var controller = menuControllerObj.GetComponent<MenuController>();
+            controller.PushScreen(localBeastMenuObj.GetComponent<BaseMenuScreen>());
+        }
+
+        var menuHandlerGamemode = localBeastMenuObj.GetComponentInChildren<MenuHandlerGamemodes>();
+        menuHandlerGamemode.selectedConfig = GBConfigLoader.CreateRotationConfig(MapArg, "Melee", 8, int.MaxValue);
+        menuHandlerGamemode.OnCountdownComplete();
     }
 }

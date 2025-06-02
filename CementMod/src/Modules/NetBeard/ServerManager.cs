@@ -3,12 +3,16 @@ using System.Linq;
 using CementGB.Mod.Utilities;
 using Il2Cpp;
 using Il2CppCoatsink.UnityServices;
+using Il2CppCoreNet.Contexts;
+using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.Core.Bootstrappers;
+using Il2CppGB.Game;
 using Il2CppGB.Platform.Lobby;
+using Il2CppGB.UI.Beasts;
 using MelonLoader;
 using UnityEngine;
-using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 namespace CementGB.Mod.Modules.NetBeard;
 
@@ -43,7 +47,7 @@ public class ServerManager : MonoBehaviour
     {
         LobbyManager.add_onSetupComplete(new Action(OnBoot));
 
-        if (MelonUtils.IsWindows)
+        if (MelonUtils.IsWindows && !Application.isBatchMode)
         {
             if (IsForwardedHost)
             {
@@ -63,25 +67,43 @@ public class ServerManager : MonoBehaviour
 
         Mod.Logger.Msg("Setting up pre-boot dedicated server overrides. . .");
         AudioListener.pause = true;
-        NetworkBootstrapper.IsDedicatedServer = true;
         Mod.Logger.Msg(ConsoleColor.Green, "Done!");
     }
 
     private void Update()
     {
-        if (!NetworkClient.active && _autoLaunchUpdateEnabled && IsClientJoiner && CommonHooks.GlobalInitialized)
+        if (!_autoLaunchUpdateEnabled || (!IsClientJoiner && !IsForwardedHost) ||
+            DontAutoStart || !LobbyManager.Instance || !LobbyManager.Instance._completedSetup || SceneManager.GetActiveScene().name != "Menu") return;
+        
+        // TODO: Connect if client, start local game if fwd
+        _autoLaunchUpdateEnabled = false;
+
+        if (IsForwardedHost)
         {
-            // TODO: Connect if client, start local game if fwd
-            _autoLaunchUpdateEnabled = false;
+            
+        }
+        else if (IsClientJoiner)
+        {
+            LobbyManager.Instance.LobbyStates.IP = IP;
+            LobbyManager.Instance.LobbyStates.Port = Port;
+            LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.Joinable;
+            foreach (var account in LobbyManager.Instance.OnlineBeasts._lobbyBeasts)
+            {
+                foreach (var localOnlineBeast in account.Value)
+                {
+                    localOnlineBeast._state = BeastUtils.PlayerState.Ready;
+                }
+            }
+            LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
+            LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(false);
+            MonoSingleton<Global>.Instance.UNetManager.LaunchClient(IP, Port);
         }
     }
 
-    private static void OnBoot()
+    private void OnBoot()
     {
         if ((IsClientJoiner && !IsForwardedHost) || IsServer)
         {
-            UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.DedicatedServer, null, "",
-                "DGS");
             NetworkBootstrapper.IsDedicatedServer = IsServer;
             LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
             Mod.Logger.Msg(ConsoleColor.Green, "Added DevelopmentTestServer to lobby object.");
@@ -89,13 +111,28 @@ public class ServerManager : MonoBehaviour
 
         if (IsServer)
             ServerBoot();
+        else if (IsClientJoiner && !DontAutoStart)
+        {
+            
+        }
     }
 
     private static void ServerBoot()
     {
         Mod.Logger.Msg("Setting up server boot...");
-        FindObjectOfType<NetworkBootstrapper>().AutoRunServer = IsServer && !DontAutoStart;
+        var bootstrapper = FindObjectOfType<NetworkBootstrapper>();
+        bootstrapper.AutoRunServer = IsServer && !DontAutoStart;
+        UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.DedicatedServer, null, "",
+            "DGS");
         MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
+        if (!string.IsNullOrWhiteSpace(Mod.MapArg))
+            GameManagerNew.add_OnGameManagerCreated((Action)SetConfigOnGameManager);
+        NetMemberContext.LocalHostedGame = true;
         Mod.Logger.Msg(ConsoleColor.Green, "Done!");
+    }
+
+    private static void SetConfigOnGameManager()
+    {
+        GameManagerNew.Instance.ChangeRotationConfig(GBConfigLoader.CreateRotationConfig(Mod.MapArg, "melee", 8, int.MaxValue));
     }
 }
