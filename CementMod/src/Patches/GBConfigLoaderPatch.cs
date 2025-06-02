@@ -16,21 +16,24 @@ internal static class GBConfigLoaderPatch
         {
             if (__instance.mapList[__instance.currentMapIndex].ToLower() != "random")
                 return; // map is not set to random; don't do patch
-            
+
             var masterMenuHandlers = Object.FindObjectsOfType<MenuHandlerGamemodes>();
 
             foreach (var masterMenuHandler in masterMenuHandlers)
             {
+                if (masterMenuHandler.type == MenuHandlerGamemodes.MenuType.Online)
+                    continue;
+
                 foreach (var scene in CustomAddressableRegistration.CustomMaps)
                 {
                     var result = scene.sceneInfo;
-                    if ((!result && masterMenuHandler.CurrentGamemode != GameModeEnum.Melee))
+                    if (!result && masterMenuHandler.CurrentGamemode != GameModeEnum.Melee)
                         continue;
-                    
+
                     if (result && !result.allowedGamemodes.Get().HasFlag(masterMenuHandler.CurrentGamemode))
                         continue;
 
-                    __result.Insert(Random.Range(0, __result.Count-1), scene.SceneName);
+                    __result.Insert(Random.Range(0, __result.Count - 1), scene.SceneName);
                 }
             }
         }

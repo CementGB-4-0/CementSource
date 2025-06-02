@@ -7,8 +7,6 @@ using Il2CppGB.Gamemodes;
 using Il2CppSystem;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceLocations;
-using UnityEngine.ResourceManagement.ResourceProviders;
 using ConsoleColor = System.ConsoleColor;
 
 namespace CementGB.Mod.Patches;

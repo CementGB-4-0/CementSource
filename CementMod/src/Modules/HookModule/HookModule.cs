@@ -5,7 +5,7 @@ using MelonLoader;
 namespace CementGB.Mod.Modules;
 
 /// <summary>
-///     This is a really simple hooking library that uses Harmony, basically modular UltiLib.
+///     This is a really simple hooking library that uses Harmony.
 ///     It should be used to create custom functionality before or after vanilla methods.
 /// </summary>
 public static class HookModule
@@ -18,11 +18,7 @@ public static class HookModule
     /// <param name="canToggle">Whether the hook can be toggled on/off or not. Currently not functional.</param>
     public static void CreateHook(CementHook hook, bool canToggle = true)
     {
-        var doBeforeHook = () =>
-        {
-            // TODO: if callingMod is disabled or null, disable hook as well
-            return true;
-        };
+        var doBeforeHook = () => true;
 
         var prefix = hook.isPrefix ? new HarmonyMethod(hook.hook) : null;
         var postfix = hook.isPrefix ? null : new HarmonyMethod(hook.hook);
@@ -41,7 +37,7 @@ public static class HookModule
 
         var resultString =
             $"New {(hook.isPrefix ? "PREFIX" : "POSTFIX")} hook on {hook.original.DeclaringType?.Name}.{hook.original.Name} registered to {hook.hook.DeclaringType?.Name}.{hook.hook.Name} with {typeof(HarmonyLib.Harmony)} instance {harmonyInstance.Id}";
-        var fromModString = $"{resultString} from mod assembly {hook.callingMod.MelonAssembly.Assembly.FullName}";
+        var fromModString = $"{resultString} from mod assembly {hook.callingMod?.MelonAssembly.Assembly.FullName}";
 
         Melon<Mod>.Logger.Msg(hook.callingMod is null ? resultString : fromModString);
     }

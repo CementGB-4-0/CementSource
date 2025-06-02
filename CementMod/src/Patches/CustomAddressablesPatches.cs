@@ -1,9 +1,7 @@
 using CementGB.Mod.CustomContent;
 using HarmonyLib;
-using MelonLoader.Utils;
-using UnityEngine;
+using Il2CppSystem;
 using UnityEngine.AddressableAssets;
-using UnityEngine.AddressableAssets.Initialization;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Resources = Il2CppGB.Core.Resources;
 
@@ -37,7 +35,7 @@ internal static class CustomAddressablesPatches
             }
 
             __instance._finishedLoading = AsyncOperationStatus.None;
-            __instance._loadHandle = Addressables.LoadAssetAsync<Il2CppSystem.Object>(__instance.Key);
+            __instance._loadHandle = Addressables.LoadAssetAsync<Object>(__instance.Key);
 
             __result = __instance._loadHandle;
             return false;
