@@ -42,6 +42,9 @@ public class Mod : MelonMod
 
     public static string
         MapArg => CommandLineParser.Instance.GetValueForKey("-map", false);
+    
+    public static string
+        ModeArg => CommandLineParser.Instance.GetValueForKey("-mode", false);
 
     public static bool
         DebugArg => Environment.GetCommandLineArgs().Contains("-debug");

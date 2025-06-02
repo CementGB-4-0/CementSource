@@ -4,12 +4,15 @@ using CementGB.Mod.Utilities;
 using Il2Cpp;
 using Il2CppCoatsink.UnityServices;
 using Il2CppCoreNet.Contexts;
+using Il2CppCoreNet.Model;
+using Il2CppCoreNet.Objects;
+using Il2CppCoreNet.Utils;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.Core.Bootstrappers;
 using Il2CppGB.Game;
+using Il2CppGB.Networking.Objects;
 using Il2CppGB.Platform.Lobby;
-using Il2CppGB.UI.Beasts;
 using MelonLoader;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -21,6 +24,8 @@ public class ServerManager : MonoBehaviour
 {
     public const string DefaultIP = "127.0.0.1";
     public const int DefaultPort = 5999;
+
+    private const string ServerLogPrefix = "[SERVER]";
 
     private static readonly string
         IpArg = CommandLineParser.Instance.GetValueForKey("-ip", false); // set to server via vanilla code
@@ -65,9 +70,9 @@ public class ServerManager : MonoBehaviour
 
         if (!IsServer) return;
 
-        Mod.Logger.Msg("Setting up pre-boot dedicated server overrides. . .");
+        Mod.Logger.Msg($"{ServerLogPrefix} Setting up pre-boot dedicated server overrides. . .");
         AudioListener.pause = true;
-        Mod.Logger.Msg(ConsoleColor.Green, "Done!");
+        Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
     }
 
     private void Update()
@@ -78,6 +83,7 @@ public class ServerManager : MonoBehaviour
         // TODO: Connect if client, start local game if fwd
         _autoLaunchUpdateEnabled = false;
 
+        /*
         if (IsForwardedHost)
         {
             
@@ -98,6 +104,7 @@ public class ServerManager : MonoBehaviour
             LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(false);
             MonoSingleton<Global>.Instance.UNetManager.LaunchClient(IP, Port);
         }
+        */
     }
 
     private void OnBoot()
@@ -106,7 +113,7 @@ public class ServerManager : MonoBehaviour
         {
             NetworkBootstrapper.IsDedicatedServer = IsServer;
             LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
-            Mod.Logger.Msg(ConsoleColor.Green, "Added DevelopmentTestServer to lobby object.");
+            Mod.Logger.Msg(ConsoleColor.Green, $"Added DevelopmentTestServer to lobby object.");
         }
 
         if (IsServer)
@@ -119,20 +126,49 @@ public class ServerManager : MonoBehaviour
 
     private static void ServerBoot()
     {
-        Mod.Logger.Msg("Setting up server boot...");
+        Mod.Logger.Msg($"{ServerLogPrefix} Setting up server boot...");
         var bootstrapper = FindObjectOfType<NetworkBootstrapper>();
         bootstrapper.AutoRunServer = IsServer && !DontAutoStart;
         UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.DedicatedServer, null, "",
             "DGS");
         MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
-        if (!string.IsNullOrWhiteSpace(Mod.MapArg))
-            GameManagerNew.add_OnGameManagerCreated((Action)SetConfigOnGameManager);
         NetMemberContext.LocalHostedGame = true;
-        Mod.Logger.Msg(ConsoleColor.Green, "Done!");
+        GameManagerNew.add_OnGameManagerCreated((Action)SetConfigOnGameManager);
+        NetUtils.Model.Subscribe("SERVER_READY", (NetModelItem<NetInt>.ItemHandler)OnServerReady);
+        NetUtils.Model.Subscribe("NET_PLAYERS", (NetModelCollection<NetBeast>.ItemHandler)OnPlayerAdded, null, (NetModelCollection<NetBeast>.ItemHandler)OnPlayerRemoved);
+        NetUtils.Model.Subscribe<NetMember>("NET_MEMBERS", (NetModelCollection<NetMember>.ItemHandler)OnNetMemberAdded, null, (NetModelCollection<NetMember>.ItemHandler)OnNetMemberRemoved);
+        Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
+    }
+
+    private static void OnServerReady(NetInt value)
+    {
+        if (value.Value == 1)
+            Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Ready for players!");
+    }
+
+    private static void OnNetMemberAdded(NetMember member)
+    {
+        Mod.Logger.Msg($"{ServerLogPrefix} NetMember with connection ID {member.ConnectionId} ADDED to model. (key \"NET_MEMBERS\")");
+    }
+    
+    private static void OnNetMemberRemoved(NetMember member)
+    {
+        Mod.Logger.Msg($"{ServerLogPrefix} NetMember with connection ID {member.ConnectionId} REMOVED from model. (key \"NET_MEMBERS\")");
+    }
+    
+    private static void OnPlayerAdded(NetBeast beast)
+    {
+        Mod.Logger.Msg($"{ServerLogPrefix} {(beast.playerType == NetPlayer.PlayerType.AI ? $"AI Beast with gang ID {beast.GangId}" : $"Player Beast with connection ID {beast.ConnectionId}")} ADDED to model. (key \"NET_PLAYERS\")");
+    }
+
+    private static void OnPlayerRemoved(NetBeast beast)
+    {
+        Mod.Logger.Msg($"{ServerLogPrefix} {(beast.playerType == NetPlayer.PlayerType.AI ? $"AI Beast with gang ID {beast.GangId}" : $"Player Beast with connection ID {beast.ConnectionId}")} removed from model. (key \"NET_PLAYERS\")");
     }
 
     private static void SetConfigOnGameManager()
     {
-        GameManagerNew.Instance.ChangeRotationConfig(GBConfigLoader.CreateRotationConfig(Mod.MapArg, "melee", 8, int.MaxValue));
+        if (!string.IsNullOrWhiteSpace(Mod.MapArg))
+            GameManagerNew.Instance.ChangeRotationConfig(GBConfigLoader.CreateRotationConfig(Mod.MapArg, string.IsNullOrWhiteSpace(Mod.ModeArg) ? "melee" : Mod.ModeArg, 8, int.MaxValue));
     }
 }
