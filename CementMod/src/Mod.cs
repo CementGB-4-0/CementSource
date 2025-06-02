@@ -5,6 +5,7 @@ using System.Linq;
 using CementGB.Mod.CustomContent;
 using CementGB.Mod.Modules.NetBeard;
 using CementGB.Mod.Modules.PoolingModule;
+using CementGB.Mod.src.Modules.CustomContent.CustomMaps;
 using CementGB.Mod.Utilities;
 using Il2Cpp;
 using Il2CppGB.Config;
@@ -127,6 +128,7 @@ public class Mod : MelonMod
         //CementCompContainer.AddComponent<NetBeard>();
         CementCompContainer.AddComponent<ServerManager>();
         CementCompContainer.AddComponent<Pool>();
+        CementCompContainer.AddComponent<MixerFinder>();
         //CementCompContainer.AddComponent<BeastInput>();
     }
 
