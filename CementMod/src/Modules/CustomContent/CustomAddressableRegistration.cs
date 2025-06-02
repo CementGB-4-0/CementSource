@@ -26,7 +26,7 @@ public static class CustomAddressableRegistration
     private static readonly System.Collections.Generic.List<CustomMapRefHolder> _customMaps = [];
 
     /// <summary>
-    /// Dictionary lookup for all modded Addressable keys (as strings), sorted by mod name.
+    ///     Dictionary lookup for all modded Addressable keys (as strings), sorted by mod name.
     /// </summary>
     public static ReadOnlyDictionary<string, string[]> PackAddressableKeys // { modName: addressableKeys }
     {
@@ -48,8 +48,9 @@ public static class CustomAddressableRegistration
     }
 
     public static ReadOnlyCollection<IResourceLocator> ModdedResourceLocators => _moddedResourceLocators.AsReadOnly();
+
     /// <summary>
-    /// A collection of all valid maps loaded by Cement. Read-only.
+    ///     A collection of all valid maps loaded by Cement. Read-only.
     /// </summary>
     public static ReadOnlyCollection<CustomMapRefHolder> CustomMaps => _customMaps.AsReadOnly();
 

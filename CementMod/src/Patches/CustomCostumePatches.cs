@@ -1,11 +1,3 @@
-using System;
-using System.Diagnostics;
-using CementGB.Mod.Utilities;
-using HarmonyLib;
-using Il2CppCostumes;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
-
 namespace CementGB.Mod.Patches;
 /*
 internal static class CustomCostumePatches

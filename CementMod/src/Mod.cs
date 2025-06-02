@@ -38,11 +38,11 @@ public class Mod : MelonMod
     public static readonly string CustomContentPath = MelonEnvironment.ModsDirectory;
 
     private static GameObject _cementCompContainer;
-    private static bool _mapArgDidTheThing = false;
+    private static bool _mapArgDidTheThing;
 
     public static string
         MapArg => CommandLineParser.Instance.GetValueForKey("-map", false);
-    
+
     public static string
         ModeArg => CommandLineParser.Instance.GetValueForKey("-mode", false);
 
@@ -87,7 +87,7 @@ public class Mod : MelonMod
                 "Verbose Mode disabled! Enable verbose mode in UserData/CementGB/CementGB.cfg for more detailed logging.");
         CementPreferences.Initialize();
         CommonHooks.Initialize();
-        
+
         //Script.ReloadScripts();
     }
 
@@ -138,7 +138,8 @@ public class Mod : MelonMod
     public override void OnUpdate()
     {
         if (SceneManager.GetActiveScene().name != "Menu" ||
-            !Global.Instance.SceneLoader || string.IsNullOrWhiteSpace(MapArg) || _mapArgDidTheThing && (!ServerManager.IsServer || ServerManager.DontAutoStart)) return;
+            !Global.Instance.SceneLoader || string.IsNullOrWhiteSpace(MapArg) ||
+            (_mapArgDidTheThing && (!ServerManager.IsServer || ServerManager.DontAutoStart))) return;
 
         _mapArgDidTheThing = true;
 
@@ -154,7 +155,7 @@ public class Mod : MelonMod
             yield return new WaitForEndOfFrame();
             localBeastMenuObj = GameObject.Find("Managers/Menu/Beast Menu/Canvas/Local Beast Select Menu");
         }
-        
+
         if (!localBeastMenuObj.active)
         {
             var menuControllerObj = GameObject.Find("Managers/Menu");
@@ -163,7 +164,7 @@ public class Mod : MelonMod
                 yield return new WaitForEndOfFrame();
                 menuControllerObj = GameObject.Find("Managers/Menu");
             }
-            
+
             var controller = menuControllerObj.GetComponent<MenuController>();
             controller.PushScreen(localBeastMenuObj.GetComponent<BaseMenuScreen>());
         }
