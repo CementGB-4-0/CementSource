@@ -81,7 +81,7 @@ public static class CustomAddressableRegistration
 
                 foreach (var location in locatorLocationsCasted.ToArray())
                 {
-                    if (!ret.Where(resourceLocation => resourceLocation.PrimaryKey == location.PrimaryKey).Any())
+                    if (ret.All(resourceLocation => resourceLocation.PrimaryKey != location.PrimaryKey))
                         ret.Add(location);
                 }
             }
@@ -101,7 +101,7 @@ public static class CustomAddressableRegistration
         return _moddedResourceLocators.Any(moddedKeyish => moddedKeyish.Keys.Contains(key));
     }
 
-    public static bool IsValidSceneDataName(string name)
+    private static bool IsValidSceneDataName(string name)
     {
         return name.Split("-Data").Length >= 1;
     }
