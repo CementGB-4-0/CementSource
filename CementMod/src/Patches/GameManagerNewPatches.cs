@@ -1,8 +1,5 @@
 using CementGB.Mod.Modules.NetBeard;
 using HarmonyLib;
-using Il2CppCoreNet.Contexts;
-using Il2CppCoreNet.Objects;
-using Il2CppCoreNet.Utils;
 using Il2CppGB.Game;
 
 namespace CementGB.Mod.Patches;

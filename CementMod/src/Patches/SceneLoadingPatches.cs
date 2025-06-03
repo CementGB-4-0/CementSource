@@ -25,7 +25,8 @@ internal static class OnSceneListCompletePatch
             if (mapRef.SceneData.AudioConfig && mapRef.SceneData.AudioConfig.audioMixer == null)
             {
                 mapRef.SceneData.AudioConfig.audioMixer = MixerFinder.mainMusicMixer;
-                Mod.Logger.Msg(ConsoleColor.Yellow, $"Map {mapRef.SceneName} has no audio mixer. Defaulting to in-game mixer.");
+                Mod.Logger.Msg(ConsoleColor.Yellow,
+                    $"Map {mapRef.SceneName} has no audio mixer. Defaulting to in-game mixer.");
             }
 
             var sceneDataRef = new AssetReference(mapRef.SceneData.name);
@@ -47,7 +48,6 @@ internal static class OnSceneListCompletePatch
         }
     }
 }
-
 
 [HarmonyPatch(typeof(LoadScreenDisplayHandler), nameof(LoadScreenDisplayHandler.SetSubTitle))]
 internal static class SetSubTitlePatch

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace CementGB.Mod.Modules.NetBeard;
 
 /// <summary>
-/// Ensures the object this script is attached to will always be inactive.
+///     Ensures the object this script is attached to will always be inactive.
 /// </summary>
 [RegisterTypeInIl2Cpp]
 public class AlwaysDisable : MonoBehaviour
