@@ -130,7 +130,7 @@ public class Mod : MelonMod
         Object.DontDestroyOnLoad(CementCompContainer);
         CementCompContainer.MakePersistent();
 
-        //CementCompContainer.AddComponent<NetBeard>();
+        CementCompContainer.AddComponent<NetBeard>();
         CementCompContainer.AddComponent<ServerManager>();
         CementCompContainer.AddComponent<Pool>();
         CementCompContainer.AddComponent<MixerFinder>();
