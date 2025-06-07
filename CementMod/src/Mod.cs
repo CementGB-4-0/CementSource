@@ -19,6 +19,7 @@ using Il2CppInterop.Runtime;
 using MelonLoader;
 using MelonLoader.Utils;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -159,16 +160,17 @@ public class Mod : MelonMod
     // --- DEBUGGING UI ---
     public override void OnGUI()
     {
+        if (GUILayout.Button("HandleMsg"))
+        {
+            NetMessenger.RegisterFromClientHandler<TestMsg>(6942, new Action<TestMsg, NetworkConnection>((msg, conn) =>
+            {
+                Debug.Log("Hallo from msg handler!!");
+            }));
+        }
+
         if (GUILayout.Button("MessageTest"))
         {
-            NetMessenger.SendAsServer(1110, new NetServerMessage
-            {
-                colour = Color.red,
-                fadeTime = 1f,
-                lifeTime = 5f,
-                message = "Hawk Tuah",
-                offSet = new Vector2(0f, -140f)
-            }, NetUtils.IsLocalServerGame());
+            NetMessenger.SendAsClient(6942, new TestMsg());
         }
     }
 
