@@ -12,9 +12,11 @@ using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.UI;
 using Il2CppGB.UI.Menu;
+using Il2CppInterop.Runtime;
 using MelonLoader;
 using MelonLoader.Utils;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
@@ -137,13 +139,21 @@ public class Mod : MelonMod
 
     public override void OnUpdate()
     {
-        if (SceneManager.GetActiveScene().name != "Menu" ||
-            !Global.Instance.SceneLoader || string.IsNullOrWhiteSpace(MapArg) ||
-            (_mapArgDidTheThing && (!ServerManager.IsServer || ServerManager.DontAutoStart))) return;
+        if (SceneManager.GetActiveScene().name == "Menu" &&
+            Global.Instance.SceneLoader && !string.IsNullOrWhiteSpace(MapArg) &&
+            (!_mapArgDidTheThing || (ServerManager.IsServer && !ServerManager.DontAutoStart)))
+        {
+            _mapArgDidTheThing = true;
+            MelonCoroutines.Start(JumpToMap());
+        }
+    }
 
-        _mapArgDidTheThing = true;
-
-        MelonCoroutines.Start(JumpToMap());
+    public override void OnSceneWasLoaded(int buildIndex, string sceneName)
+    {
+        foreach (var amb in Object.FindObjectsOfTypeAll(Il2CppType.Of<ScreenSpaceAmbientOcclusion>()))
+        {
+            amb.Cast<ScreenSpaceAmbientOcclusion>().m_Settings.AfterOpaque = sceneName != "Menu";
+        }
     }
 
     private IEnumerator JumpToMap()
