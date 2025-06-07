@@ -17,6 +17,11 @@ internal static class GameModeInitBeastPatch
             return;
         
         var collection = __instance._Model.GetCollection<NetMember>("NET_MEMBERS");
+        if (collection.Count == 1)
+        {
+            __instance.localSingleGang = true;
+            return;
+        }
         int num = 0;
         foreach (NetMember netMember in collection)
         {
@@ -30,6 +35,8 @@ internal static class GameModeInitBeastPatch
                 num++;
             }
         }
+
+        __instance.localSingleGang = false;
     }
 }
 
