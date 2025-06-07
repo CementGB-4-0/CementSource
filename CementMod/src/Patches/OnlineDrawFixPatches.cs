@@ -33,6 +33,9 @@ internal static class GameModeInitBeastPatch
                 netBeast.GangId = num;
                 GBNetUtils.SetBeastsGang(netBeast);
                 num++;
+                // Added rollover as a safety net to fix an impossible gang
+                // Players will now be forced into gangs if necessary?
+                num %= GBNetUtils.Model.GetCollection<NetGang>("NET_GANGS").Count;
             }
         }
 
