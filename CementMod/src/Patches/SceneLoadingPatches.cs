@@ -22,7 +22,7 @@ internal static class OnSceneListCompletePatch
 
         foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
         {
-            if (mapRef.SceneData.AudioConfig && mapRef.SceneData.AudioConfig.audioMixer == null)
+            if (mapRef.SceneData.AudioConfig && !mapRef.SceneData.AudioConfig.audioMixer)
             {
                 mapRef.SceneData.AudioConfig.audioMixer = MixerFinder.mainMusicMixer;
                 Mod.Logger.Msg(ConsoleColor.Yellow,
