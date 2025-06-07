@@ -15,7 +15,7 @@ internal static class GameModeInitBeastPatch
     {
         if (!ServerManager.IsServer)
             return;
-        
+
         var collection = __instance._Model.GetCollection<NetMember>("NET_MEMBERS");
         if (collection.Count == 1 && NetUtils.GetPlayers<NetBeast>(collection[0]).Count == 1)
         {

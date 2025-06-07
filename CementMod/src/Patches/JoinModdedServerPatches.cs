@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using CementGB.Mod.Modules.NetBeard;
@@ -18,11 +20,22 @@ namespace CementGB.Mod.Patches;
 [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic))]
 public static class JoinModdedServerPatches
 {
+    public static async Task<IPAddress?> GetExternalIpAddress()
+    {
+        var externalIpString = (await new HttpClient().GetStringAsync("http://icanhazip.com"))
+            .Replace("\\r\\n", "").Replace("\\n", "").Trim();
+        if (!IPAddress.TryParse(externalIpString, out var ipAddress)) return null;
+        return ipAddress;
+    }
+
     internal static bool Prefix(MenuHandlerGamemodes __instance)
     {
         bool shouldJoinModded = HandshakeManager.LookForHandshakeAsync().GetAwaiter().GetResult();
-
         if (__instance.type != MenuHandlerGamemodes.MenuType.Online || !shouldJoinModded) return true;
+
+
+        IPAddress address = GetExternalIpAddress().GetAwaiter().GetResult();
+        if (address == null) address = IPAddress.Loopback; // Offline safety net
 
         MonoSingleton<Global>.Instance.buttonController.HideButton(InputMapActions.Accept);
         __instance.PopulateVisibleButtons(true);
@@ -37,7 +50,7 @@ public static class JoinModdedServerPatches
             LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
 
             MatchmakingResult result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done");
-            result.IpAddress = IPAddressFetcher.GetIPAddress();
+            result.IpAddress = address.ToString();
             result.Port = 5999;
 
             LobbyManager.Instance.LobbyStates.MatchmakingComplete(result);
