@@ -8,8 +8,11 @@ using CementGB.Mod.Modules.PoolingModule;
 using CementGB.Mod.src.Modules.CustomContent.CustomMaps;
 using CementGB.Mod.Utilities;
 using Il2Cpp;
+using Il2CppCoreNet.Messaging;
+using Il2CppCoreNet.Utils;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
+using Il2CppGB.Networking.Messaging.Messages;
 using Il2CppGB.UI;
 using Il2CppGB.UI.Menu;
 using Il2CppInterop.Runtime;
@@ -150,6 +153,22 @@ public class Mod : MelonMod
         {
             _mapArgDidTheThing = true;
             MelonCoroutines.Start(JumpToMap());
+        }
+    }
+
+    // --- DEBUGGING UI ---
+    public override void OnGUI()
+    {
+        if (GUILayout.Button("MessageTest"))
+        {
+            NetMessenger.SendAsServer(1110, new NetServerMessage
+            {
+                colour = Color.red,
+                fadeTime = 1f,
+                lifeTime = 5f,
+                message = "Hawk Tuah",
+                offSet = new Vector2(0f, -140f)
+            }, NetUtils.IsLocalServerGame());
         }
     }
 
