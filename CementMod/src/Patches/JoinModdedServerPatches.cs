@@ -30,7 +30,7 @@ public static class JoinModdedServerPatches
 
     internal static bool Prefix(MenuHandlerGamemodes __instance)
     {
-        bool shouldJoinModded = HandshakeManager.LookForHandshakeAsync().GetAwaiter().GetResult();
+        bool shouldJoinModded = HandshakeManager.LookForHandshake().GetAwaiter().GetResult();
         if (__instance.type != MenuHandlerGamemodes.MenuType.Online || !shouldJoinModded) return true;
 
 
