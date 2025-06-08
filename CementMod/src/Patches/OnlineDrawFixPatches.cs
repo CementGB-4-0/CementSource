@@ -29,7 +29,8 @@ internal static class GameModeInitBeastPatch
             foreach (NetBeast netBeast in NetUtils.GetPlayers<NetBeast>(netMember))
             {
                 if (netBeast.GameOver) continue;
-                GBNetUtils.RemoveBeastFromGang(netBeast);
+                if (netBeast.GangId != num) GBNetUtils.RemoveBeastFromGang(netBeast);
+
                 netBeast.GangId = num;
                 GBNetUtils.SetBeastsGang(netBeast);
                 num++;
