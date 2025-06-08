@@ -114,7 +114,7 @@ public class Mod : MelonMod
     {
         base.OnLateInitializeMelon();
 
-        MixerFinder.FindMixer();
+        MixerFinder.AssignMainMixer();
         CustomAddressableRegistration.Initialize();
         CreateCementComponents();
     }
