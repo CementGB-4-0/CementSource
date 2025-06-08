@@ -139,17 +139,20 @@ public class Mod : MelonMod
 
     public override void OnUpdate()
     {
-        foreach (var amb in Object.FindObjectsOfTypeAll(Il2CppType.Of<ScreenSpaceAmbientOcclusion>()))
-        {
-            amb.Cast<ScreenSpaceAmbientOcclusion>().m_Settings.AfterOpaque = SceneManager.GetActiveScene().name != "Menu";
-        }
-        
         if (SceneManager.GetActiveScene().name == "Menu" &&
             Global.Instance.SceneLoader && !string.IsNullOrWhiteSpace(MapArg) &&
             (!_mapArgDidTheThing || (ServerManager.IsServer && !ServerManager.DontAutoStart)))
         {
             _mapArgDidTheThing = true;
             MelonCoroutines.Start(JumpToMap());
+        }
+    }
+
+    public override void OnSceneWasLoaded(int buildIndex, string sceneName)
+    {
+        foreach (var amb in Object.FindObjectsOfTypeAll(Il2CppType.Of<ScreenSpaceAmbientOcclusion>()))
+        {
+            amb.Cast<ScreenSpaceAmbientOcclusion>().m_Settings.AfterOpaque = sceneName != "Menu";
         }
     }
 
