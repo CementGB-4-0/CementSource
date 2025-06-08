@@ -32,7 +32,7 @@ internal static class HandshakeManager
         }
     }
 
-    public static async Task<bool> LookForHandshakeAsync()
+    public static async Task<bool> LookForHandshake()
     {
         try
         {
@@ -46,7 +46,7 @@ internal static class HandshakeManager
                 int attempts = 0;
                 byte[] buffer = new byte[1];
 
-                while (attempts < 5)
+                while (attempts < 3)
                 {
                     attempts++;
 
@@ -59,7 +59,7 @@ internal static class HandshakeManager
                         return true;
                     }
 
-                    await Task.Delay(500);
+                    await Task.Delay(1000);
                 }
 
                 Mod.Logger.Msg(ConsoleColor.Red, "Server could not be found. Handshake failed");
@@ -69,7 +69,7 @@ internal static class HandshakeManager
 
         catch (Exception ex)
         {
-            Mod.Logger.Error("Error when looking for handshake. Server not listening? " + ex);  
+            Mod.Logger.Error("Error when looking for handshake. Server not listening? " + ex);
             return false;
         }
     }
