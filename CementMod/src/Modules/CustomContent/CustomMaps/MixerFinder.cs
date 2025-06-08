@@ -6,12 +6,11 @@ using UnityEngine.Audio;
 
 namespace CementGB.Mod.src.Modules.CustomContent.CustomMaps;
 
-[RegisterTypeInIl2Cpp]
-internal class MixerFinder : MonoBehaviour
+internal static class MixerFinder
 {
-    internal static AudioMixer mainMusicMixer;
+    internal static AudioMixer MainMixer { get; private set; }
 
-    private void Awake()
+    internal static void FindMixer()
     {
         var mixers = Resources.FindObjectsOfTypeAll<AudioMixer>().ToArray();
 
@@ -21,7 +20,7 @@ internal class MixerFinder : MonoBehaviour
             {
                 Mod.Logger.Msg(ConsoleColor.Green,
                     "Main mixer found. Maps will now fallback onto this mixer if one isn't assigned.");
-                mainMusicMixer = mixer;
+                MainMixer = mixer;
             }
         }
 
