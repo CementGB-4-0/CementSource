@@ -2,7 +2,8 @@ name: Release new Cement version
 
 on:
     push:
-      branches: master
+      branches: 
+        [master]
 jobs:
     publish:
         runs-on: ubuntu-latest
@@ -31,7 +32,8 @@ jobs:
             file: CementMod/CementMod.csproj
 
         - run: |
-            dotnet build -o dist/Mods --configuration Release /p:Version=${{ steps.version_step.outputs.version }}
+            dotnet build -o dist/Mods --configuration Release
+            cp README.md dist/README.md
             rm dist/Mods/CementGB.deps.json
             cd dist; zip -r ../CementGB-CementGB-${{steps.version_step.outputs.version}}.zip *
 

@@ -8,7 +8,7 @@
         <RootNamespace>CementGB.Mod</RootNamespace>
         <AssemblyName>CementGB</AssemblyName>
         <Author>CementGB Team</Author>
-        <Version>4.0.0</Version>
+        <Version>4.1.0</Version>
 
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <LangVersion>12</LangVersion>
@@ -17,7 +17,7 @@
         <Optimize>false</Optimize>
 
         <OutputType>Library</OutputType>
-        <DocumentationFile>CementGB.xml</DocumentationFile>
+        <DocumentationFile Condition=" '$(Configuration)' == 'Release' ">$(ProjectDir)../dist/Mods/CementGB.xml</DocumentationFile>
 
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
@@ -46,7 +46,7 @@
         <ErrorReport>prompt</ErrorReport>
         <DefineConstants>$(DefineConstants);RELEASE;TRACE</DefineConstants>
 
-        <OutputPath>bin\Release\</OutputPath>
+        <OutputPath>$(SolutionDir)\dist\Mods\</OutputPath>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
 
@@ -84,12 +84,13 @@
         <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Mods"/>
     </Target>
 
-    <Target Name="AddGeneratedFile" BeforeTargets="BeforeCompile;CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(IntermediateOutputPath)GeneratedFile.cs">
+    <Target Name="AddGeneratedFiles" BeforeTargets="BeforeCompile;CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(IntermediateOutputPath)GeneratedFile.cs">
         <PropertyGroup>
             <MelonLoaderModAuthor Condition="'$(MelonLoaderModAuthor)' == ''">$(Author)</MelonLoaderModAuthor>
             <MelonLoaderModName Condition="'$(MelonLoaderModName)' == ''">$(AssemblyName)</MelonLoaderModName>
             <MelonLoaderModVersion Condition="'$(MelonLoaderModVersion)' == ''">$(Version)</MelonLoaderModVersion>
-            <GeneratedText><![CDATA[
+            <GeneratedTextInfo>
+                <![CDATA[
 namespace $(RootNamespace)
 {
     internal static class MyPluginInfo
@@ -99,13 +100,32 @@ namespace $(RootNamespace)
         public const string Version = "$(MelonLoaderModVersion)"%3B
     }
 }
-      ]]></GeneratedText>
-            <GeneratedFilePath>$(IntermediateOutputPath)/MyPluginInfo.cs</GeneratedFilePath>
+                ]]>
+            </GeneratedTextInfo>
+            <GeneratedFile1Path>$(IntermediateOutputPath)/MyPluginInfo.cs</GeneratedFile1Path>
         </PropertyGroup>
         <ItemGroup>
-            <Compile Include="$(GeneratedFilePath)"/>
-            <FileWrites Include="$(GeneratedFilePath)"/>
+            <Compile Include="$(GeneratedFile1Path)"/>
+            <FileWrites Include="$(GeneratedFile1Path)"/>
         </ItemGroup>
-        <WriteLinesToFile Lines="$(GeneratedText)" File="$(GeneratedFilePath)" WriteOnlyWhenDifferent="true" Overwrite="true"/>
+        <WriteLinesToFile Lines="$(GeneratedTextInfo)" File="$(GeneratedFile1Path)" WriteOnlyWhenDifferent="true" Overwrite="true"/>
+
+        <PropertyGroup>
+            <GeneratedTextManifestJson>
+                <![CDATA[ 
+{
+    "name": "CementGB",
+    "website_url": "https://github.com/CementGB-4-0/CementSource",
+    "version_number": "$(MelonLoaderModVersion)",
+    "description": "A general-purpose modding API for Gang Beasts.",
+    "dependencies": [
+        "LavaGang-MelonLoader-0.7.0"
+    ]
+}
+                ]]>
+            </GeneratedTextManifestJson>
+            <GeneratedFile2Path>$(ProjectDir)../dist/manifest.json</GeneratedFile2Path>
+        </PropertyGroup>
+        <WriteLinesToFile Lines="$(GeneratedTextManifestJson)" File="$(GeneratedFile2Path)" WriteOnlyWhenDifferent="true" Overwrite="true"/>
     </Target>
 </Project>
