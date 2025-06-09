@@ -71,7 +71,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <GameDirFile Include="$(SolutionDir)\game_dir.txt"></GameDirFile>
+        <GameDirFile Include="$(ProjectDir)..\game_dir.txt"></GameDirFile>
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'@(GameDirFile)' != ''">
