@@ -2,7 +2,8 @@ name: Release new Cement version
 
 on:
     push:
-      branches: master
+      branches: 
+        [master]
 jobs:
     publish:
         runs-on: ubuntu-latest
