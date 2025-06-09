@@ -46,7 +46,7 @@
         <ErrorReport>prompt</ErrorReport>
         <DefineConstants>$(DefineConstants);RELEASE;TRACE</DefineConstants>
 
-        <OutputPath>$(SolutionDir)\dist\Mods\</OutputPath>
+        <OutputPath>$(ProjectDir)..\dist\Mods\</OutputPath>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
 
