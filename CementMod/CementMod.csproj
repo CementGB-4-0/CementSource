@@ -17,7 +17,7 @@
         <Optimize>false</Optimize>
 
         <OutputType>Library</OutputType>
-        <DocumentationFile>CementGB.xml</DocumentationFile>
+        <DocumentationFile Condition=" '$(Configuration)' == 'Release' ">$(SolutionDir)/dist/Mods/CementGB.xml</DocumentationFile>
 
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
