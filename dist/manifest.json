@@ -1,9 +1,0 @@
-{
-    "name": "CementGB",
-    "website_url": "https://github.com/CementGB-4-0/CementSource",
-    "version_number": "4.1.0",
-    "description": "A general-purpose modding API for Gang Beasts.",
-    "dependencies": [
-        "LavaGang-MelonLoader-0.7.0"
-    ]
-}

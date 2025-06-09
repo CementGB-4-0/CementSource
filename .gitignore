@@ -407,5 +407,6 @@ game_dir.txt
 CementGB.xml
 CementGB.deps.json
 CementGB.dll
+dist/manifest.json
 
 .idea
