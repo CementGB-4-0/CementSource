@@ -3,8 +3,10 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using CementGB.Mod.CustomContent.Costumes;
 using CementGB.Mod.Utilities;
 using GBMDK;
+using Il2CppCostumes;
 using Il2CppGB.Data.Loading;
 using Il2CppInterop.Runtime;
 using Il2CppSystem.Collections.Generic;
@@ -24,6 +26,7 @@ public static class CustomAddressableRegistration
     private static readonly System.Collections.Generic.Dictionary<string, List<Object>> _packAddressableKeys = [];
     private static readonly System.Collections.Generic.List<IResourceLocator> _moddedResourceLocators = [];
     private static readonly System.Collections.Generic.List<CustomMapRefHolder> _customMaps = [];
+    private static readonly System.Collections.Generic.List<CustomCostumeRefHolder> _customCostumes = [];
 
     /// <summary>
     ///     Dictionary lookup for all modded Addressable keys (as strings), sorted by mod name.
@@ -53,6 +56,7 @@ public static class CustomAddressableRegistration
     ///     A collection of all valid maps loaded by Cement. Read-only.
     /// </summary>
     public static ReadOnlyCollection<CustomMapRefHolder> CustomMaps => _customMaps.AsReadOnly();
+    public static ReadOnlyCollection<CustomCostumeRefHolder> CustomCostumes => _customCostumes.AsReadOnly();
 
     /// <summary>
     ///     Gets all custom-loaded IResourceLocations of a certain result type. Used to iterate through and find custom content
@@ -169,15 +173,14 @@ public static class CustomAddressableRegistration
 
     private static void InitializeMapReferences()
     {
-        Mod.Logger.Msg("Starting initialization of custom map references. . .");
+        Mod.Logger.Msg("Starting initialization of custom map reference holders. . .");
         var stopwatch = new Stopwatch();
         stopwatch.Start();
         foreach (var sceneDataLoc in GetAllModdedResourceLocationsOfType<SceneData>())
         {
             var castedSceneDataHandle = Addressables.LoadAssetAsync<SceneData>(sceneDataLoc);
-            castedSceneDataHandle.HandleSynchronousAddressableOperation();
-
-            if (!AssetUtilities.IsHandleSuccess(castedSceneDataHandle))
+            
+            if (!castedSceneDataHandle.HandleSynchronousAddressableOperation())
                 continue;
 
             var castedSceneData = castedSceneDataHandle.Result;
@@ -220,7 +223,7 @@ public static class CustomAddressableRegistration
             if (!refHolder.IsValid)
             {
                 Mod.Logger.Error(
-                    $"Custom map reference holder is not valid! | Info: {(refHolder.sceneInfo ? refHolder.sceneInfo.name : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData.name : "null")}");
+                    $"Custom map reference holder is not valid! | Info (optional): {(refHolder.SceneInfo ? refHolder.SceneInfo.name : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData.name : "null")}");
                 continue;
             }
 
@@ -232,5 +235,29 @@ public static class CustomAddressableRegistration
         stopwatch.Stop();
         Mod.Logger.Msg(ConsoleColor.Green,
             $"Custom map reference initialization complete! {CustomMaps.Count} maps found in {stopwatch.ElapsedMilliseconds}ms");
+    }
+
+    internal static void InitializeCostumeReferences()
+    {
+        Mod.Logger.Msg("Starting initialization of custom costume reference holders. . .");
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+        foreach (var costumeDataLoc in GetAllModdedResourceLocationsOfType<CostumeObject>())
+        {
+            var assetReference = new AssetReferenceT<CostumeObject>(costumeDataLoc.PrimaryKey);
+            
+            var refHolder = new CustomCostumeRefHolder(assetReference);
+            if (!refHolder.IsValid(costumeDataLoc.PrimaryKey))
+            {
+                Mod.Logger.Error($"Custom costume reference holder carrying data of key \"{costumeDataLoc.PrimaryKey}\" is not valid! The costume it belongs to will not be loaded.");
+                continue;
+            }
+            
+            _customCostumes.Add(refHolder);
+            Mod.Logger.Msg(ConsoleColor.Green, $"Custom costume reference holder carrying data of key \"{costumeDataLoc.PrimaryKey}\" initialized OK");
+        }
+        
+        stopwatch.Stop();
+        Mod.Logger.Msg(ConsoleColor.Green , $"Custom costume reference holder initialization complete! Took {stopwatch.ElapsedMilliseconds}ms");
     }
 }
