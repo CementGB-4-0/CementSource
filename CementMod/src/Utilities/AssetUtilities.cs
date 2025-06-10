@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Il2CppCostumes;
 using Il2CppInterop.Runtime.InteropTypes;
 using UnityEngine;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -9,6 +10,13 @@ namespace CementGB.Mod.Utilities;
 
 public static class AssetUtilities
 {
+    public static ushort NewUID(this CostumeDatabase instance)
+    {
+        instance.searchSpeeder.Capacity = int.MaxValue;
+        var num = (ushort)(instance.searchSpeeder.Count == 0 ? 410 : instance.searchSpeeder.GetKey(instance.searchSpeeder.Count - 1) + 1);
+        return num;
+    }
+    
     /// <summary>
     ///     Checks if the provided AsyncOperationHandle succeeded. Checks if the handle is valid, status is succeeded, and
     ///     result is not null.
@@ -63,6 +71,34 @@ public static class AssetUtilities
     /// <returns>True if the handle succeeded, false if it didn't.</returns>
     public static bool HandleSynchronousAddressableOperation<T>(this AsyncOperationHandle<T> handle)
         where T : Il2CppObjectBase
+    {
+        var res = handle.WaitForCompletion();
+
+        if (!IsHandleSuccess(handle))
+        {
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
+                $"Failed to load asset from synchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {!handle.IsValid() || handle.Result == null}");
+            if (handle.IsValid()) handle.Release();
+            return false;
+        }
+
+        var obj = res.TryCast<Object>();
+        if (obj)
+            obj.MakePersistent();
+
+        return true;
+    }
+    
+    /// <summary>
+    ///     Synchronously waits for the provided handle to complete, then checks if it succeeded. If the handle fails, a
+    ///     verbose message is logged to the console and the handle is released.
+    ///     You may want to call <see cref="IsHandleSuccess" /> after this operation if you need to handle failure or success
+    ///     differently.
+    /// </summary>
+    /// <param name="handle">The operation to wait synchronously for, and then check success.</param>
+    /// <typeparam name="T">The result type of the handle.</typeparam>
+    /// <returns>True if the handle succeeded, false if it didn't.</returns>
+    public static bool HandleSynchronousAddressableOperation(this AsyncOperationHandle handle)
     {
         var res = handle.WaitForCompletion();
 
