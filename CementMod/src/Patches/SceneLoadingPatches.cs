@@ -1,5 +1,5 @@
 using CementGB.Mod.CustomContent;
-using CementGB.Mod.src.Modules.CustomContent.CustomMaps;
+using CementGB.Mod.Modules.CustomContent.CustomMaps;
 using HarmonyLib;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;

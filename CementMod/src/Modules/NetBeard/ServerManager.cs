@@ -40,6 +40,9 @@ public class ServerManager : MonoBehaviour
     private static readonly string
         PortArg = CommandLineParser.Instance.GetValueForKey("-port", false); // set to server via vanilla code
 
+    private static readonly string
+        LowGraphicsArg = CommandLineParser.Instance.GetValueForKey("-lowgraphics", false);
+
     private static bool _autoLaunchUpdateEnabled = IsClientJoiner && !DontAutoStart;
 
     /// <summary>
@@ -76,6 +79,12 @@ public class ServerManager : MonoBehaviour
     ///     The Port provided in launch arguments, or <see cref="DefaultPort" /> if none is provided.
     /// </summary>
     public static int Port => string.IsNullOrWhiteSpace(PortArg) ? DefaultPort : int.Parse(PortArg);
+
+    /// <summary>
+    ///     Should the server load in low graphics mode?
+    /// </summary>
+    public static bool LowGraphicsMode => string.IsNullOrWhiteSpace(LowGraphicsArg) ? false : true;
+
 
     private void Awake()
     {

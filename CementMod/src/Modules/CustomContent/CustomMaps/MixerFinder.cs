@@ -4,7 +4,7 @@ using MelonLoader;
 using UnityEngine;
 using UnityEngine.Audio;
 
-namespace CementGB.Mod.src.Modules.CustomContent.CustomMaps;
+namespace CementGB.Mod.Modules.CustomContent.CustomMaps;
 
 internal static class MixerFinder
 {
