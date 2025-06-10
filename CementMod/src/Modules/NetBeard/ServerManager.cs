@@ -81,7 +81,7 @@ public class ServerManager : MonoBehaviour
     {
         LobbyManager.add_onSetupComplete(new Action(OnBoot));
 
-        if (MelonUtils.IsWindows && !Application.isBatchMode)
+        if (MelonUtils.IsWindows && !Application.isBatchMode && CementPreferences.ShowPopups)
         {
             if (IsForwardedHost)
             {

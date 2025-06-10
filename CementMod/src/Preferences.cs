@@ -13,12 +13,14 @@ public static class CementPreferences
         MelonPreferences.CreateCategory("CementGBPrefs", "CementGB Preferences");
 
     private static MelonPreferences_Entry<bool> _verboseModeEntry;
+    private static MelonPreferences_Entry<bool> _showPopupsEntry;
 
     /// <summary>
     ///     Enables extra log messages for debugging.
     ///     Controlled by a MelonPreference.
     /// </summary>
     public static bool VerboseMode => _verboseModeEntry?.Value ?? false;
+    public static bool ShowPopups => _showPopupsEntry?.Value ?? true;
 
     internal static void Initialize()
     {
@@ -26,6 +28,7 @@ public static class CementPreferences
         _cmtPrefCateg.SetFilePath(Path.Combine(Mod.UserDataPath, "CementPrefs.cfg"));
         _verboseModeEntry = _cmtPrefCateg.CreateEntry("verbose_mode", false, "Verbose Mode",
             "Enables extra log messages for developers.");
+        _showPopupsEntry = _cmtPrefCateg.CreateEntry("show_popups", true, "Show Popups", "Whether or not to show a popup warning when using launch arguments.");
     }
 
     internal static void Deinitialize()
