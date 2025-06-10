@@ -12,7 +12,7 @@ internal class NetBeard : MonoBehaviour
 {
     public void Start()
     {
-        HandshakeManager.Awake();
+        ServerChecker.Awake();
     }
 }
 

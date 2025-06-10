@@ -18,23 +18,17 @@ using Il2CppGB.UI;
 namespace CementGB.Mod.Patches;
 
 [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic))]
-public static class JoinModdedServerPatches
+internal static class JoinModdedServerPatches
 {
-    public static async Task<IPAddress?> GetExternalIpAddress()
-    {
-        var externalIpString = (await new HttpClient().GetStringAsync("http://icanhazip.com"))
-            .Replace("\\r\\n", "").Replace("\\n", "").Trim();
-        if (!IPAddress.TryParse(externalIpString, out var ipAddress)) return null;
-        return ipAddress;
-    }
-
     internal static bool Prefix(MenuHandlerGamemodes __instance)
     {
-        bool shouldJoinModded = HandshakeManager.LookForHandshake().GetAwaiter().GetResult();
-        if (__instance.type != MenuHandlerGamemodes.MenuType.Online || !shouldJoinModded) return true;
+        if (__instance.type != MenuHandlerGamemodes.MenuType.Online) return true;
+
+        bool shouldJoinModded = ServerChecker.IsServerRunning();
+        if (!shouldJoinModded) return true;
 
 
-        IPAddress address = GetExternalIpAddress().GetAwaiter().GetResult();
+        IPAddress address = ServerChecker.UserIP;
         if (address == null) address = IPAddress.Loopback; // Offline safety net
 
         MonoSingleton<Global>.Instance.buttonController.HideButton(InputMapActions.Accept);
