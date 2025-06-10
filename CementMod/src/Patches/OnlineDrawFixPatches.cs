@@ -16,7 +16,7 @@ internal static class GameModeInitBeastPatch
         if (!ServerManager.IsServer)
             return;
 
-        var collection = __instance._Model.GetCollection<NetMember>("NET_MEMBERS");
+/*        var collection = __instance._Model.GetCollection<NetMember>("NET_MEMBERS");
         if (collection.Count == 1 && NetUtils.GetPlayers<NetBeast>(collection[0]).Count == 1)
         {
             __instance.localSingleGang = true;
@@ -38,7 +38,7 @@ internal static class GameModeInitBeastPatch
                 // Players will now be forced into gangs if necessary?
                 // num %= GBNetUtils.Model.GetCollection<NetGang>("NET_GANGS").Count;
             }
-        }
+        }*/
 
         __instance.localSingleGang = false;
     }
