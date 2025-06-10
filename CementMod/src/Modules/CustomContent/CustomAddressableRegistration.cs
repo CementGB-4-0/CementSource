@@ -9,6 +9,7 @@ using Il2CppGB.Data.Loading;
 using Il2CppInterop.Runtime;
 using Il2CppSystem.Collections.Generic;
 using Il2CppSystem.Linq;
+using MelonLoader.Utils;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.Initialization;
 using UnityEngine.AddressableAssets.ResourceLocators;
@@ -151,6 +152,7 @@ public static class CustomAddressableRegistration
 
                 var resourceLocator = resourceLocatorHandle.Result;
                 Addressables.AddResourceLocator(resourceLocator);
+                Addressables.InternalIdTransformFunc.CombineImpl((Il2CppSystem.Func<IResourceLocation, string>)ResolveLocationPath);
 
                 _moddedResourceLocators.Add(resourceLocator);
                 _packAddressableKeys.Add(addressablePackName, resourceLocator.Keys.ToList());
@@ -165,6 +167,25 @@ public static class CustomAddressableRegistration
 
         stopwatch.Stop();
         Mod.Logger.Msg(ConsoleColor.Green, $"Done custom content catalogs! Total time taken: {stopwatch.Elapsed}");
+    }
+
+    private static string ResolveLocationPath(IResourceLocation location)
+    {
+        if (!IsModdedKey(location.PrimaryKey)) return location.InternalId;
+
+        try
+        {
+            var catalogFile = new FileInfo(location.ProviderId);
+            var bundleFile = new FileInfo(location.InternalId);
+            var retId = Path.GetFullPath(Path.Combine(catalogFile.ToString(), "..", bundleFile.Name));
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen, $"ResourceLocation internal ID/bundle path resolved to \"{retId}\" OK");
+            return retId;
+        }
+        catch (ArgumentException)
+        {
+            Mod.Logger.Error($"One of the following internal IDs are not valid paths, they cannot be resolved for mod manager support! | ProviderId: \"{location.ProviderId}\" | InternalId: \"{location.InternalId}");
+            return location.InternalId;
+        }
     }
 
     private static void InitializeMapReferences()
