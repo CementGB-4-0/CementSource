@@ -1,8 +1,8 @@
 using CementGB.Mod.CustomContent;
 using HarmonyLib;
-using Il2CppSystem;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using Object = Il2CppSystem.Object;
 using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Mod.Patches;
