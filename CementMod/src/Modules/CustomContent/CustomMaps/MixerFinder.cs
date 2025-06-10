@@ -6,26 +6,31 @@ using UnityEngine.Audio;
 
 namespace CementGB.Mod.src.Modules.CustomContent.CustomMaps;
 
-[RegisterTypeInIl2Cpp]
-internal class MixerFinder : MonoBehaviour
+internal static class MixerFinder
 {
-    internal static AudioMixer mainMusicMixer;
+    internal static AudioMixer MainMixer { get; private set; }
 
-    private void Awake()
+    internal static void AssignMainMixer()
     {
-        var mixers = Resources.FindObjectsOfTypeAll<AudioMixer>().ToArray();
+        Mod.Logger.Msg("Assigning main level audio mixer. . .");
+        var mixers = Resources.FindObjectsOfTypeAll<AudioMixer>();
+        if (mixers == null || mixers.Length == 0)
+        {
+            Mod.Logger.Msg(ConsoleColor.Red, "No mixers were found. Maps will not mix right with game audio.");
+            return;
+        }
+        
+        if (mixers.Length > 1)
+            Mod.Logger.Warning("More than one mixer already exists! Found mixer may not be main. . .");
 
         foreach (var mixer in mixers)
         {
-            if (mixer.name == "Mixer")
-            {
-                Mod.Logger.Msg(ConsoleColor.Green,
-                    "Main mixer found. Maps will now fallback onto this mixer if one isn't assigned.");
-                mainMusicMixer = mixer;
-            }
+            if (mixer.name != "Mixer") continue;
+            
+            Mod.Logger.Msg(ConsoleColor.Green,
+                "Main mixer found. Maps will now fallback onto this mixer if one isn't assigned.");
+            MainMixer = mixer;
+            return;
         }
-
-        if (mixers == null)
-            Mod.Logger.Msg(ConsoleColor.Red, "Main mixer was not found. Maps will not mix right with game audio.");
     }
 }

@@ -24,7 +24,7 @@ internal static class OnSceneListCompletePatch
         {
             if (mapRef.SceneData.AudioConfig && !mapRef.SceneData.AudioConfig.audioMixer)
             {
-                mapRef.SceneData.AudioConfig.audioMixer = MixerFinder.mainMusicMixer;
+                mapRef.SceneData.AudioConfig.audioMixer = MixerFinder.MainMixer;
                 Mod.Logger.Msg(ConsoleColor.Yellow,
                     $"Map {mapRef.SceneName} has no audio mixer. Defaulting to in-game mixer.");
             }

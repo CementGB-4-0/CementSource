@@ -114,6 +114,7 @@ public class Mod : MelonMod
     {
         base.OnLateInitializeMelon();
 
+        MixerFinder.AssignMainMixer();
         CustomAddressableRegistration.Initialize();
         CreateCementComponents();
     }
@@ -133,7 +134,6 @@ public class Mod : MelonMod
         CementCompContainer.AddComponent<NetBeard>();
         CementCompContainer.AddComponent<ServerManager>();
         CementCompContainer.AddComponent<Pool>();
-        CementCompContainer.AddComponent<MixerFinder>();
         //CementCompContainer.AddComponent<BeastInput>();
     }
 
