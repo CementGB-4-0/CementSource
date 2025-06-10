@@ -93,7 +93,7 @@ public static class AddressableShaderCache
 
         stopwatch.Stop();
         Mod.Logger.Msg(ConsoleColor.Green,
-            $"Caching Addressable game shaders done! Total time taken: {stopwatch.Elapsed}");
+            $"Caching Addressable game shaders done! Total time taken: {stopwatch.ElapsedMilliseconds}ms");
     }
 
     internal static void Initialize()

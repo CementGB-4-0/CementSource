@@ -73,7 +73,7 @@ public static class CustomAddressableRegistration
             {
                 var locateRes = locator.Locate(key, Il2CppType.Of<T>(), out var locatorLocations);
                 LoggingUtilities.VerboseLog(
-                    $"Locator of ID {locator.LocatorId} returned {locateRes.ToString().ToUpper()} locating key {key.ToString()}. . .");
+                    $"Locator of ID {locator.LocatorId} returned {locateRes.ToString().ToUpper()} locating key {key.ToString()} (Filtering by type {Il2CppType.Of<T>().ToString()}). . .");
 
                 var locatorLocationsCasted = locatorLocations?.TryCast<List<IResourceLocation>>();
                 if (locatorLocationsCasted == null)
@@ -183,10 +183,7 @@ public static class CustomAddressableRegistration
             var castedSceneData = castedSceneDataHandle.Result;
             if (!castedSceneData)
                 continue;
-
-            LoggingUtilities.VerboseLog(
-                $"Found ResourceLocation (key \"{sceneDataLoc.PrimaryKey}\") holding resource castable to type {typeof(SceneData)}. . .");
-
+                
             if (!IsValidSceneDataName(sceneDataLoc.PrimaryKey))
             {
                 Mod.Logger.Error(
