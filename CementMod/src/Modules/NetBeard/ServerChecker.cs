@@ -9,17 +9,18 @@ namespace CementGB.Mod.Modules.NetBeard;
 
 internal static class ServerChecker
 {
-    public static NamedPipeServerStream ServerStream { get; private set; }
+    public static Mutex ServerMutex { get; private set; }
     public static IPAddress UserIP { get; private set; }
 
 
     public static async void Awake()
     {
         UserIP = await GetExternalIpAddress();
+        
         if (ServerManager.IsServer)
         {
-            ServerStream = new NamedPipeServerStream("GBServer", PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-            UnityEngine.Application.add_quitting(new Action(() => ServerStream?.Dispose()));
+            ServerMutex = new Mutex(true, "Global\\GBServer", out _);
+            UnityEngine.Application.add_quitting(new Action(() => ServerMutex?.Dispose()));
         }
     }
 
@@ -35,15 +36,14 @@ internal static class ServerChecker
     {
         try
         {
-            using (NamedPipeClientStream serverChecker = new("GBServer", "GBClient", PipeDirection.InOut))
-            {
-                serverChecker.Connect(100);
-                return true;
-            }
+            Mod.Logger.Msg(ConsoleColor.Magenta, "Finding server Mutex. . .");
+            using Mutex foundMutex = Mutex.OpenExisting("Global\\GBServer");
+            Mod.Logger.Msg(ConsoleColor.Magenta, "Server Mutex found");
+            return true;
         }
-
-        catch
+        catch (Exception ex)
         {
+            Mod.Logger.Msg(ConsoleColor.Magenta, $"Failed to find server Mutex\n{ex}");
             return false;
         }
     }
