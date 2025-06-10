@@ -152,7 +152,6 @@ public static class CustomAddressableRegistration
 
                 var resourceLocator = resourceLocatorHandle.Result;
                 Addressables.AddResourceLocator(resourceLocator);
-                Addressables.InternalIdTransformFunc.CombineImpl((Il2CppSystem.Func<IResourceLocation, string>)ResolveLocationPath);
 
                 _moddedResourceLocators.Add(resourceLocator);
                 _packAddressableKeys.Add(addressablePackName, resourceLocator.Keys.ToList());
@@ -165,6 +164,7 @@ public static class CustomAddressableRegistration
             }
         }
 
+        Addressables.InternalIdTransformFunc.CombineImpl((Il2CppSystem.Func<IResourceLocation, string>)ResolveLocationPath);
         stopwatch.Stop();
         Mod.Logger.Msg(ConsoleColor.Green, $"Done custom content catalogs! Total time taken: {stopwatch.Elapsed}");
     }
