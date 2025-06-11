@@ -164,7 +164,7 @@ public static class CustomAddressableRegistration
             }
         }
 
-        Addressables.InternalIdTransformFunc.CombineImpl((Il2CppSystem.Func<IResourceLocation, string>)ResolveLocationPath);
+        Addressables.InternalIdTransformFunc = (Il2CppSystem.Func<IResourceLocation, string>)ResolveLocationPath;
         stopwatch.Stop();
         Mod.Logger.Msg(ConsoleColor.Green, $"Done custom content catalogs! Total time taken: {stopwatch.Elapsed}");
     }
