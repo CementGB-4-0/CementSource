@@ -13,7 +13,7 @@ internal static class FWDPatches
     {
         private static void Prefix(object[] __args)
         {
-            if (ServerManager.IsForwardedHost && !Application.isBatchMode)
+            if (LaunchArguments.IsForwardedHostArg && !Application.isBatchMode)
             {
                 __args[0] = NetConfigLoader.LoadServerConfig();
             }
@@ -21,7 +21,7 @@ internal static class FWDPatches
 
         private static void Postfix()
         {
-            if (ServerManager.IsForwardedHost && !Application.isBatchMode)
+            if (LaunchArguments.IsForwardedHostArg && !Application.isBatchMode)
             {
                 NetworkManager.OnHostStarted.Invoke();
             }

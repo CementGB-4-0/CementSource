@@ -42,15 +42,6 @@ public class Mod : MelonMod
     private static GameObject _cementCompContainer;
     private static bool _mapArgDidTheThing;
 
-    public static string
-        MapArg => CommandLineParser.Instance.GetValueForKey("-map", false);
-
-    public static string
-        ModeArg => CommandLineParser.Instance.GetValueForKey("-mode", false);
-
-    public static bool
-        DebugArg => Environment.GetCommandLineArgs().Contains("-debug");
-
     internal static MelonLogger.Instance Logger =>
         Melon<Mod>.Logger; // For if you're tired of the singleton pattern I guess
 
@@ -140,8 +131,8 @@ public class Mod : MelonMod
     public override void OnUpdate()
     {
         if (SceneManager.GetActiveScene().name == "Menu" &&
-            Global.Instance.SceneLoader && !string.IsNullOrWhiteSpace(MapArg) &&
-            (!_mapArgDidTheThing || (ServerManager.IsServer && !ServerManager.DontAutoStart)))
+            Global.Instance.SceneLoader && !string.IsNullOrWhiteSpace(LaunchArguments.MapArg) &&
+            (!_mapArgDidTheThing || (LaunchArguments.IsServerArg && !LaunchArguments.DontAutoStartArg)))
         {
             _mapArgDidTheThing = true;
             MelonCoroutines.Start(JumpToMap());
@@ -180,7 +171,7 @@ public class Mod : MelonMod
         }
 
         var menuHandlerGamemode = localBeastMenuObj.GetComponentInChildren<MenuHandlerGamemodes>();
-        menuHandlerGamemode.selectedConfig = GBConfigLoader.CreateRotationConfig(MapArg, "Melee", 8, int.MaxValue);
+        menuHandlerGamemode.selectedConfig = GBConfigLoader.CreateRotationConfig(LaunchArguments.MapArg, "Melee", 8, int.MaxValue);
         menuHandlerGamemode.OnCountdownComplete();
     }
 }

@@ -34,48 +34,26 @@ public class ServerManager : MonoBehaviour
 
     private const string ServerLogPrefix = "[SERVER]";
 
-    private static readonly string
-        IpArg = CommandLineParser.Instance.GetValueForKey("-ip", false); // set to server via vanilla code
-
-    private static readonly string
-        PortArg = CommandLineParser.Instance.GetValueForKey("-port", false); // set to server via vanilla code
-
-    private static bool _autoLaunchUpdateEnabled = IsClientJoiner && !DontAutoStart;
+    private static bool _autoLaunchUpdateEnabled = IsClientJoiner && !LaunchArguments.DontAutoStartArg;
 
     /// <summary>
-    ///     True if the -SERVER argument is passed to the Gang Beasts executable.
-    /// </summary>
-    public static bool IsServer => Environment.GetCommandLineArgs().Contains("-SERVER");
-
-    /// <summary>
-    ///     True if <see cref="IsServer" /> is false, but the ip and port are provided. Unlocks the DevelopmentTestServerUI.
+    ///     True if <see cref="IsServerArg" /> is false, but the ip and port are provided. Unlocks the DevelopmentTestServerUI.
     /// </summary>
     public static bool IsClientJoiner =>
-        !IsServer &&
-        (!string.IsNullOrWhiteSpace(IpArg) ||
+        !LaunchArguments.IsServerArg &&
+        (!string.IsNullOrWhiteSpace(LaunchArguments.IpArg) ||
          !string.IsNullOrWhiteSpace(
-             PortArg)); // TODO: Auto start as client (similar to NetworkBootstrapper.AutoRunServer) if this is true
-
-    /// <summary>
-    ///     True if the -SERVER argument is not passed, but the -FWD argument is. Forwards a local game to an ip and port.
-    /// </summary>
-    public static bool IsForwardedHost => !IsServer && Environment.GetCommandLineArgs().Contains("-FWD");
-
-    /// <summary>
-    ///     True if the -DONT-AUTOSTART argument is passed. Will prevent the server or client from automatically joining the
-    ///     server as soon as it can.
-    /// </summary>
-    public static bool DontAutoStart => Environment.GetCommandLineArgs().Contains("-DONT-AUTOSTART");
+             LaunchArguments.PortArg)); // TODO: Auto start as client (similar to NetworkBootstrapper.AutoRunServer) if this is true
 
     /// <summary>
     ///     The IP provided in launch arguments, or <see cref="DefaultIP" /> if none is provided.
     /// </summary>
-    public static string IP => string.IsNullOrWhiteSpace(IpArg) ? DefaultIP : IpArg;
+    public static string IP => string.IsNullOrWhiteSpace(LaunchArguments.IpArg) ? DefaultIP : LaunchArguments.IpArg;
 
     /// <summary>
     ///     The Port provided in launch arguments, or <see cref="DefaultPort" /> if none is provided.
     /// </summary>
-    public static int Port => string.IsNullOrWhiteSpace(PortArg) ? DefaultPort : int.Parse(PortArg);
+    public static int Port => string.IsNullOrWhiteSpace(LaunchArguments.PortArg) ? DefaultPort : int.Parse(LaunchArguments.PortArg);
 
     private void Awake()
     {
@@ -83,7 +61,7 @@ public class ServerManager : MonoBehaviour
 
         if (MelonUtils.IsWindows && !Application.isBatchMode)
         {
-            if (IsForwardedHost)
+            if (LaunchArguments.IsForwardedHostArg)
             {
                 LoggingUtilities.MessageBox(0,
                     $"Gang Beasts is loading in FWD mode. This will open a server on port {Port} upon creating a local game for LAN or port-forwarded players to join.\nIf this is unintended, please remove the launch argument \"-FWD\" from the Gang Beasts executable.",
@@ -97,7 +75,7 @@ public class ServerManager : MonoBehaviour
             }
         }
 
-        if (!IsServer) return;
+        if (!LaunchArguments.IsServerArg) return;
 
         Mod.Logger.Msg($"{ServerLogPrefix} Setting up pre-boot dedicated server overrides. . .");
         AudioListener.pause = true;
@@ -106,8 +84,8 @@ public class ServerManager : MonoBehaviour
 
     private void Update()
     {
-        if (!_autoLaunchUpdateEnabled || (!IsClientJoiner && !IsForwardedHost) ||
-            DontAutoStart || !LobbyManager.Instance || !LobbyManager.Instance._completedSetup ||
+        if (!_autoLaunchUpdateEnabled || (!IsClientJoiner && !LaunchArguments.IsForwardedHostArg) ||
+            LaunchArguments.DontAutoStartArg || !LobbyManager.Instance || !LobbyManager.Instance._completedSetup ||
             SceneManager.GetActiveScene().name != "Menu") return;
 
         // TODO: Connect if client, start local game if fwd
@@ -139,16 +117,16 @@ public class ServerManager : MonoBehaviour
 
     private void OnBoot()
     {
-        if ((IsClientJoiner && !IsForwardedHost) || IsServer)
+        if ((IsClientJoiner && !LaunchArguments.IsForwardedHostArg) || LaunchArguments.IsServerArg)
         {
-            NetworkBootstrapper.IsDedicatedServer = IsServer;
+            NetworkBootstrapper.IsDedicatedServer = LaunchArguments.IsServerArg;
             LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
             Mod.Logger.Msg(ConsoleColor.Green, "Added DevelopmentTestServer to lobby object.");
         }
 
-        if (IsServer)
+        if (LaunchArguments.IsServerArg)
             ServerBoot();
-        else if (IsClientJoiner && !DontAutoStart)
+        else if (IsClientJoiner && !LaunchArguments.DontAutoStartArg)
         {
         }
     }
@@ -157,7 +135,7 @@ public class ServerManager : MonoBehaviour
     {
         Mod.Logger.Msg($"{ServerLogPrefix} Setting up server boot...");
         var bootstrapper = FindObjectOfType<NetworkBootstrapper>();
-        bootstrapper.AutoRunServer = IsServer && !DontAutoStart;
+        bootstrapper.AutoRunServer = LaunchArguments.IsServerArg && !LaunchArguments.DontAutoStartArg;
         UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.DedicatedServer, null, "",
             "DGS");
         MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
@@ -203,8 +181,8 @@ public class ServerManager : MonoBehaviour
 
     private static void SetConfigOnGameManager()
     {
-        if (!string.IsNullOrWhiteSpace(Mod.MapArg))
-            GameManagerNew.Instance.ChangeRotationConfig(GBConfigLoader.CreateRotationConfig(Mod.MapArg,
-                string.IsNullOrWhiteSpace(Mod.ModeArg) ? "melee" : Mod.ModeArg, 8, int.MaxValue));
+        if (!string.IsNullOrWhiteSpace(LaunchArguments.MapArg))
+            GameManagerNew.Instance.ChangeRotationConfig(GBConfigLoader.CreateRotationConfig(LaunchArguments.MapArg,
+                string.IsNullOrWhiteSpace(LaunchArguments.ModeArg) ? "melee" : LaunchArguments.ModeArg, 8, int.MaxValue));
     }
 }
