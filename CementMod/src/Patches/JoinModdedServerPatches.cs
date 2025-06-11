@@ -10,10 +10,12 @@ using HarmonyLib;
 using Il2Cpp;
 using Il2CppCoatsink.UnityServices.Matchmaking;
 using Il2CppGB.Core;
+using Il2CppGB.Gamemodes;
 using Il2CppGB.Menu;
 using Il2CppGB.Platform.Lobby;
 using Il2CppGB.Platform.Lobby.Utils;
 using Il2CppGB.UI;
+using Il2CppGB.UnityServices.Matchmaking;
 
 namespace CementGB.Mod.Patches;
 
@@ -24,19 +26,29 @@ internal static class JoinModdedServerPatches
     {
         if (__instance.type != MenuHandlerGamemodes.MenuType.Online) return true;
 
-        bool shouldJoinModded = ServerChecker.IsServerRunning();
+        bool shouldJoinModded = PipeMessenger.IsServerRunning();
         if (!shouldJoinModded) return true;
 
 
-        IPAddress address = ServerChecker.UserIP;
+        IPAddress address = PipeMessenger.UserIP;
         if (address == null) address = IPAddress.Loopback; // Offline safety net
 
         MonoSingleton<Global>.Instance.buttonController.HideButton(InputMapActions.Accept);
         __instance.PopulateVisibleButtons(true);
         LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.Joinable | LobbyState.State.Editable | LobbyState.State.Matching;
         LobbyManager.Instance.LobbyStates.UpdateLobbyState();
-        
-        
+
+        PipeMessenger.SendLobbyDataToServer(new()
+        {
+            Gamemode = "melee",
+            MapName = "Aquarium",
+            NumberOfWins = 3,
+            PrivateGame = false,
+            StageTimeLimit = 60,
+            TotalPlayerCountExclLocal = (uint)LobbyManager.Instance.Players.GetPlayerCount(),
+            TotalPlayerCountInclLocal = (uint)LobbyManager.Instance.Players.GetBeastCount()
+        });;
+
         __instance.onlineCountdown.StartCountdown(3f, new Action(() =>
         {
             LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
