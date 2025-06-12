@@ -1,6 +1,7 @@
 name: Release new Cement version
 
 on:
+    workflow_dispatch:
     push:
       branches: 
         [master]
@@ -35,15 +36,27 @@ jobs:
             dotnet build -o dist/Mods --configuration Release
             cp README.md dist/README.md
             rm dist/Mods/CementGB.deps.json
-            cd dist; zip -r ../CementGB-CementGB-${{steps.version_step.outputs.version}}.zip *
+            cd dist; zip -r ../CementGB-CementGB-${{ steps.version_step.outputs.version }}.zip *
 
-        - uses: "marvinpinto/action-automatic-releases@latest"
+        - uses: marvinpinto/action-automatic-releases@latest
           if: ${{ !env.ACT }}
           with:
-            repo_token: "${{ secrets.GITHUB_TOKEN }}"
-            automatic_release_tag: v${{steps.version_step.outputs.version}}
+            repo_token: ${{ secrets.GITHUB_TOKEN }}
+            automatic_release_tag: v${{ steps.version_step.outputs.version }}
             prerelease: false
-            title: "v${{steps.version_step.outputs.version}}"
+            title: v${{ steps.version_step.outputs.version }}
             files: |
-              CementGB-CementGB-${{steps.version_step.outputs.version}}.zip
+              CementGB-CementGB-${{ steps.version_step.outputs.version }}.zip
               dist/Mods/CementGB.dll
+        
+        - uses: dhkatz/thunderstore-publish@v1
+          if: ${{ !env.ACT }}
+          with:
+            token: ${{ secrets.TS_TOKEN }}
+            namespace: CementGB
+            community: gang-beasts
+            categories: 
+              Tools
+              Libraries
+              Mods
+            file: CementGB-CementGB-${{ steps.version_step.outputs.version }}.zip
