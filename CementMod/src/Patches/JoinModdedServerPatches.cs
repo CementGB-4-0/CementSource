@@ -1,21 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using CementGB.Mod.Modules.NetBeard;
+﻿using CementGB.Mod.Modules.NetBeard;
 using HarmonyLib;
 using Il2Cpp;
 using Il2CppCoatsink.UnityServices.Matchmaking;
 using Il2CppGB.Core;
-using Il2CppGB.Gamemodes;
 using Il2CppGB.Menu;
 using Il2CppGB.Platform.Lobby;
-using Il2CppGB.Platform.Lobby.Utils;
 using Il2CppGB.UI;
-using Il2CppGB.UnityServices.Matchmaking;
+using System;
+using System.Net;
 
 namespace CementGB.Mod.Patches;
 
@@ -26,11 +18,11 @@ internal static class JoinModdedServerPatches
     {
         if (__instance.type != MenuHandlerGamemodes.MenuType.Online) return true;
 
-        bool shouldJoinModded = PipeMessenger.IsServerRunning();
+        bool shouldJoinModded = ClientServerCommunicator.IsServerRunning();
         if (!shouldJoinModded) return true;
 
 
-        IPAddress address = PipeMessenger.UserIP;
+        IPAddress address = LobbyCommunicator.UserIP;
         if (address == null) address = IPAddress.Loopback; // Offline safety net
 
         MonoSingleton<Global>.Instance.buttonController.HideButton(InputMapActions.Accept);
@@ -38,7 +30,7 @@ internal static class JoinModdedServerPatches
         LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.Joinable | LobbyState.State.Editable | LobbyState.State.Matching;
         LobbyManager.Instance.LobbyStates.UpdateLobbyState();
 
-        PipeMessenger.SendLobbyDataToServer(new()
+        LobbyCommunicator.SendLobbyDataToServer(new()
         {
             Gamemode = "melee",
             MapName = "Aquarium",
@@ -47,7 +39,7 @@ internal static class JoinModdedServerPatches
             StageTimeLimit = 60,
             TotalPlayerCountExclLocal = (uint)LobbyManager.Instance.Players.GetPlayerCount(),
             TotalPlayerCountInclLocal = (uint)LobbyManager.Instance.Players.GetBeastCount()
-        });;
+        });
 
         __instance.onlineCountdown.StartCountdown(3f, new Action(() =>
         {

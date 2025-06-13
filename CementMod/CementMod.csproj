@@ -74,10 +74,6 @@
         <GameDirFile Include="$(ProjectDir)..\game_dir.txt"></GameDirFile>
     </ItemGroup>
 
-    <ItemGroup>
-      <None Include="src\Fleck\Fleck.csproj" />
-    </ItemGroup>
-
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'@(GameDirFile)' != ''">
         <!-- Read game_dir.txt into property -->
         <ReadLinesFromFile File="@(GameDirFile)">
