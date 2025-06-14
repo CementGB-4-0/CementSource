@@ -175,7 +175,6 @@ internal static class ClientServerCommunicator
         }
         catch (Exception ex)
         {
-            Mod.Logger.Msg(ConsoleColor.Magenta, $"Failed to find server Mutex\n{ex}");
             return false;
         }
     }
