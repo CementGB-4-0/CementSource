@@ -33,6 +33,8 @@ internal static class LobbyCommunicator
             {
                 if (prefix == "gamedata")
                 {
+                    GameManagerNew.instance.Shutdown("Data swap");
+
                     GBGameData gameData = JsonConvert.DeserializeObject<GBGameData>(payload);
                     Mod.Logger.Msg(ConsoleColor.Blue, "Received new modded session data");
 
