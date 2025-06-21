@@ -19,10 +19,11 @@ using UnityEngine.Networking;
 
 namespace CementGB.Mod.Patches;
 
-[HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic))]
+[HarmonyPatch]
 internal static class ModdedServerPatches
 {
-    internal static bool Prefix(MenuHandlerGamemodes __instance)
+    [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic)), HarmonyPrefix]
+    internal static bool StartGameLogicPatch(MenuHandlerGamemodes __instance)
     {
         if (__instance.type != MenuHandlerGamemodes.MenuType.Online || !__instance.PrivateGame) return true;
 
@@ -84,14 +85,13 @@ internal static class ModdedServerPatches
 
         return false;
     }
-}
 
 
 
-[HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.OnStartGame))]
-internal static class PrivateModdedSupport
-{
-    private static bool Prefix(MenuHandlerGamemodes __instance)
+
+
+    [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.OnStartGame)), HarmonyPrefix]
+    private static bool SingleplayerOnlineBypass(MenuHandlerGamemodes __instance)
     {
         bool shouldJoinModded = ClientServerCommunicator.IsServerRunning();
 
@@ -101,14 +101,13 @@ internal static class PrivateModdedSupport
         __instance.StartGameLogic();
         return false;
     }
-}
 
 
 
-[HarmonyPatch(typeof(NetUtils), nameof(NetUtils.DisconnectPlayer))]
-internal static class AntiPlayerKickOnLoad
-{
-    public static bool Prefix(NetworkConnection conn, string reason)
+
+
+    [HarmonyPatch(typeof(NetUtils), nameof(NetUtils.DisconnectPlayer)), HarmonyPrefix]
+    public static bool AntiTimeoutDisconnect(NetworkConnection conn, string reason)
     {
         if (ServerManager.IsServer && reason == "DISCONNECT_PLAYER_LOADING_TIMEOUT")
         {
@@ -118,12 +117,13 @@ internal static class AntiPlayerKickOnLoad
 
         return true;
     }
-}
 
-[HarmonyPatch(typeof(GameManagerNew), nameof(GameManagerNew.Shutdown))]
-internal static class DoRealShutdown
-{
-    public static bool Prefix(GameManagerNew __instance, string disconnectMessage)
+
+
+
+
+    [HarmonyPatch(typeof(GameManagerNew), nameof(GameManagerNew.Shutdown)), HarmonyPrefix]
+    public static bool ShutdownFix(GameManagerNew __instance, string disconnectMessage)
     {
         if (!ServerManager.IsServer) return true;
 
