@@ -47,7 +47,7 @@ internal static class ClientServerCommunicator
 
         else
         {
-            ClientLoop();
+            _ = Task.Run(ClientLoop);
         }
     }
 
@@ -67,7 +67,6 @@ internal static class ClientServerCommunicator
             }
 
             if (Client == null) Client = new("127.0.0.1", 5999);
-
             if (!Client.Connected)
             {
                 try
@@ -168,14 +167,40 @@ internal static class ClientServerCommunicator
     {
         try
         {
-            Mod.Logger.Msg(ConsoleColor.Magenta, "Finding server Mutex. . .");
             using Mutex foundMutex = Mutex.OpenExisting("Global\\GBServer");
-            Mod.Logger.Msg(ConsoleColor.Magenta, "Server Mutex found");
             return true;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return false;
         }
+    }
+}
+
+
+internal class LineStepper
+{
+    private int currentLine = 0;
+    private string toLogOnStep;
+    private ConsoleColor logColor;
+
+
+    internal LineStepper(string log, ConsoleColor color)
+    {
+        toLogOnStep = log;
+        logColor = color;
+    }
+
+    internal void Step(string identifier = "")
+    {
+        currentLine++;
+        Mod.Logger.Msg(logColor, string.Format(toLogOnStep, currentLine) + " " + identifier);
+        Thread.Sleep(1000);
+    }
+
+    internal void Reset()
+    {
+        Mod.Logger.Msg("LineStepper: Reset");
+        currentLine = 0;
     }
 }

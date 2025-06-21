@@ -21,6 +21,7 @@
 
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
         <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with MelonLoader or the game -->
         <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->

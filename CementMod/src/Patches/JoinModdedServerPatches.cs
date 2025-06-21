@@ -2,12 +2,20 @@
 using HarmonyLib;
 using Il2Cpp;
 using Il2CppCoatsink.UnityServices.Matchmaking;
+using Il2CppCoreNet.Components.Server;
+using Il2CppCoreNet.Objects;
+using Il2CppCoreNet.Utils;
+using Il2CppGB.Config;
 using Il2CppGB.Core;
+using Il2CppGB.Game;
+using Il2CppGB.Gamemodes;
 using Il2CppGB.Menu;
 using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI;
 using System;
+using System.Collections.Generic;
 using System.Net;
+using UnityEngine.Networking;
 
 namespace CementGB.Mod.Patches;
 
@@ -16,10 +24,29 @@ internal static class JoinModdedServerPatches
 {
     internal static bool Prefix(MenuHandlerGamemodes __instance)
     {
-        if (__instance.type != MenuHandlerGamemodes.MenuType.Online) return true;
+        if (__instance.type != MenuHandlerGamemodes.MenuType.Online || !__instance.PrivateGame) return true;
 
         bool shouldJoinModded = ClientServerCommunicator.IsServerRunning();
         if (!shouldJoinModded) return true;
+
+
+
+        int stageTime = 0;
+
+        if (__instance.PrivateGame || __instance.type == MenuHandlerGamemodes.MenuType.Local || __instance.type == MenuHandlerGamemodes.MenuType.LocalWireless)
+        {
+            int num2 = __instance.winsSetup.CurrentValue * 60;
+            stageTime = (__instance.CurrentGamemode == GameModeEnum.Football) ? num2 : 300;
+        }
+
+        bool isRandomSelected;
+        Il2CppSystem.Collections.Generic.List<string> currentSelectedLevels = __instance.mapSetup.GetCurrentSelectedLevels(out isRandomSelected);
+        __instance.selectedConfig = GBConfigLoader.CreateRotationConfig(
+            (Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStringArray)currentSelectedLevels.ToArray(),
+            __instance.CurrentGamemode,
+            (__instance.CurrentGamemode == GameModeEnum.Football || __instance.CurrentGamemode == GameModeEnum.Waves) ? 1 : __instance.winsSetup.CurrentValue,
+            isRandomSelected, stageTime);
+
 
 
         IPAddress address = LobbyCommunicator.UserIP;
@@ -30,13 +57,14 @@ internal static class JoinModdedServerPatches
         LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.Joinable | LobbyState.State.Editable | LobbyState.State.Matching;
         LobbyManager.Instance.LobbyStates.UpdateLobbyState();
 
+
         LobbyCommunicator.SendLobbyDataToServer(new()
         {
-            Gamemode = "melee",
-            MapName = "Aquarium",
-            NumberOfWins = 3,
-            PrivateGame = false,
-            StageTimeLimit = 60,
+            Gamemode = __instance.CurrentGamemode.GetGameModeID(),
+            MapName = (__instance.selectedConfig.GameConfigs.Count == 1) ? __instance.selectedConfig.GameConfigs[0].Map : "random",
+            NumberOfWins = __instance.selectedConfig.Wins,
+            PrivateGame = true,
+            StageTimeLimit = __instance.selectedConfig.StageTimeLimit,
             TotalPlayerCountExclLocal = (uint)LobbyManager.Instance.Players.GetPlayerCount(),
             TotalPlayerCountInclLocal = (uint)LobbyManager.Instance.Players.GetBeastCount()
         });
@@ -55,5 +83,39 @@ internal static class JoinModdedServerPatches
         }));
 
         return false;
+    }
+}
+
+
+
+[HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.OnStartGame))]
+internal static class PrivateModdedSupport
+{
+    private static bool Prefix(MenuHandlerGamemodes __instance)
+    {
+        bool shouldJoinModded = ClientServerCommunicator.IsServerRunning();
+
+        if (!shouldJoinModded || !__instance.PrivateGame) return true;
+
+        Mod.Logger.Msg(ConsoleColor.Blue, "Bypassing matchmaker auth, player joining modded server");
+        __instance.StartGameLogic();
+        return false;
+    }
+}
+
+
+
+[HarmonyPatch(typeof(NetUtils), nameof(NetUtils.DisconnectPlayer))]
+internal static class AntiPlayerKickOnLoad
+{
+    public static bool Prefix(NetworkConnection conn, string reason)
+    {
+        if (ServerManager.IsServer && reason == "DISCONNECT_PLAYER_LOADING_TIMEOUT")
+        {
+            Mod.Logger.Msg(ConsoleColor.Blue, "Server tried to disconnect player that took too long to load");
+            return false;
+        }
+
+        return true;
     }
 }
