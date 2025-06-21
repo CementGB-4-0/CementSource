@@ -20,7 +20,7 @@ using UnityEngine.Networking;
 namespace CementGB.Mod.Patches;
 
 [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic))]
-internal static class JoinModdedServerPatches
+internal static class ModdedServerPatches
 {
     internal static bool Prefix(MenuHandlerGamemodes __instance)
     {
@@ -117,5 +117,31 @@ internal static class AntiPlayerKickOnLoad
         }
 
         return true;
+    }
+}
+
+[HarmonyPatch(typeof(GameManagerNew), nameof(GameManagerNew.Shutdown))]
+internal static class DoRealShutdown
+{
+    public static bool Prefix(GameManagerNew __instance, string disconnectMessage)
+    {
+        if (!ServerManager.IsServer) return true;
+
+        __instance.StopAllCoroutines();
+        if (__instance.ActiveGameMode != null)
+        {
+            __instance.ActiveGameMode.Cleanup();
+            __instance.ActiveGameMode = null;
+        }
+
+        LogCS.Log("[MODDEDSERVER] About to disconnect all players with reason: " + disconnectMessage, LogCS.LogType.LogInfo, 2, true);
+        NetUtils.DisconnectAllPlayers(disconnectMessage);
+        __instance.CurrentState = GameManagerNew.GameState.Inactive;
+        __instance._SceneManager.expectedNumPlayers = -1;
+        __instance.authPassed = false;
+        __instance.gameManagerSetup = false;
+        __instance.joinTimer.Active = false;
+
+        return false;
     }
 }
