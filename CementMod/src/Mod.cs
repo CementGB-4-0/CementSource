@@ -90,10 +90,10 @@ public class Mod : MelonMod
             (Il2CppSystem.Func<IResourceLocation, string>)CustomAddressableRegistration.ResolveInternalId;
 
         // Initialize static classes that need initializing
+        CementPreferences.Initialize();
         if (!CementPreferences.VerboseMode)
             Logger.Msg(System.ConsoleColor.White,
                 "Verbose Mode disabled! Enable verbose mode in UserData/CementGB/CementGB.cfg for more detailed logging.");
-        CementPreferences.Initialize();
         CommonHooks.Initialize();
 
         //Script.ReloadScripts();
@@ -119,9 +119,9 @@ public class Mod : MelonMod
     public override void OnLateInitializeMelon()
     {
         base.OnLateInitializeMelon();
-
-        MixerFinder.AssignMainMixer();
-        CustomAddressableRegistration.Initialize();
+        
+        PlatformEvents.add_OnPlatformInitializedEvent((Action)CustomAddressableRegistration.Initialize);
+        CommonHooks.OnMenuFirstBoot += MixerFinder.AssignMainMixer;
         CreateCementComponents();
     }
 
