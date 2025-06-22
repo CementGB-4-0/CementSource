@@ -8,6 +8,7 @@ using CementGB.Mod.Modules.PoolingModule;
 using CementGB.Mod.src.Modules.CustomContent.CustomMaps;
 using CementGB.Mod.Utilities;
 using Il2Cpp;
+using Il2CppCS.CorePlatform;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.UI;
@@ -16,7 +17,9 @@ using Il2CppInterop.Runtime;
 using MelonLoader;
 using MelonLoader.Utils;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
@@ -82,6 +85,9 @@ public class Mod : MelonMod
 
         // Setup directories and folder structure
         FileStructure();
+
+        Addressables.InternalIdTransformFunc =
+            (Il2CppSystem.Func<IResourceLocation, string>)CustomAddressableRegistration.ResolveInternalId;
 
         // Initialize static classes that need initializing
         if (!CementPreferences.VerboseMode)

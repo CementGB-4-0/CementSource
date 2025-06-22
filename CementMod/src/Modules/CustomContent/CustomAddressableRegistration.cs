@@ -22,20 +22,84 @@ public static class CustomAddressableRegistration
 {
     public const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
 
-    private static readonly System.Collections.Generic.Dictionary<string, List<Object>> _packAddressableKeys = [];
+    private static readonly System.Collections.Generic.Dictionary<string, List<Object>> _catalogSortedAddressableKeys = [];
     private static readonly System.Collections.Generic.List<IResourceLocator> _moddedResourceLocators = [];
     private static readonly System.Collections.Generic.List<CustomMapRefHolder> _customMaps = [];
+    private static readonly System.Collections.Generic.List<string> _baseGameAddressableKeys = [];
+    /*
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate IntPtr d_TransformInternalId(IntPtr location);
+    
+    //[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    //private delegate IntPtr d_TransformInternalId(IntPtr alloc);
+    
+    private static d_TransformInternalId _patchDelegate;
+    private static NativeHook<d_TransformInternalId> _hook;
+    
+    static unsafe CustomAddressableRegistration()
+    {
+        var originalMethod = IL2CPP.GetIl2CppMethodByToken(Il2CppClassPointerStore<ResourceManager>.NativeClassPtr, 100663364);
+        _patchDelegate = BounceIdResolutionOffManaged;
+        var delegatePointer = Marshal.GetFunctionPointerForDelegate(_patchDelegate);
+        var hook = new NativeHook<d_TransformInternalId>(originalMethod, delegatePointer);
+        hook.Attach();
+        _hook = hook;
+    }
 
+    
+    private static IntPtr BounceIdResolutionOffManaged(IntPtr location)
+    {
+        _hook.Trampoline(location);
+        var resourceLocation = new IResourceLocation(location);
+        return IL2CPP.ManagedStringToIl2Cpp(ResolveInternalId(resourceLocation));
+    }
+    */
+
+    /*
+    private static IntPtr BounceIdResolutionOffManaged(IntPtr alloc)
+    {
+        Addressables.InternalIdTransformFunc = (Func<IResourceLocation, string>)(ResolveInternalId);
+        return _hook.Trampoline(alloc);
+    }
+    */
+
+    internal static string ResolveInternalId(IResourceLocation location)
+    {
+        var text = location.InternalId;
+        LoggingUtilities.VerboseLog($"Resolving InternalId for mod manager support: {text}");
+        if (!location.InternalId.StartsWith(Mod.CustomContentPath)) return text;
+
+        var file = new FileInfo(text);
+        foreach (var catalogPath in Directory.EnumerateFiles(Mod.CustomContentPath, "catalog_*.json",
+                     SearchOption.AllDirectories))
+        {
+            var catalogFile = new FileInfo(catalogPath);
+            if (!catalogFile.Exists || catalogFile.Directory?.Parent?.Name != file.Directory?.Parent?.Name)
+            {
+                LoggingUtilities.VerboseLog($"Skipping catalog path {catalogPath}");
+                continue;
+            }
+
+            var result = catalogFile.Directory != null
+                ? Path.Combine(catalogFile.Directory.FullName, file.Name)
+                : file.ToString();
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen, $"Resolved InternalId: {result}");
+            return result;
+        }
+
+        return text;
+    }
+    
     /// <summary>
     ///     Dictionary lookup for all modded Addressable keys (as strings), sorted by mod name.
     /// </summary>
-    public static ReadOnlyDictionary<string, string[]> PackAddressableKeys // { modName: addressableKeys }
+    public static ReadOnlyDictionary<string, string[]> CatalogSortedAddressableKeys // { catalogPath: addressableKeys }
     {
         get
         {
             var dict = new System.Collections.Generic.Dictionary<string, string[]>();
 
-            foreach (var kvp in _packAddressableKeys)
+            foreach (var kvp in _catalogSortedAddressableKeys)
             {
                 var addrKeys = new List<string>();
 
@@ -99,7 +163,7 @@ public static class CustomAddressableRegistration
 
     public static bool IsModdedKey(string key)
     {
-        return _moddedResourceLocators.Any(moddedKeyish => moddedKeyish.Keys.Contains(key));
+        return _catalogSortedAddressableKeys.Any(kvp => kvp.Value.Contains(key));
     }
 
     private static bool IsValidSceneDataName(string name)
@@ -109,14 +173,34 @@ public static class CustomAddressableRegistration
 
     internal static void Initialize()
     {
+        CacheBaseGameAddressableKeys();
         InitializeContentCatalogs();
         InitializeMapReferences();
         AddressableShaderCache.Initialize();
     }
 
+    private static void CacheBaseGameAddressableKeys()
+    {
+        Mod.Logger.Msg("Caching base game Addressable keys. . .");
+        
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        var baseGameLocator = Addressables.InitializeAsync();
+        if (!baseGameLocator.HandleSynchronousAddressableOperation())
+        {
+            Mod.Logger.Error("Failed to handle Addressables initialization operation!");
+            return;
+        }
+        foreach (var key in baseGameLocator.Result.Keys.ToArray())
+        {
+            _baseGameAddressableKeys.Add(key.ToString());
+        }
+    }
+
     private static void InitializeContentCatalogs()
     {
-        _packAddressableKeys.Clear();
+        _catalogSortedAddressableKeys.Clear();
         Mod.Logger.Msg("Starting initialization of modded Addressable content catalogs. . .");
 
         var stopwatch = new Stopwatch();
@@ -125,6 +209,7 @@ public static class CustomAddressableRegistration
         AddressablesRuntimeProperties.SetPropertyValue(ModsDirectoryPropertyName, Mod.CustomContentPath);
         LoggingUtilities.VerboseLog(
             $"Set Addressable runtime property \"{ModsDirectoryPropertyName}\" to value \"{AddressablesRuntimeProperties.EvaluateProperty(ModsDirectoryPropertyName)}\"");
+        
         foreach (var contentMod in Directory.EnumerateDirectories(Mod.CustomContentPath, "*",
                      SearchOption.AllDirectories))
         {
@@ -141,9 +226,7 @@ public static class CustomAddressableRegistration
             foreach (var file in Directory.EnumerateFiles(aaPath, "catalog_*.json", SearchOption.AllDirectories))
             {
                 var resourceLocatorHandle = Addressables.LoadContentCatalogAsync(file);
-                resourceLocatorHandle.HandleSynchronousAddressableOperation();
-
-                if (!AssetUtilities.IsHandleSuccess(resourceLocatorHandle))
+                if (!resourceLocatorHandle.HandleSynchronousAddressableOperation())
                 {
                     Mod.Logger.Error(
                         $"Failed to load resource locator for content catalog in Addressable pack \"{addressablePackName}\"!");
@@ -154,7 +237,7 @@ public static class CustomAddressableRegistration
                 Addressables.AddResourceLocator(resourceLocator);
 
                 _moddedResourceLocators.Add(resourceLocator);
-                _packAddressableKeys.Add(addressablePackName, resourceLocator.Keys.ToList());
+                _catalogSortedAddressableKeys.Add(file, resourceLocator.Keys.ToList());
 
                 foreach (var key in resourceLocator.Keys.ToArray())
                     LoggingUtilities.VerboseLog(
@@ -164,28 +247,8 @@ public static class CustomAddressableRegistration
             }
         }
 
-        Addressables.InternalIdTransformFunc = (Il2CppSystem.Func<IResourceLocation, string>)ResolveLocationPath;
         stopwatch.Stop();
         Mod.Logger.Msg(ConsoleColor.Green, $"Done custom content catalogs! Total time taken: {stopwatch.Elapsed}");
-    }
-
-    private static string ResolveLocationPath(IResourceLocation location)
-    {
-        if (!IsModdedKey(location.PrimaryKey)) return location.InternalId;
-
-        try
-        {
-            var catalogFile = new FileInfo(location.ProviderId);
-            var bundleFile = new FileInfo(location.InternalId);
-            var retId = Path.GetFullPath(Path.Combine(catalogFile.ToString(), "..", bundleFile.Name));
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen, $"ResourceLocation internal ID/bundle path resolved to \"{retId}\" OK");
-            return retId;
-        }
-        catch (ArgumentException)
-        {
-            Mod.Logger.Error($"One of the following internal IDs are not valid paths, they cannot be resolved for mod manager support! | ProviderId: \"{location.ProviderId}\" | InternalId: \"{location.InternalId}");
-            return location.InternalId;
-        }
     }
 
     private static void InitializeMapReferences()
@@ -204,9 +267,6 @@ public static class CustomAddressableRegistration
             var castedSceneData = castedSceneDataHandle.Result;
             if (!castedSceneData)
                 continue;
-
-            LoggingUtilities.VerboseLog(
-                $"Found ResourceLocation (key \"{sceneDataLoc.PrimaryKey}\") holding resource castable to type {typeof(SceneData)}. . .");
 
             if (!IsValidSceneDataName(sceneDataLoc.PrimaryKey))
             {
