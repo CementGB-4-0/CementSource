@@ -86,9 +86,6 @@ public class Mod : MelonMod
         // Setup directories and folder structure
         FileStructure();
 
-        Addressables.InternalIdTransformFunc =
-            (Il2CppSystem.Func<IResourceLocation, string>)CustomAddressableRegistration.ResolveInternalId;
-
         // Initialize static classes that need initializing
         CementPreferences.Initialize();
         if (!CementPreferences.VerboseMode)
