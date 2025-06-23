@@ -15,6 +15,7 @@
         <DefineConstants>$(DefineConstants);MELONLOADER</DefineConstants>
         <Nullable>disable</Nullable>
         <Optimize>false</Optimize>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
         <OutputType>Library</OutputType>
         <DocumentationFile Condition=" '$(Configuration)' == 'Release' ">$(ProjectDir)../dist/Mods/CementGB.xml</DocumentationFile>
