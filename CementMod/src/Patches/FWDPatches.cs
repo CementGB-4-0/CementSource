@@ -9,7 +9,7 @@ namespace CementGB.Mod.Patches;
 internal static class FWDPatches
 {
     [HarmonyPatch(typeof(NetworkManager), nameof(NetworkManager.LaunchServer))]
-    private static class NetworkManagerLaunchHostPatch
+    private static class NetworkManagerLaunchServerPatch
     {
         private static void Prefix(object[] __args)
         {
