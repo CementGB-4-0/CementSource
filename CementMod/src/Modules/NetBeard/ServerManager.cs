@@ -30,7 +30,7 @@ public class ServerManager : MonoBehaviour
     /// <summary>
     ///     The default Port setting for the server.
     /// </summary>
-    public const int DefaultPort = 5999;
+    public const int DefaultPort = 6000;
 
     private const string ServerLogPrefix = "[SERVER]";
 

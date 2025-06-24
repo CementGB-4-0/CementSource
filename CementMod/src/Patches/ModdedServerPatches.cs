@@ -3,7 +3,7 @@ using HarmonyLib;
 using Il2Cpp;
 using Il2CppCoatsink.UnityServices.Matchmaking;
 using Il2CppCoreNet.Components.Server;
-using Il2CppCoreNet.Objects;
+using Il2CppCoreNet.Config;
 using Il2CppCoreNet.Utils;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
@@ -13,7 +13,6 @@ using Il2CppGB.Menu;
 using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using UnityEngine.Networking;
 
@@ -30,7 +29,7 @@ internal static class ModdedServerPatches
         bool shouldJoinModded = ClientServerCommunicator.IsServerRunning();
         if (!shouldJoinModded) return true;
 
-
+        ClientServerCommunicator.Init();
 
         int stageTime = 0;
 
@@ -78,7 +77,7 @@ internal static class ModdedServerPatches
 
             MatchmakingResult result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done");
             result.IpAddress = address.ToString();
-            result.Port = 5999;
+            result.Port = ServerManager.DefaultPort;
 
             LobbyManager.Instance.LobbyStates.MatchmakingComplete(result);
         }));
@@ -143,5 +142,34 @@ internal static class ModdedServerPatches
         __instance.joinTimer.Active = false;
 
         return false;
+    }
+
+
+
+
+
+    [HarmonyPatch(typeof(NetServerSceneManager), nameof(NetServerSceneManager.Start)), HarmonyPrefix]
+    public static bool JoinTimerFix(NetServerSceneManager __instance)
+    {
+        if (!ServerManager.IsServer) return true;
+
+        Mod.Logger.Msg(ConsoleColor.Blue, "Setting up join timers for modded server");
+
+        __instance.LOAD_TIME_MAX = 120f;
+        __instance.READY_TIME_MAX = 30f;
+
+        __instance.timer = __instance.LOAD_TIME_MAX;
+
+        return false;
+    }
+
+
+
+
+
+    [HarmonyPatch(typeof(NetConfigLoader), nameof(NetConfigLoader.LoadServerConfig), []), HarmonyPostfix]
+    public static void ModdedPortApplicator(ref ServerConfig __result)
+    {
+        if (ServerManager.IsServer) __result.ServerPort = ServerManager.Port;
     }
 }

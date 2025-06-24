@@ -20,22 +20,29 @@ internal static class ClientServerCommunicator
     public static event MessageData OnServerReceivedMessage;
 
     private static ConcurrentQueue<string> queuedMessages = new();
+    private static bool hasHookedQuit;
+    private static Task currentClientLoop;
 
 
     internal static async void Init()
     {
-        UnityEngine.Application.add_quitting(new Action(() =>
+        if (!hasHookedQuit)
         {
-            ServerMutex?.Dispose();
-            Server?.Stop();
-            Client?.Close();
-        }));
+            UnityEngine.Application.add_quitting(new Action(() =>
+            {
+                ServerMutex?.Dispose();
+                Server?.Stop();
+                Client?.Close();
+            }));
+
+            hasHookedQuit = true;
+        }
 
         if (ServerManager.IsServer)
         {
             ServerMutex = new Mutex(true, "Global\\GBServer", out _);
 
-            Server = new(IPAddress.Loopback, 5999);
+            Server = new(IPAddress.Loopback, ServerManager.DefaultPort);
             Server.Start();
 
             while (true)
@@ -45,9 +52,9 @@ internal static class ClientServerCommunicator
             }
         }
 
-        else
+        else if (currentClientLoop == null || currentClientLoop?.IsCompleted == true)
         {
-            _ = Task.Run(ClientLoop);
+            currentClientLoop = Task.Run(ClientLoop);
         }
     }
 
@@ -61,17 +68,16 @@ internal static class ClientServerCommunicator
             {
                 // Server has either just stopped or wasn't running to begin with
                 // Connection impossible, terminate an existing client if there is one
-                // And keep checking for if it comes alive
                 Client?.Dispose();
-                continue;
+                break; // If no modded server was detected what's the point in constantly looking? Just check when we're readying up
             }
 
-            if (Client == null) Client = new("127.0.0.1", 5999);
+            if (Client == null) Client = new("127.0.0.1", ServerManager.DefaultPort);
             if (!Client.Connected)
             {
                 try
                 {
-                    await Client.ConnectAsync("127.0.0.1", 5999);
+                    await Client.ConnectAsync("127.0.0.1", ServerManager.DefaultPort);
                 }
 
                 catch (Exception ex)
