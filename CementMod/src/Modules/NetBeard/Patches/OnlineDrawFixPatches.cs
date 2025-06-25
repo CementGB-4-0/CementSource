@@ -1,4 +1,4 @@
-using CementGB.Mod.Modules.NetBeard;
+using System;
 using HarmonyLib;
 using Il2CppCoreNet.Objects;
 using Il2CppCoreNet.Utils;
@@ -6,7 +6,7 @@ using Il2CppGB.Game;
 using Il2CppGB.Networking.Objects;
 using Il2CppGB.Networking.Utils;
 
-namespace CementGB.Mod.Patches;
+namespace CementGB.Mod.Modules.NetBeard.Patches;
 
 [HarmonyPatch(typeof(GameMode), nameof(GameMode.InitBeast))]
 internal static class GameModeInitBeastPatch
@@ -15,18 +15,19 @@ internal static class GameModeInitBeastPatch
     {
         if (!ServerManager.IsServer)
             return;
-        
+
         var collection = __instance._Model.GetCollection<NetMember>("NET_MEMBERS");
-        if (collection.Count == 1 && NetUtils.GetPlayers<NetBeast>(collection[0]).Count == 1)
+        if (collection.Count == 1 && NetUtils.GetPlayers<NetBeast>((NetMember)collection[(Index)0]).Count == 1)
         {
             __instance.localSingleGang = true;
             return;
         }
-        int num = 0;
-        foreach (NetMember netMember in collection)
+
+        var num = 0;
+        foreach (var netMember in collection)
         {
             if (netMember.Spectating) continue;
-            foreach (NetBeast netBeast in NetUtils.GetPlayers<NetBeast>(netMember))
+            foreach (var netBeast in NetUtils.GetPlayers<NetBeast>(netMember))
             {
                 if (netBeast.GameOver) continue;
                 GBNetUtils.RemoveBeastFromGang(netBeast);

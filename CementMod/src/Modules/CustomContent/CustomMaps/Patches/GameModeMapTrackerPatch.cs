@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using CementGB.Mod.CustomContent;
 using CementGB.Mod.Utilities;
 using GBMDK;
 using HarmonyLib;
@@ -9,7 +8,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using ConsoleColor = System.ConsoleColor;
 
-namespace CementGB.Mod.Patches;
+namespace CementGB.Mod.Modules.CustomContent.CustomMaps.Patches;
 
 internal static class GameModeMapTrackerPatch
 {
@@ -54,7 +53,7 @@ internal static class GameModeMapTrackerPatch
                 modeMapStatus = new ModeMapStatus(mapKey, true)
                 {
                     AllowedModesLocal = info != null ? info.allowedGamemodes.Get() : GameModeEnum.Melee,
-                    AllowedModesOnline = info != null ? info.allowedGamemodes.Get() : GameModeEnum.Melee,
+                    AllowedModesOnline = info != null ? info.allowedGamemodes.Get() : GameModeEnum.Melee
                 };
             }
 
@@ -65,19 +64,18 @@ internal static class GameModeMapTrackerPatch
 
         private static void Prefix(GameModeMapTracker __instance)
         {
-            if (!_instancesAlreadyExecuted.Contains(__instance))
+            if (_instancesAlreadyExecuted.Contains(__instance)) return;
+
+            _instancesAlreadyExecuted.Add(__instance);
+
+            foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
             {
-                _instancesAlreadyExecuted.Add(__instance);
+                if (SceneNameAlreadyExists(__instance, mapRef.SceneData._sceneRef.RuntimeKey.ToString()))
+                    continue;
 
-                foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
-                {
-                    if (SceneNameAlreadyExists(__instance, mapRef.SceneData._sceneRef.RuntimeKey.ToString()))
-                        continue;
+                ExtendedStringLoader.Register($"STAGE_{mapRef.SceneName.ToUpper()}", mapRef.SceneName);
 
-                    ExtendedStringLoader.Register($"STAGE_{mapRef.SceneName.ToUpper()}", mapRef.SceneName);
-
-                    LoadMapInfo(__instance, mapRef.SceneName);
-                }
+                LoadMapInfo(__instance, mapRef.SceneName);
             }
         }
     }

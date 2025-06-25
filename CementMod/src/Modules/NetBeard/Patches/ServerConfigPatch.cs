@@ -1,10 +1,9 @@
-using CementGB.Mod.Modules.NetBeard;
 using HarmonyLib;
 using MelonLoader.Utils;
 using Unity.Services.Multiplay;
 using UnityEngine;
 
-namespace CementGB.Mod.Patches;
+namespace CementGB.Mod.Modules.NetBeard.Patches;
 
 [HarmonyPatch(typeof(ServerConfigReader), nameof(ServerConfigReader.LoadServerConfigInServer))]
 internal static class ServerConfigPatch

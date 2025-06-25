@@ -1,11 +1,11 @@
 using System;
-using CementGB.Mod.Utilities;
+using CementGB.Mod.Modules.CustomContent.Utilities;
 using GBMDK;
 using Il2CppGB.Data.Loading;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceLocations;
 
-namespace CementGB.Mod.CustomContent;
+namespace CementGB.Mod.Modules.CustomContent.CustomMaps;
 
 /// <summary>
 ///     Holds references to scene data loaded on mod init to hold onto and cache loading results.
@@ -18,8 +18,6 @@ public class CustomMapRefHolder(IResourceLocation sceneDataLoc, CustomMapInfo cu
     public readonly CustomMapInfo SceneInfo = customMapInfo;
 
     private SceneData _sceneData;
-
-    public CustomMapInfo sceneInfo = customMapInfo;
 
     /// <summary>
     ///     The name of the map, parsed from the loaded SceneData.
@@ -46,7 +44,7 @@ public class CustomMapRefHolder(IResourceLocation sceneDataLoc, CustomMapInfo cu
             return _sceneData;
         }
     }
-    
+
     /// <summary>
     ///     Checks if the ref holder has all it needs to function properly in patches.
     /// </summary>

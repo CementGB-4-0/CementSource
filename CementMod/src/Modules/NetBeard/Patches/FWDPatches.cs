@@ -1,10 +1,9 @@
-﻿using CementGB.Mod.Modules.NetBeard;
-using HarmonyLib;
+﻿using HarmonyLib;
 using Il2CppCoreNet;
 using Il2CppCoreNet.Config;
 using UnityEngine;
 
-namespace CementGB.Mod.Patches;
+namespace CementGB.Mod.Modules.NetBeard.Patches;
 
 internal static class FWDPatches
 {

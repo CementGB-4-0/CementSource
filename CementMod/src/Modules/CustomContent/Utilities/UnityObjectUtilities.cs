@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace CementGB.Mod.Utilities;
+namespace CementGB.Mod.Modules.CustomContent.Utilities;
 
 public static class UnityObjectUtilities
 {

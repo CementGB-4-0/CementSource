@@ -1,7 +1,7 @@
 using System;
-using CementGB.Mod.CustomContent;
 using Il2CppGB.Game;
-using MelonLoader;
+using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 namespace CementGB.Mod;
 
@@ -23,22 +23,18 @@ public static class CommonHooks
 
     internal static void Initialize()
     {
-        MelonEvents.OnSceneWasLoaded.Subscribe(OnSceneWasLoaded);
+        SceneManager.add_sceneLoaded((UnityAction<Scene, LoadSceneMode>)OnSceneWasLoaded);
 
         GameManagerNew.add_OnGameManagerCreated(new Action(() => { OnGameManagerCreated?.Invoke(); }));
         GameManagerNew.add_OnRoundStart(new Action(() => { OnRoundStart?.Invoke(); }));
         GameManagerNew.add_OnRoundEnd(new Action(() => { OnRoundEnd?.Invoke(); }));
     }
 
-    private static void OnSceneWasLoaded(int buildIndex, string sceneName)
+    private static void OnSceneWasLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (sceneName == "Menu" && !_menuFirstBoot)
-        {
-            _menuFirstBoot = true;
-            OnMenuFirstBoot?.Invoke();
-        }
+        if (scene.name != "Menu" || _menuFirstBoot) return;
 
-        if (CustomAddressableRegistration.IsModdedKey(sceneName))
-            MelonCoroutines.Start(AddressableShaderCache.ReloadAddressableShaders());
+        _menuFirstBoot = true;
+        OnMenuFirstBoot?.Invoke();
     }
 }

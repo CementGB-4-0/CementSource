@@ -1,5 +1,3 @@
-using CementGB.Mod.CustomContent;
-using CementGB.Mod.src.Modules.CustomContent.CustomMaps;
 using HarmonyLib;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
@@ -8,7 +6,7 @@ using UnityEngine.AddressableAssets;
 using ConsoleColor = System.ConsoleColor;
 using Resources = Il2CppGB.Core.Resources;
 
-namespace CementGB.Mod.Patches;
+namespace CementGB.Mod.Modules.CustomContent.CustomMaps.Patches;
 
 [HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneListComplete))]
 internal static class OnSceneListCompletePatch

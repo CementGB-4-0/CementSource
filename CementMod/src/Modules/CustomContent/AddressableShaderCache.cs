@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using CementGB.Mod.Modules.CustomContent.Utilities;
 using CementGB.Mod.Utilities;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
@@ -10,15 +11,27 @@ using MelonLoader;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceLocations;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace CementGB.Mod.CustomContent;
+namespace CementGB.Mod.Modules.CustomContent;
 
 public static class AddressableShaderCache
 {
     private static readonly Dictionary<string, Shader> CachedShaders = [];
 
-    public static IEnumerator ReloadAddressableShaders(GameObject parent = null)
+    static AddressableShaderCache()
+    {
+        SceneManager.add_sceneLoaded((Action<Scene, LoadSceneMode>)OnSceneWasLoaded);
+    }
+
+    private static void OnSceneWasLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (CustomAddressableRegistration.IsModdedKey(scene.name))
+            MelonCoroutines.Start(ReloadAddressableShaders());
+    }
+
+    private static IEnumerator ReloadAddressableShaders(GameObject parent = null)
     {
         yield return new WaitForEndOfFrame();
         LoggingUtilities.VerboseLog(ConsoleColor.DarkYellow, "Reloading Addressable shaders. . .");

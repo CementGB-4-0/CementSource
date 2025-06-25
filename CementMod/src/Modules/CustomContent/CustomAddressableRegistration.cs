@@ -3,39 +3,43 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using CementGB.Mod.Modules.CustomContent.CustomMaps;
+using CementGB.Mod.Modules.CustomContent.Utilities;
 using CementGB.Mod.Utilities;
 using GBMDK;
 using Il2CppGB.Data.Loading;
 using Il2CppInterop.Runtime;
 using Il2CppSystem.Collections.Generic;
 using Il2CppSystem.Linq;
-using MelonLoader.Utils;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.Initialization;
 using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using Object = Il2CppSystem.Object;
 
-namespace CementGB.Mod.CustomContent;
+namespace CementGB.Mod.Modules.CustomContent;
 
 public static class CustomAddressableRegistration
 {
     public const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
 
-    private static readonly System.Collections.Generic.Dictionary<string, List<Object>> _catalogSortedAddressableKeys = [];
+    private static readonly System.Collections.Generic.Dictionary<string, List<Object>> _catalogSortedAddressableKeys =
+        [];
+
     private static readonly System.Collections.Generic.List<IResourceLocator> _moddedResourceLocators = [];
     private static readonly System.Collections.Generic.List<CustomMapRefHolder> _customMaps = [];
+
     private static readonly System.Collections.Generic.List<string> _baseGameAddressableKeys = [];
     /*
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate IntPtr d_TransformInternalId(IntPtr location);
-    
+
     //[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     //private delegate IntPtr d_TransformInternalId(IntPtr alloc);
-    
+
     private static d_TransformInternalId _patchDelegate;
     private static NativeHook<d_TransformInternalId> _hook;
-    
+
     static unsafe CustomAddressableRegistration()
     {
         var originalMethod = IL2CPP.GetIl2CppMethodByToken(Il2CppClassPointerStore<ResourceManager>.NativeClassPtr, 100663364);
@@ -46,7 +50,7 @@ public static class CustomAddressableRegistration
         _hook = hook;
     }
 
-    
+
     private static IntPtr BounceIdResolutionOffManaged(IntPtr location)
     {
         _hook.Trampoline(location);
@@ -63,33 +67,11 @@ public static class CustomAddressableRegistration
     }
     */
 
-    internal static string ResolveInternalId(IResourceLocation location)
+    static CustomAddressableRegistration()
     {
-        var text = location.InternalId;
-        LoggingUtilities.VerboseLog($"Resolving InternalId for mod manager support: {text}");
-        if (!location.InternalId.StartsWith(Mod.CustomContentPath)) return text;
-
-        var file = new FileInfo(text);
-        foreach (var catalogPath in Directory.EnumerateFiles(Mod.CustomContentPath, "catalog_*.json",
-                     SearchOption.AllDirectories))
-        {
-            var catalogFile = new FileInfo(catalogPath);
-            if (!catalogFile.Exists || catalogFile.Directory?.Parent?.Name != file.Directory?.Parent?.Name)
-            {
-                LoggingUtilities.VerboseLog($"Skipping catalog path {catalogPath}");
-                continue;
-            }
-
-            var result = catalogFile.Directory != null
-                ? Path.Combine(catalogFile.Directory.FullName, file.Name)
-                : file.ToString();
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen, $"Resolved InternalId: {result}");
-            return result;
-        }
-
-        return text;
+        Initialize();
     }
-    
+
     /// <summary>
     ///     Dictionary lookup for all modded Addressable keys (as strings), sorted by mod name.
     /// </summary>
@@ -118,6 +100,33 @@ public static class CustomAddressableRegistration
     ///     A collection of all valid maps loaded by Cement. Read-only.
     /// </summary>
     public static ReadOnlyCollection<CustomMapRefHolder> CustomMaps => _customMaps.AsReadOnly();
+
+    internal static string ResolveInternalId(IResourceLocation location)
+    {
+        var text = location.InternalId;
+        LoggingUtilities.VerboseLog($"Resolving InternalId for mod manager support: {text}");
+        if (!location.InternalId.StartsWith(Mod.CustomContentPath)) return text;
+
+        var file = new FileInfo(text);
+        foreach (var catalogPath in Directory.EnumerateFiles(Mod.CustomContentPath, "catalog_*.json",
+                     SearchOption.AllDirectories))
+        {
+            var catalogFile = new FileInfo(catalogPath);
+            if (!catalogFile.Exists || catalogFile.Directory?.Parent?.Name != file.Directory?.Parent?.Name)
+            {
+                LoggingUtilities.VerboseLog($"Skipping catalog path {catalogPath}");
+                continue;
+            }
+
+            var result = catalogFile.Directory != null
+                ? Path.Combine(catalogFile.Directory.FullName, file.Name)
+                : file.ToString();
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen, $"Resolved InternalId: {result}");
+            return result;
+        }
+
+        return text;
+    }
 
     /// <summary>
     ///     Gets all custom-loaded IResourceLocations of a certain result type. Used to iterate through and find custom content
@@ -173,7 +182,6 @@ public static class CustomAddressableRegistration
 
     internal static void Initialize()
     {
-        CacheBaseGameAddressableKeys();
         InitializeContentCatalogs();
         InitializeMapReferences();
         AddressableShaderCache.Initialize();
@@ -182,7 +190,7 @@ public static class CustomAddressableRegistration
     private static void CacheBaseGameAddressableKeys()
     {
         Mod.Logger.Msg("Caching base game Addressable keys. . .");
-        
+
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
@@ -192,6 +200,7 @@ public static class CustomAddressableRegistration
             Mod.Logger.Error("Failed to handle Addressables initialization operation!");
             return;
         }
+
         foreach (var key in baseGameLocator.Result.Keys.ToArray())
         {
             _baseGameAddressableKeys.Add(key.ToString());
@@ -209,7 +218,7 @@ public static class CustomAddressableRegistration
         AddressablesRuntimeProperties.SetPropertyValue(ModsDirectoryPropertyName, Mod.CustomContentPath);
         LoggingUtilities.VerboseLog(
             $"Set Addressable runtime property \"{ModsDirectoryPropertyName}\" to value \"{AddressablesRuntimeProperties.EvaluateProperty(ModsDirectoryPropertyName)}\"");
-        
+
         foreach (var contentMod in Directory.EnumerateDirectories(Mod.CustomContentPath, "*",
                      SearchOption.AllDirectories))
         {
@@ -285,7 +294,7 @@ public static class CustomAddressableRegistration
             var parsedSceneName = sceneDataLoc.PrimaryKey.Split("-Data")[0];
             var sceneInfoHandle = Addressables.LoadAssetAsync<Object>($"{parsedSceneName}-Info");
             sceneInfoHandle.HandleSynchronousAddressableOperation();
-            
+
             if (!AssetUtilities.IsHandleSuccess(sceneInfoHandle))
                 sceneInfoHandle = null;
 
@@ -301,7 +310,7 @@ public static class CustomAddressableRegistration
             if (!refHolder.IsValid)
             {
                 Mod.Logger.Error(
-                    $"Custom map reference holder is not valid! | Info: {(refHolder.sceneInfo ? refHolder.sceneInfo.name : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData.name : "null")}");
+                    $"Custom map reference holder is not valid! | Info: {(refHolder.SceneInfo ? refHolder.SceneInfo.name : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData.name : "null")}");
                 continue;
             }
 

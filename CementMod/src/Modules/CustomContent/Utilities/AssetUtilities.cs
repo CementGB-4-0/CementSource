@@ -1,11 +1,12 @@
 using System;
 using System.Collections;
+using CementGB.Mod.Utilities;
 using Il2CppInterop.Runtime.InteropTypes;
 using UnityEngine;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Object = UnityEngine.Object;
 
-namespace CementGB.Mod.Utilities;
+namespace CementGB.Mod.Modules.CustomContent.Utilities;
 
 public static class AssetUtilities
 {

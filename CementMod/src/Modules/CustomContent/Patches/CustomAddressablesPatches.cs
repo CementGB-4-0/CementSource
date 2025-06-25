@@ -1,11 +1,10 @@
-using CementGB.Mod.CustomContent;
 using HarmonyLib;
 using Il2CppSystem;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Resources = Il2CppGB.Core.Resources;
 
-namespace CementGB.Mod.Patches;
+namespace CementGB.Mod.Modules.CustomContent.Patches;
 
 [HarmonyPatch]
 internal static class CustomAddressablesPatches

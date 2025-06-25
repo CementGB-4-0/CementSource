@@ -1,4 +1,3 @@
-using CementGB.Mod.Modules.NetBeard;
 using HarmonyLib;
 using Il2CppCoatsink.Platform;
 using Il2CppCoatsink.Platform.Systems.UI;
@@ -6,7 +5,7 @@ using Il2CppCS.CorePlatform;
 using Il2CppCS.CorePlatform.CSPlatform;
 using Il2CppGB.Core;
 
-namespace CementGB.Mod.Patches;
+namespace CementGB.Mod.Modules.NetBeard.Patches;
 
 internal static class MultiRunPatches
 {

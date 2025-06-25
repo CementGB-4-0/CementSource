@@ -1,7 +1,7 @@
 ﻿using MelonLoader;
 using UnityEngine;
 
-namespace CementGB.Mod.Modules.NetBeard;
+namespace CementGB.Mod.Modules.NetBeard.Utilities;
 
 /// <summary>
 ///     Ensures the object this script is attached to will always be inactive.

@@ -2,13 +2,10 @@
 using System.Collections;
 using System.IO;
 using System.Linq;
-using CementGB.Mod.CustomContent;
+using CementGB.Mod.Modules.CustomContent.Utilities;
 using CementGB.Mod.Modules.NetBeard;
 using CementGB.Mod.Modules.PoolingModule;
-using CementGB.Mod.src.Modules.CustomContent.CustomMaps;
-using CementGB.Mod.Utilities;
 using Il2Cpp;
-using Il2CppCS.CorePlatform;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.UI;
@@ -17,9 +14,7 @@ using Il2CppInterop.Runtime;
 using MelonLoader;
 using MelonLoader.Utils;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
@@ -116,9 +111,7 @@ public class Mod : MelonMod
     public override void OnLateInitializeMelon()
     {
         base.OnLateInitializeMelon();
-        
-        PlatformEvents.add_OnPlatformInitializedEvent((Action)CustomAddressableRegistration.Initialize);
-        CommonHooks.OnMenuFirstBoot += MixerFinder.AssignMainMixer;
+
         CreateCementComponents();
     }
 
@@ -134,10 +127,8 @@ public class Mod : MelonMod
         Object.DontDestroyOnLoad(CementCompContainer);
         CementCompContainer.MakePersistent();
 
-        //CementCompContainer.AddComponent<NetBeard>();
         CementCompContainer.AddComponent<ServerManager>();
         CementCompContainer.AddComponent<Pool>();
-        //CementCompContainer.AddComponent<BeastInput>();
     }
 
     public override void OnUpdate()
