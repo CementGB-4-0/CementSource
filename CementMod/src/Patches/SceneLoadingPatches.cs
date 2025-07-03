@@ -22,12 +22,8 @@ internal static class OnSceneListCompletePatch
 
         foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
         {
-            if (mapRef.SceneData.AudioConfig && !mapRef.SceneData.AudioConfig.audioMixer)
-            {
+            if (mapRef.SceneData.AudioConfig)
                 mapRef.SceneData.AudioConfig.audioMixer = MixerFinder.MainMixer;
-                Mod.Logger.Msg(ConsoleColor.Yellow,
-                    $"Map {mapRef.SceneName} has no audio mixer. Defaulting to in-game mixer.");
-            }
 
             var sceneDataRef = new AssetReference(mapRef.SceneData.name);
 

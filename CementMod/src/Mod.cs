@@ -4,6 +4,7 @@ using CementGB.Mod.Modules.NetBeard;
 using CementGB.Mod.Modules.PoolingModule;
 using CementGB.Mod.Utilities;
 using Il2Cpp;
+using Il2CppCS.CorePlatform;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.UI;
@@ -16,7 +17,9 @@ using System.Collections;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
@@ -84,10 +87,10 @@ public class Mod : MelonMod
         FileStructure();
 
         // Initialize static classes that need initializing
+        CementPreferences.Initialize();
         if (!CementPreferences.VerboseMode)
             Logger.Msg(System.ConsoleColor.White,
                 "Verbose Mode disabled! Enable verbose mode in UserData/CementGB/CementGB.cfg for more detailed logging.");
-        CementPreferences.Initialize();
         CommonHooks.Initialize();
 
         //Script.ReloadScripts();
@@ -113,9 +116,9 @@ public class Mod : MelonMod
     public override void OnLateInitializeMelon()
     {
         base.OnLateInitializeMelon();
-
-        MixerFinder.AssignMainMixer();
-        CustomAddressableRegistration.Initialize();
+        
+        PlatformEvents.add_OnPlatformInitializedEvent((Action)CustomAddressableRegistration.Initialize);
+        CommonHooks.OnMenuFirstBoot += MixerFinder.AssignMainMixer;
         CreateCementComponents();
     }
 

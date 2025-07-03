@@ -15,6 +15,7 @@
         <DefineConstants>$(DefineConstants);MELONLOADER</DefineConstants>
         <Nullable>disable</Nullable>
         <Optimize>false</Optimize>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
         <OutputType>Library</OutputType>
         <DocumentationFile Condition=" '$(Configuration)' == 'Release' ">$(ProjectDir)../dist/Mods/CementGB.xml</DocumentationFile>
@@ -72,7 +73,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <GameDirFile Include="$(ProjectDir)..\game_dir.txt"></GameDirFile>
+        <GameDirFile Include="$(ProjectDir)..\game_dir.txt" />
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'@(GameDirFile)' != ''">

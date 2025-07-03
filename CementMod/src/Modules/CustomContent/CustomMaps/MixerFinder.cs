@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using MelonLoader;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -21,11 +19,11 @@ internal static class MixerFinder
         }
         
         if (mixers.Length > 1)
-            Mod.Logger.Warning("More than one mixer already exists! Found mixer may not be main. . .");
+            Mod.Logger.Warning("More than one mixer already exists! Found mixer may not be main... Deleting excess mixers after one is chosen as main.");
 
         foreach (var mixer in mixers)
         {
-            if (mixer.name != "Mixer") continue;
+            if (mixer.name != "JukeboxMixer") continue; // Main mixer is always called "JukeboxMixer" it seems
             
             Mod.Logger.Msg(ConsoleColor.Green,
                 "Main mixer found. Maps will now fallback onto this mixer if one isn't assigned.");
