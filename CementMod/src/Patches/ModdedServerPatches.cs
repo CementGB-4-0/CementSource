@@ -13,7 +13,10 @@ using Il2CppGB.Menu;
 using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace CementGB.Mod.Patches;
@@ -172,4 +175,46 @@ internal static class ModdedServerPatches
     {
         if (ServerManager.IsServer) __result.ServerPort = ServerManager.Port;
     }
+
+
+
+
+
+/*    [HarmonyPatch(typeof(Il2CppCoatsink.Platform.Users), nameof(Il2CppCoatsink.Platform.Users.MaxUsers), MethodType.Getter), HarmonyPostfix]
+    public static void MaxUserSetter(ref int __result) => __result = ServerManager.maxPlayers;
+
+
+
+
+
+    [HarmonyPatch(typeof(Il2CppGB.UI.Beasts.BeastMenuSpawner), nameof(Il2CppGB.UI.Beasts.BeastMenuSpawner.Awake)), HarmonyPrefix]
+    public static void SpawnPointAdjuster(Il2CppGB.UI.Beasts.BeastMenuSpawner __instance)
+    {
+        if (ServerManager.maxPlayers % 8 == 0) // New max players fits into 8.
+        {
+            List<Transform> toDuplicate = __instance._spawnPoint.ToList<Transform>();
+            int extraRows = (ServerManager.maxPlayers / 8) - 1;
+
+            if (extraRows > 0) // More spawns are needed
+            {
+                for (int i = 0; i < extraRows; i++)
+                {
+                    foreach (Transform spawn in __instance._spawnPoint)
+                    {
+                        Transform newSpawn = null;
+                        newSpawn = GameObject.Instantiate(spawn, spawn.parent, true);
+                        newSpawn.GetComponentInChildren<NamebarHandler>()._pointID += 8 * (i + 1); // Add onto the point ID for each row
+
+                        newSpawn.name = "Spawn";
+                        newSpawn.position -= Vector3.right * 2f * (i + 1); // Initial offset from prior rows
+                        newSpawn.position -= Vector3.right * 2f; // This is the amount of spacing that happens on real Gang Beasts spawnpoints
+                        toDuplicate.Add(newSpawn);
+                    }
+                }
+            }
+
+            __instance._spawnPoint = toDuplicate.ToArray();
+            Mod.Logger.Msg(System.Drawing.Color.Beige, $"Finished setting up spawns. New count is {toDuplicate.Count} with an extra row amount of {extraRows}");
+        }
+    }*/
 }

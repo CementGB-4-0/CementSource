@@ -2,11 +2,13 @@ using System;
 using System.Linq;
 using CementGB.Mod.Utilities;
 using Il2Cpp;
+using Il2CppCoatsink.Platform;
 using Il2CppCoatsink.UnityServices;
 using Il2CppCoreNet.Contexts;
 using Il2CppCoreNet.Model;
 using Il2CppCoreNet.Objects;
 using Il2CppCoreNet.Utils;
+using Il2CppCS.CorePlatform;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.Core.Bootstrappers;
@@ -82,9 +84,17 @@ public class ServerManager : MonoBehaviour
     /// </summary>
     public static bool LowGraphicsMode => Environment.GetCommandLineArgs().Contains("-lowgraphics");
 
+    // public static int maxPlayers = 16;
+
 
     private void Awake()
     {
+/*        PlatformEvents.add_OnLobbyCreatingEvent(new Action(() =>
+        {
+            Global.NetworkMaxPlayers = (ushort)maxPlayers;
+            Users.MaxUsers = maxPlayers;
+        }));*/
+
         LobbyManager.add_onSetupComplete(new Action(OnBoot));
 
         if (MelonUtils.IsWindows && !Application.isBatchMode)
