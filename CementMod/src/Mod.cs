@@ -142,6 +142,8 @@ public class Mod : MelonMod
 
     public override void OnUpdate()
     {
+        MainThreadDispatcher.DispatchActions();
+
         if (SceneManager.GetActiveScene().name == "Menu" &&
             Global.Instance.SceneLoader && !string.IsNullOrWhiteSpace(MapArg) &&
             (!_mapArgDidTheThing || (ServerManager.IsServer && !ServerManager.DontAutoStart)))
