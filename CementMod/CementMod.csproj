@@ -58,7 +58,7 @@
 
     <ItemGroup>
         <PackageReference Include="GangBeasts.GameLibs" Version="1.26.0-gh13" />
-        <PackageReference Include="LavaGang.MelonLoader" Version="0.7.0" />
+        <PackageReference Include="LavaGang.MelonLoader" Version="0.7.1"/>
         <PackageReference Include="Il2CppInterop.Common" Version="1.4.6-ci.579" />
         <PackageReference Include="Il2CppInterop.Runtime" Version="1.4.6-ci.579" />
         <PackageReference Include="Il2CppInterop.HarmonySupport" Version="1.4.6-ci.579" />
@@ -121,7 +121,7 @@ namespace $(RootNamespace)
     "version_number": "$(MelonLoaderModVersion)",
     "description": "A general-purpose modding API for Gang Beasts.",
     "dependencies": [
-        "LavaGang-MelonLoader-0.7.0"
+        "LavaGang-MelonLoader-0.7.1"
     ]
 }
                 ]]>
