@@ -12,7 +12,7 @@ public static class CementPreferences
     private static MelonPreferences_Category _cmtPrefCateg =
         MelonPreferences.CreateCategory("CementGBPrefs", "CementGB Preferences");
 
-    private static MelonPreferences_Entry<bool> _verboseModeEntry;
+    private static MelonPreferences_Entry<bool>? _verboseModeEntry;
 
     /// <summary>
     ///     Enables extra log messages for debugging.
@@ -24,7 +24,10 @@ public static class CementPreferences
     {
         _cmtPrefCateg = MelonPreferences.CreateCategory("CementGBPrefs", "CementGB Preferences");
         _cmtPrefCateg.SetFilePath(Path.Combine(Mod.UserDataPath, "CementPrefs.cfg"));
-        _verboseModeEntry = _cmtPrefCateg.CreateEntry("verbose_mode", false, "Verbose Mode",
+        _verboseModeEntry = _cmtPrefCateg.CreateEntry(
+            "verbose_mode",
+            false,
+            "Verbose Mode",
             "Enables extra log messages for developers.");
         _cmtPrefCateg?.SaveToFile();
     }

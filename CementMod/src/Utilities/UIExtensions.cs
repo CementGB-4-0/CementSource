@@ -5,13 +5,13 @@ namespace CementGB.Mod.Utilities;
 public static class UIExtensions
 {
     /// <summary>
-    ///     Manually reconstructs the <see cref="Navigation" /> of <paramref name="toChange" /> with the corresponding
-    ///     <paramref name="up" /> and <paramref name="down" /> <see cref="Selectable" />s.
+    ///     Manually reconstructs the <see cref="UnityEngine.UI.Navigation" /> of <paramref name="toChange" /> with the corresponding
+    ///     <paramref name="up" /> and <paramref name="down" /> <see cref="UnityEngine.UI.Selectable" />s.
     /// </summary>
-    /// <param name="toChange">The <see cref="Selectable" /> whose navigation must change.</param>
-    /// <param name="up">The <see cref="Selectable" /> whose navigation must map 'up' from <paramref name="toChange" />.</param>
-    /// <param name="down">The <see cref="Selectable" /> whose navigation must map 'down' from <paramref name="toChange" />.</param>
-    public static void ReconstructNavigation(this Selectable toChange, Selectable up, Selectable down)
+    /// <param name="toChange">The <see cref="UnityEngine.UI.Selectable" /> whose navigation must change.</param>
+    /// <param name="up">The <see cref="UnityEngine.UI.Selectable" /> whose navigation must map 'up' from <paramref name="toChange" />.</param>
+    /// <param name="down">The <see cref="UnityEngine.UI.Selectable" /> whose navigation must map 'down' from <paramref name="toChange" />.</param>
+    private static void ReconstructNavigation(this Selectable toChange, Selectable up, Selectable down)
     {
         Navigation nav = new()
         {

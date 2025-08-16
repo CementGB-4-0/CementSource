@@ -1,12 +1,8 @@
 using System.Collections.Generic;
 using CementGB.Mod.CustomContent;
 using CementGB.Mod.Utilities;
-using GBMDK;
 using HarmonyLib;
 using Il2CppGB.Gamemodes;
-using Il2CppSystem;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 using ConsoleColor = System.ConsoleColor;
 
 namespace CementGB.Mod.Patches;
@@ -31,36 +27,16 @@ internal static class GameModeMapTrackerPatch
     [HarmonyPatch(typeof(GameModeMapTracker), nameof(GameModeMapTracker.GetMapsFor))]
     private static class GetMapsForPatch
     {
-        private static void LoadMapInfo(GameModeMapTracker __instance, string mapKey)
+        private static ModeMapStatus LoadMapInfo(CustomMapRefHolder mapRef)
         {
-            var infoHandle = Addressables.LoadAsset<Object>($"{mapKey}-Info").Acquire();
-            infoHandle.WaitForCompletion();
-
-            ModeMapStatus modeMapStatus;
-            if (infoHandle.Status != AsyncOperationStatus.Succeeded)
+            var info = mapRef.SceneInfo;
+            var modeMapStatus = new ModeMapStatus(mapRef.SceneName, true)
             {
-                LoggingUtilities.VerboseLog(ConsoleColor.DarkYellow,
-                    $"Unable to load \"{mapKey}-Info\" for gamemode selection : OperationException ${infoHandle.OperationException.ToString()}");
+                AllowedModesLocal = info != null && info.allowedGamemodes != null ? info.allowedGamemodes.Get() : GameModeEnum.Melee,
+                AllowedModesOnline = info != null && info.allowedGamemodes != null ? info.allowedGamemodes.Get() : GameModeEnum.Melee
+            };
 
-                modeMapStatus = new ModeMapStatus(mapKey, true)
-                {
-                    AllowedModesLocal = GameModeEnum.Melee,
-                    AllowedModesOnline = GameModeEnum.Melee
-                };
-            }
-            else
-            {
-                var info = infoHandle.Result.Cast<CustomMapInfo>();
-                modeMapStatus = new ModeMapStatus(mapKey, true)
-                {
-                    AllowedModesLocal = info != null ? info.allowedGamemodes.Get() : GameModeEnum.Melee,
-                    AllowedModesOnline = info != null ? info.allowedGamemodes.Get() : GameModeEnum.Melee,
-                };
-            }
-
-            __instance.AvailableMaps.Add(modeMapStatus);
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen,
-                $"Registered allowed gamemodes and UI selector for custom scene \"{mapKey}\"!");
+            return modeMapStatus;
         }
 
         private static void Prefix(GameModeMapTracker __instance)
@@ -71,12 +47,15 @@ internal static class GameModeMapTrackerPatch
 
                 foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
                 {
-                    if (SceneNameAlreadyExists(__instance, mapRef.SceneData._sceneRef.RuntimeKey.ToString()))
+                    if (mapRef.SceneData == null || mapRef.SceneName == null || !mapRef.IsValid || SceneNameAlreadyExists(__instance, mapRef.SceneName))
                         continue;
 
                     ExtendedStringLoader.Register($"STAGE_{mapRef.SceneName.ToUpper()}", mapRef.SceneName);
 
-                    LoadMapInfo(__instance, mapRef.SceneName);
+                    __instance.AvailableMaps.Add(LoadMapInfo(mapRef));
+                    LoggingUtilities.VerboseLog(
+                        ConsoleColor.DarkGreen,
+                        $"Registered allowed gamemodes and UI selector for custom scene \"{mapRef}\"!");
                 }
             }
         }

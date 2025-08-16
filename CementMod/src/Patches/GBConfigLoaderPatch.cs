@@ -12,26 +12,26 @@ internal static class GBConfigLoaderPatch
     [HarmonyPatch(typeof(MenuHandlerMaps), nameof(MenuHandlerMaps.GetCurrentSelectedLevels))]
     private static class GetCurrentSelectedLevelsPatch
     {
-        private static void Postfix(MenuHandlerMaps __instance, ref List<string> __result)
+        private static void Postfix(MenuHandlerMaps __instance, bool random, ref List<string> __result)
         {
-            if (__instance.mapList[__instance.currentMapIndex].ToLower() != "random")
+            if (__instance.mapList[__instance.currentMapIndex].ToLower() !=
+                "random" || !random)
+            {
                 return; // map is not set to random; don't do patch
+            }
 
             var masterMenuHandlers = Object.FindObjectsOfType<MenuHandlerGamemodes>();
 
             foreach (var masterMenuHandler in masterMenuHandlers)
             {
-                if (masterMenuHandler.type == MenuHandlerGamemodes.MenuType.Online)
-                    continue;
-
                 foreach (var scene in CustomAddressableRegistration.CustomMaps)
                 {
-                    var result = scene.sceneInfo;
-                    if (!result && masterMenuHandler.CurrentGamemode != GameModeEnum.Melee)
-                        continue;
+                    var result = scene.SceneInfo;
 
-                    if (result && !result.allowedGamemodes.Get().HasFlag(masterMenuHandler.CurrentGamemode))
+                    if (scene.SceneName == null || (!result && !masterMenuHandler.CurrentGamemode.HasFlag(GameModeEnum.Melee)) || result == null || result.allowedGamemodes == null || !result.allowedGamemodes.Get().HasFlag(masterMenuHandler.CurrentGamemode))
+                    {
                         continue;
+                    }
 
                     __result.Insert(Random.Range(0, __result.Count - 1), scene.SceneName);
                 }
