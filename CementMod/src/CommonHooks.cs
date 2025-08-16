@@ -15,11 +15,13 @@ public static class CommonHooks
     /// <summary>
     ///     Fired when the Menu scene loads for the first time in the app's lifespan. Will reset on application quit.
     /// </summary>
-    public static event Action OnMenuFirstBoot;
+    public static event Action? OnMenuFirstBoot;
 
-    public static event Action OnGameManagerCreated;
-    public static event Action OnRoundStart;
-    public static event Action OnRoundEnd;
+    public static event Action? OnGameManagerCreated;
+
+    public static event Action? OnRoundStart;
+
+    public static event Action? OnRoundEnd;
 
     internal static void Initialize()
     {
@@ -39,6 +41,8 @@ public static class CommonHooks
         }
 
         if (CustomAddressableRegistration.IsModdedKey(sceneName))
-            MelonCoroutines.Start(AddressableShaderCache.ReloadAddressableShaders());
+        {
+            _ = MelonCoroutines.Start(AddressableShaderCache.ReloadAddressableShaders());
+        }
     }
 }
