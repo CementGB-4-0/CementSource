@@ -2,11 +2,13 @@ using System;
 using System.Linq;
 using CementGB.Mod.Utilities;
 using Il2Cpp;
+using Il2CppCoatsink.Platform;
 using Il2CppCoatsink.UnityServices;
 using Il2CppCoreNet.Contexts;
 using Il2CppCoreNet.Model;
 using Il2CppCoreNet.Objects;
 using Il2CppCoreNet.Utils;
+using Il2CppCS.CorePlatform;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.Core.Bootstrappers;
@@ -30,7 +32,7 @@ public class ServerManager : MonoBehaviour
     /// <summary>
     ///     The default Port setting for the server.
     /// </summary>
-    public const int DefaultPort = 5999;
+    public const int DefaultPort = 6000;
 
     private const string ServerLogPrefix = "[SERVER]";
 
@@ -77,8 +79,22 @@ public class ServerManager : MonoBehaviour
     /// </summary>
     public static int Port => string.IsNullOrWhiteSpace(PortArg) ? DefaultPort : int.Parse(PortArg);
 
+    /// <summary>
+    ///     Should the server load in low graphics mode?
+    /// </summary>
+    public static bool LowGraphicsMode => Environment.GetCommandLineArgs().Contains("-lowgraphics");
+
+    // public static int maxPlayers = 16;
+
+
     private void Awake()
     {
+/*        PlatformEvents.add_OnLobbyCreatingEvent(new Action(() =>
+        {
+            Global.NetworkMaxPlayers = (ushort)maxPlayers;
+            Users.MaxUsers = maxPlayers;
+        }));*/
+
         LobbyManager.add_onSetupComplete(new Action(OnBoot));
 
         if (MelonUtils.IsWindows && !Application.isBatchMode)

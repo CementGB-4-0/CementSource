@@ -54,7 +54,7 @@ internal static class GameModeMapTrackerPatch
                 modeMapStatus = new ModeMapStatus(mapKey, true)
                 {
                     AllowedModesLocal = info != null ? info.allowedGamemodes.Get() : GameModeEnum.Melee,
-                    AllowedModesOnline = GameModeEnum.Melee
+                    AllowedModesOnline = info != null ? info.allowedGamemodes.Get() : GameModeEnum.Melee,
                 };
             }
 

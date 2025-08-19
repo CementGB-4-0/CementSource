@@ -15,7 +15,7 @@ internal static class GameModeInitBeastPatch
     {
         if (!ServerManager.IsServer)
             return;
-        
+
         var collection = __instance._Model.GetCollection<NetMember>("NET_MEMBERS");
         if (collection.Count == 1 && NetUtils.GetPlayers<NetBeast>(collection[0]).Count == 1)
         {
@@ -29,17 +29,16 @@ internal static class GameModeInitBeastPatch
             foreach (NetBeast netBeast in NetUtils.GetPlayers<NetBeast>(netMember))
             {
                 if (netBeast.GameOver) continue;
-                GBNetUtils.RemoveBeastFromGang(netBeast);
+                if (netBeast.GangId != num) GBNetUtils.RemoveBeastFromGang(netBeast);
+
                 netBeast.GangId = num;
                 GBNetUtils.SetBeastsGang(netBeast);
                 num++;
                 // Added rollover as a safety net to fix an impossible gang
                 // Players will now be forced into gangs if necessary?
-                num %= GBNetUtils.Model.GetCollection<NetGang>("NET_GANGS").Count;
+                // num %= GBNetUtils.Model.GetCollection<NetGang>("NET_GANGS").Count;
             }
         }
-
-        __instance.localSingleGang = false;
     }
 }
 
