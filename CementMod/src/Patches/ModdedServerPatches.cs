@@ -1,4 +1,6 @@
-﻿using CementGB.Mod.Modules.NetBeard;
+﻿using System;
+using System.Net;
+using CementGB.Mod.Modules.NetBeard;
 using HarmonyLib;
 using Il2Cpp;
 using Il2CppCoatsink.UnityServices.Matchmaking;
@@ -12,11 +14,8 @@ using Il2CppGB.Gamemodes;
 using Il2CppGB.Menu;
 using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using UnityEngine;
+using Il2CppGB.UnityServices.Matchmaking;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine.Networking;
 
 namespace CementGB.Mod.Patches;
@@ -24,119 +23,132 @@ namespace CementGB.Mod.Patches;
 [HarmonyPatch]
 internal static class ModdedServerPatches
 {
-    [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic)), HarmonyPrefix]
-    internal static bool StartGameLogicPatch(MenuHandlerGamemodes __instance)
+    [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic))]
+    [HarmonyPrefix]
+    private static bool StartGameLogicPatch(MenuHandlerGamemodes __instance)
     {
-        if (__instance.type != MenuHandlerGamemodes.MenuType.Online || !__instance.PrivateGame) return true;
+        if (__instance.type != MenuHandlerGamemodes.MenuType.Online || !__instance.PrivateGame)
+        {
+            return true;
+        }
 
-        bool shouldJoinModded = ClientServerCommunicator.IsServerRunning();
-        if (!shouldJoinModded) return true;
+        var shouldJoinModded = ClientServerCommunicator.IsServerRunning();
+        if (!shouldJoinModded)
+        {
+            return true;
+        }
 
         ClientServerCommunicator.Init();
 
-        int stageTime = 0;
+        var stageTime = 0;
 
-        if (__instance.PrivateGame || __instance.type == MenuHandlerGamemodes.MenuType.Local || __instance.type == MenuHandlerGamemodes.MenuType.LocalWireless)
+        if (__instance.PrivateGame || __instance.type == MenuHandlerGamemodes.MenuType.Local ||
+            __instance.type == MenuHandlerGamemodes.MenuType.LocalWireless)
         {
-            int num2 = __instance.winsSetup.CurrentValue * 60;
-            stageTime = (__instance.CurrentGamemode == GameModeEnum.Football) ? num2 : 300;
+            var num2 = __instance.winsSetup.CurrentValue * 60;
+            stageTime = __instance.CurrentGamemode == GameModeEnum.Football ? num2 : 300;
         }
 
-        bool isRandomSelected;
-        Il2CppSystem.Collections.Generic.List<string> currentSelectedLevels = __instance.mapSetup.GetCurrentSelectedLevels(out isRandomSelected);
+        var currentSelectedLevels = __instance.mapSetup.GetCurrentSelectedLevels(out var isRandomSelected);
         __instance.selectedConfig = GBConfigLoader.CreateRotationConfig(
-            (Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStringArray)currentSelectedLevels.ToArray(),
+            (Il2CppStringArray)currentSelectedLevels.ToArray(),
             __instance.CurrentGamemode,
-            (__instance.CurrentGamemode == GameModeEnum.Football || __instance.CurrentGamemode == GameModeEnum.Waves) ? 1 : __instance.winsSetup.CurrentValue,
-            isRandomSelected, stageTime);
+            __instance.CurrentGamemode is GameModeEnum.Football or GameModeEnum.Waves
+                ? 1
+                : __instance.winsSetup.CurrentValue,
+            isRandomSelected,
+            stageTime);
 
-
-
-        IPAddress address = LobbyCommunicator.UserIP;
-        if (address == null) address = IPAddress.Loopback; // Offline safety net
+        var address = LobbyCommunicator.UserIP ?? IPAddress.Loopback; // Offline safety net
 
         MonoSingleton<Global>.Instance.buttonController.HideButton(InputMapActions.Accept);
         __instance.PopulateVisibleButtons(true);
-        LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.Joinable | LobbyState.State.Editable | LobbyState.State.Matching;
+        LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.Joinable |
+                                                         LobbyState.State.Editable | LobbyState.State.Matching;
         LobbyManager.Instance.LobbyStates.UpdateLobbyState();
 
+        LobbyCommunicator.SendLobbyDataToServer(
+            new GBGameData
+            {
+                Gamemode = __instance.CurrentGamemode.GetGameModeID(),
+                MapName =
+                    __instance.selectedConfig.GameConfigs.Count == 1
+                        ? __instance.selectedConfig.GameConfigs[0].Map
+                        : "random",
+                NumberOfWins = __instance.selectedConfig.Wins,
+                PrivateGame = true,
+                StageTimeLimit = __instance.selectedConfig.StageTimeLimit,
+                TotalPlayerCountExclLocal = (uint)LobbyManager.Instance.Players.GetPlayerCount(),
+                TotalPlayerCountInclLocal = (uint)LobbyManager.Instance.Players.GetBeastCount()
+            });
 
-        LobbyCommunicator.SendLobbyDataToServer(new()
-        {
-            Gamemode = __instance.CurrentGamemode.GetGameModeID(),
-            MapName = (__instance.selectedConfig.GameConfigs.Count == 1) ? __instance.selectedConfig.GameConfigs[0].Map : "random",
-            NumberOfWins = __instance.selectedConfig.Wins,
-            PrivateGame = true,
-            StageTimeLimit = __instance.selectedConfig.StageTimeLimit,
-            TotalPlayerCountExclLocal = (uint)LobbyManager.Instance.Players.GetPlayerCount(),
-            TotalPlayerCountInclLocal = (uint)LobbyManager.Instance.Players.GetBeastCount()
-        });
+        __instance.onlineCountdown.StartCountdown(
+            3f,
+            new Action(() =>
+            {
+                LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
+                LobbyManager.Instance.LobbyStates.UpdateLobbyState();
+                _ = LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
 
-        __instance.onlineCountdown.StartCountdown(3f, new Action(() =>
-        {
-            LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
-            LobbyManager.Instance.LobbyStates.UpdateLobbyState();
-            LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
+                var result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done")
+                {
+                    IpAddress = address.ToString(),
+                    Port = ServerManager.DefaultPort
+                };
 
-            MatchmakingResult result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done");
-            result.IpAddress = address.ToString();
-            result.Port = ServerManager.DefaultPort;
-
-            LobbyManager.Instance.LobbyStates.MatchmakingComplete(result);
-        }));
+                LobbyManager.Instance.LobbyStates.MatchmakingComplete(result);
+            }));
 
         return false;
     }
 
-
-
-
-
-    [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.OnStartGame)), HarmonyPrefix]
+    [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.OnStartGame))]
+    [HarmonyPrefix]
     private static bool SingleplayerOnlineBypass(MenuHandlerGamemodes __instance)
     {
-        bool shouldJoinModded = ClientServerCommunicator.IsServerRunning();
+        var shouldJoinModded = ClientServerCommunicator.IsServerRunning();
 
-        if (!shouldJoinModded || !__instance.PrivateGame) return true;
+        if (!shouldJoinModded || !__instance.PrivateGame)
+        {
+            return true;
+        }
 
         Mod.Logger.Msg(ConsoleColor.Blue, "Bypassing matchmaker auth, player joining modded server");
         __instance.StartGameLogic();
         return false;
     }
 
-
-
-
-
-    [HarmonyPatch(typeof(NetUtils), nameof(NetUtils.DisconnectPlayer)), HarmonyPrefix]
-    public static bool AntiTimeoutDisconnect(NetworkConnection conn, string reason)
+    [HarmonyPatch(typeof(NetUtils), nameof(NetUtils.DisconnectPlayer))]
+    [HarmonyPrefix]
+    private static bool AntiTimeoutDisconnect(NetworkConnection conn, string reason)
     {
-        if (ServerManager.IsServer && reason == "DISCONNECT_PLAYER_LOADING_TIMEOUT")
+        if (!ServerManager.IsServer || reason != "DISCONNECT_PLAYER_LOADING_TIMEOUT")
         {
-            Mod.Logger.Msg(ConsoleColor.Blue, "Server tried to disconnect player that took too long to load");
-            return false;
+            return true;
         }
 
-        return true;
+        Mod.Logger.Msg(ConsoleColor.Blue, "Server tried to disconnect player that took too long to load");
+        return false;
     }
 
-
-
-
-
-    [HarmonyPatch(typeof(GameManagerNew), nameof(GameManagerNew.Shutdown)), HarmonyPrefix]
-    public static bool ShutdownFix(GameManagerNew __instance, string disconnectMessage)
+    [HarmonyPatch(typeof(GameManagerNew), nameof(GameManagerNew.Shutdown))]
+    [HarmonyPrefix]
+    private static bool ShutdownFix(GameManagerNew __instance, string disconnectMessage)
     {
-        if (!ServerManager.IsServer) return true;
-
-        __instance.StopAllCoroutines();
-        if (__instance.ActiveGameMode != null)
+        if (!ServerManager.IsServer)
         {
-            __instance.ActiveGameMode.Cleanup();
-            __instance.ActiveGameMode = null;
+            return true;
         }
 
-        LogCS.Log("[MODDEDSERVER] About to disconnect all players with reason: " + disconnectMessage, LogCS.LogType.LogInfo, 2, true);
+        __instance.StopAllCoroutines();
+        __instance.ActiveGameMode?.Cleanup();
+        __instance.ActiveGameMode = null;
+
+        LogCS.Log(
+            "[MODDEDSERVER] About to disconnect all players with reason: " + disconnectMessage,
+            LogCS.LogType.LogInfo,
+            2,
+            true);
         NetUtils.DisconnectAllPlayers(disconnectMessage);
         __instance.CurrentState = GameManagerNew.GameState.Inactive;
         __instance._SceneManager.expectedNumPlayers = -1;
@@ -147,14 +159,14 @@ internal static class ModdedServerPatches
         return false;
     }
 
-
-
-
-
-    [HarmonyPatch(typeof(NetServerSceneManager), nameof(NetServerSceneManager.Start)), HarmonyPrefix]
-    public static bool JoinTimerFix(NetServerSceneManager __instance)
+    [HarmonyPatch(typeof(NetServerSceneManager), nameof(NetServerSceneManager.Start))]
+    [HarmonyPrefix]
+    private static bool JoinTimerFix(NetServerSceneManager __instance)
     {
-        if (!ServerManager.IsServer) return true;
+        if (!ServerManager.IsServer)
+        {
+            return true;
+        }
 
         Mod.Logger.Msg(ConsoleColor.Blue, "Setting up join timers for modded server");
 
@@ -166,55 +178,47 @@ internal static class ModdedServerPatches
         return false;
     }
 
-
-
-
-
-    [HarmonyPatch(typeof(NetConfigLoader), nameof(NetConfigLoader.LoadServerConfig), []), HarmonyPostfix]
-    public static void ModdedPortApplicator(ref ServerConfig __result)
+    [HarmonyPatch(typeof(NetConfigLoader), nameof(NetConfigLoader.LoadServerConfig), [])]
+    [HarmonyPostfix]
+    private static void ModdedPortApplicator(ref ServerConfig __result)
     {
-        if (ServerManager.IsServer) __result.ServerPort = ServerManager.Port;
+        if (ServerManager.IsServer)
+        {
+            __result.ServerPort = ServerManager.Port;
+        }
     }
 
+    /*    [HarmonyPatch(typeof(Il2CppCoatsink.Platform.Users), nameof(Il2CppCoatsink.Platform.Users.MaxUsers), MethodType.Getter), HarmonyPostfix]
+        public static void MaxUserSetter(ref int __result) => __result = ServerManager.maxPlayers;
 
-
-
-
-/*    [HarmonyPatch(typeof(Il2CppCoatsink.Platform.Users), nameof(Il2CppCoatsink.Platform.Users.MaxUsers), MethodType.Getter), HarmonyPostfix]
-    public static void MaxUserSetter(ref int __result) => __result = ServerManager.maxPlayers;
-
-
-
-
-
-    [HarmonyPatch(typeof(Il2CppGB.UI.Beasts.BeastMenuSpawner), nameof(Il2CppGB.UI.Beasts.BeastMenuSpawner.Awake)), HarmonyPrefix]
-    public static void SpawnPointAdjuster(Il2CppGB.UI.Beasts.BeastMenuSpawner __instance)
-    {
-        if (ServerManager.maxPlayers % 8 == 0) // New max players fits into 8.
+        [HarmonyPatch(typeof(Il2CppGB.UI.Beasts.BeastMenuSpawner), nameof(Il2CppGB.UI.Beasts.BeastMenuSpawner.Awake)), HarmonyPrefix]
+        public static void SpawnPointAdjuster(Il2CppGB.UI.Beasts.BeastMenuSpawner __instance)
         {
-            List<Transform> toDuplicate = __instance._spawnPoint.ToList<Transform>();
-            int extraRows = (ServerManager.maxPlayers / 8) - 1;
-
-            if (extraRows > 0) // More spawns are needed
+            if (ServerManager.maxPlayers % 8 == 0) // New max players fits into 8.
             {
-                for (int i = 0; i < extraRows; i++)
-                {
-                    foreach (Transform spawn in __instance._spawnPoint)
-                    {
-                        Transform newSpawn = null;
-                        newSpawn = GameObject.Instantiate(spawn, spawn.parent, true);
-                        newSpawn.GetComponentInChildren<NamebarHandler>()._pointID += 8 * (i + 1); // Add onto the point ID for each row
+                List<Transform> toDuplicate = __instance._spawnPoint.ToList<Transform>();
+                int extraRows = (ServerManager.maxPlayers / 8) - 1;
 
-                        newSpawn.name = "Spawn";
-                        newSpawn.position -= Vector3.right * 2f * (i + 1); // Initial offset from prior rows
-                        newSpawn.position -= Vector3.right * 2f; // This is the amount of spacing that happens on real Gang Beasts spawnpoints
-                        toDuplicate.Add(newSpawn);
+                if (extraRows > 0) // More spawns are needed
+                {
+                    for (int i = 0; i < extraRows; i++)
+                    {
+                        foreach (Transform spawn in __instance._spawnPoint)
+                        {
+                            Transform newSpawn = null;
+                            newSpawn = GameObject.Instantiate(spawn, spawn.parent, true);
+                            newSpawn.GetComponentInChildren<NamebarHandler>()._pointID += 8 * (i + 1); // Add onto the point ID for each row
+
+                            newSpawn.name = "Spawn";
+                            newSpawn.position -= Vector3.right * 2f * (i + 1); // Initial offset from prior rows
+                            newSpawn.position -= Vector3.right * 2f; // This is the amount of spacing that happens on real Gang Beasts spawnpoints
+                            toDuplicate.Add(newSpawn);
+                        }
                     }
                 }
-            }
 
-            __instance._spawnPoint = toDuplicate.ToArray();
-            Mod.Logger.Msg(System.Drawing.Color.Beige, $"Finished setting up spawns. New count is {toDuplicate.Count} with an extra row amount of {extraRows}");
-        }
-    }*/
+                __instance._spawnPoint = toDuplicate.ToArray();
+                Mod.Logger.Msg(System.Drawing.Color.Beige, $"Finished setting up spawns. New count is {toDuplicate.Count} with an extra row amount of {extraRows}");
+            }
+        }*/
 }

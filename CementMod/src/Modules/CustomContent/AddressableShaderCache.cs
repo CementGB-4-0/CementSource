@@ -18,12 +18,12 @@ public static class AddressableShaderCache
 {
     private static readonly Dictionary<string, Shader> CachedShaders = [];
 
-    public static IEnumerator ReloadAddressableShaders(GameObject parent = null)
+    public static IEnumerator ReloadAddressableShaders(GameObject? parent = null)
     {
         yield return new WaitForEndOfFrame();
         LoggingUtilities.VerboseLog(ConsoleColor.DarkYellow, "Reloading Addressable shaders. . .");
         Il2CppArrayBase<MeshRenderer> renderers;
-        if (!parent)
+        if (parent == null)
         {
             renderers = Object.FindObjectsOfType<MeshRenderer>();
         }
@@ -37,13 +37,13 @@ public static class AddressableShaderCache
         }
 
         foreach (var meshRenderer in renderers)
-        {
             foreach (var material in meshRenderer.materials)
             {
                 if (CachedShaders.TryGetValue(material.shader.name, out var shader))
+                {
                     material.shader = shader;
+                }
             }
-        }
 
         LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen, "Reloaded Addressable shaders!");
     }
@@ -59,12 +59,14 @@ public static class AddressableShaderCache
             var locatorKeys = locator.Keys.ToList();
             var handle = Addressables.LoadResourceLocationsAsync(
                 locatorKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(),
-                Addressables.MergeMode.Union, Il2CppType.Of<Shader>());
+                Addressables.MergeMode.Union,
+                Il2CppType.Of<Shader>());
             yield return handle.HandleAsynchronousAddressableOperation();
 
             if (!AssetUtilities.IsHandleSuccess(handle))
             {
-                LoggingUtilities.VerboseLog(ConsoleColor.DarkYellow,
+                LoggingUtilities.VerboseLog(
+                    ConsoleColor.DarkYellow,
                     $"Addressable resource locator of ID {locator.LocatorId} could not be loaded, not caching. . .");
                 continue;
             }
@@ -77,13 +79,16 @@ public static class AddressableShaderCache
 
                 if (!AssetUtilities.IsHandleSuccess(assetHandle))
                 {
-                    LoggingUtilities.VerboseLog(ConsoleColor.DarkYellow,
+                    LoggingUtilities.VerboseLog(
+                        ConsoleColor.DarkYellow,
                         $"Addressable shader of key {location.PrimaryKey} could not be loaded, not caching. . .");
                     continue;
                 }
 
                 if (!CachedShaders.ContainsKey(location.PrimaryKey))
+                {
                     CachedShaders.Add(location.PrimaryKey, assetHandle.Result);
+                }
 
                 assetHandle.Release();
             }
@@ -92,12 +97,13 @@ public static class AddressableShaderCache
         }
 
         stopwatch.Stop();
-        Mod.Logger.Msg(ConsoleColor.Green,
+        Mod.Logger.Msg(
+            ConsoleColor.Green,
             $"Caching Addressable game shaders done! Total time taken: {stopwatch.Elapsed}");
     }
 
     internal static void Initialize()
     {
-        MelonCoroutines.Start(InitCacheShaders());
+        _ = MelonCoroutines.Start(InitCacheShaders());
     }
 }

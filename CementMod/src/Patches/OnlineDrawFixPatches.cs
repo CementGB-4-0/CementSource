@@ -14,7 +14,9 @@ internal static class GameModeInitBeastPatch
     private static void Postfix(GameMode __instance)
     {
         if (!ServerManager.IsServer)
+        {
             return;
+        }
 
         var collection = __instance._Model.GetCollection<NetMember>("NET_MEMBERS");
         if (collection.Count == 1 && NetUtils.GetPlayers<NetBeast>(collection[0]).Count == 1)
@@ -22,18 +24,31 @@ internal static class GameModeInitBeastPatch
             __instance.localSingleGang = true;
             return;
         }
-        int num = 0;
-        foreach (NetMember netMember in collection)
+
+        var num = 0;
+        foreach (var netMember in collection)
         {
-            if (netMember.Spectating) continue;
-            foreach (NetBeast netBeast in NetUtils.GetPlayers<NetBeast>(netMember))
+            if (netMember.Spectating)
             {
-                if (netBeast.GameOver) continue;
-                if (netBeast.GangId != num) GBNetUtils.RemoveBeastFromGang(netBeast);
+                continue;
+            }
+
+            foreach (var netBeast in NetUtils.GetPlayers<NetBeast>(netMember))
+            {
+                if (netBeast.GameOver)
+                {
+                    continue;
+                }
+
+                if (netBeast.GangId != num)
+                {
+                    GBNetUtils.RemoveBeastFromGang(netBeast);
+                }
 
                 netBeast.GangId = num;
                 GBNetUtils.SetBeastsGang(netBeast);
                 num++;
+
                 // Added rollover as a safety net to fix an impossible gang
                 // Players will now be forced into gangs if necessary?
                 // num %= GBNetUtils.Model.GetCollection<NetGang>("NET_GANGS").Count;
@@ -48,7 +63,9 @@ internal static class GameModeValidPatch
     private static void Postfix(ref bool __result)
     {
         if (ServerManager.IsServer)
+        {
             __result = true;
+        }
     }
 }
 
@@ -58,6 +75,8 @@ internal static class GameModeOverPatch
     private static void Postfix(ref bool __result)
     {
         if (ServerManager.IsServer)
+        {
             __result = GameMode.GetNumRemainingGangsAlive() < 2 && GBNetUtils.GetParticipatingPlayers().Count != 1;
+        }
     }
 }

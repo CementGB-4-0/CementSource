@@ -1,4 +1,3 @@
-using System;
 using CementGB.Mod.Utilities;
 using GBMDK;
 using Il2CppGB.Data.Loading;
@@ -10,47 +9,50 @@ namespace CementGB.Mod.CustomContent;
 /// <summary>
 ///     Holds references to scene data loaded on mod init to hold onto and cache loading results.
 /// </summary>
-public class CustomMapRefHolder(IResourceLocation sceneDataLoc, CustomMapInfo customMapInfo)
+public class CustomMapRefHolder(IResourceLocation sceneDataLoc, IResourceLocation? mapInfoLoc = null)
 {
-    /// <summary>
-    ///     Provides gamemode selection info for the map. May be null depending on how the map was created in GBMDK.
-    /// </summary>
-    public readonly CustomMapInfo SceneInfo = customMapInfo;
-
-    private SceneData _sceneData;
-
-    public CustomMapInfo sceneInfo = customMapInfo;
-
     /// <summary>
     ///     The name of the map, parsed from the loaded SceneData.
     /// </summary>
-    public string SceneName => sceneDataLoc.PrimaryKey.Split("-Data")[0];
+    public readonly string? SceneName = sceneDataLoc.PrimaryKey?.Split("-Data")[0];
 
     /// <summary>
-    ///     Provides data for each gamemode, along with a reference to the custom scene itself.
-    ///     Loads the SceneData of the map from sceneDataLoc and returns it.
+    ///     Provides gamemode selection info for the map. May be null depending on how the map was created in GBMDK.
     /// </summary>
-    /// <exception cref="Exception">Throws if the SceneData failed to load.</exception>
-    public SceneData SceneData
-    {
-        get
-        {
-            if (_sceneData) return _sceneData;
+    public CustomMapInfo? SceneInfo { get; private set; }
+    public SceneData? SceneData { get; private set; }
 
-            var sceneDataHandle = Addressables.LoadAssetAsync<SceneData>(sceneDataLoc);
-            if (!sceneDataHandle.HandleSynchronousAddressableOperation())
-                throw new Exception("Failed to load scene data from cached ResourceLocation!");
-
-            _sceneData = sceneDataHandle.Result;
-            sceneDataHandle.Release();
-            return _sceneData;
-        }
-    }
-    
     /// <summary>
     ///     Checks if the ref holder has all it needs to function properly in patches.
     /// </summary>
     /// <seealso cref="SceneData" />
     /// <seealso cref="SceneInfo" />
-    public bool IsValid => sceneDataLoc != null;
+    public bool IsValid => SceneInfo != null && SceneData != null;
+
+    internal void LoadReferences()
+    {
+        if (SceneName == null)
+            return;
+
+        var sceneDataHandle = Addressables.LoadAssetAsync<SceneData>(sceneDataLoc);
+        var sceneInfo = CustomMapInfo.CreateDefault(SceneName);
+        if (mapInfoLoc != null)
+        {
+            var mapInfoHandle = Addressables.LoadAssetAsync<CustomMapInfo>(mapInfoLoc);
+            if (mapInfoHandle.HandleSynchronousAddressableOperation())
+            {
+                sceneInfo = mapInfoHandle.Result;
+                sceneInfo.MakePersistent();
+            }
+        }
+
+        if (!sceneDataHandle.HandleSynchronousAddressableOperation())
+            throw new System.Exception($"Scene data failed to load from ResourceLocation! | PrimaryKey: {sceneDataLoc.PrimaryKey}");
+
+        var sceneData = sceneDataHandle.Result;
+        sceneData.MakePersistent();
+
+        SceneInfo = sceneInfo;
+        SceneData = sceneData;
+    }
 }

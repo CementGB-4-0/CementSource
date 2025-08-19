@@ -1,4 +1,8 @@
-﻿using CementGB.Mod.CustomContent;
+﻿using System;
+using System.Collections;
+using System.IO;
+using System.Linq;
+using CementGB.Mod.CustomContent;
 using CementGB.Mod.Modules.CustomContent.CustomMaps;
 using CementGB.Mod.Modules.NetBeard;
 using CementGB.Mod.Modules.PoolingModule;
@@ -12,19 +16,12 @@ using Il2CppGB.UI.Menu;
 using Il2CppInterop.Runtime;
 using MelonLoader;
 using MelonLoader.Utils;
-using System;
-using System.Collections;
-using System.IO;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace CementGB.Mod;
-
 /// <summary>
 ///     The main entrypoint for Cement. This is where everything initializes from. Public members include important paths
 ///     and MelonMod overrides.
@@ -42,7 +39,7 @@ public class Mod : MelonMod
     /// <remarks>See <see cref="AssetUtilities" /> for modded Addressable helpers.</remarks>
     public static readonly string CustomContentPath = MelonEnvironment.ModsDirectory;
 
-    private static GameObject _cementCompContainer;
+    private static GameObject? _cementCompContainer;
     private static bool _mapArgDidTheThing;
 
     public static string
@@ -68,6 +65,7 @@ public class Mod : MelonMod
 
             return _cementCompContainer;
         }
+
         set
         {
             Object.Destroy(_cementCompContainer);
@@ -89,11 +87,15 @@ public class Mod : MelonMod
         // Initialize static classes that need initializing
         CementPreferences.Initialize();
         if (!CementPreferences.VerboseMode)
-            Logger.Msg(System.ConsoleColor.White,
+        {
+            Logger.Msg(
+                System.ConsoleColor.White,
                 "Verbose Mode disabled! Enable verbose mode in UserData/CementGB/CementGB.cfg for more detailed logging.");
+        }
+
         CommonHooks.Initialize();
 
-        //Script.ReloadScripts();
+        // Script.ReloadScripts();
     }
 
     /// <summary>
@@ -116,8 +118,8 @@ public class Mod : MelonMod
     public override void OnLateInitializeMelon()
     {
         base.OnLateInitializeMelon();
-        
-        PlatformEvents.add_OnPlatformInitializedEvent((Action)CustomAddressableRegistration.Initialize);
+
+        PlatformEvents.add_OnPlatformInitializedEvent((PlatformEvents.PlatformVoidEventDel)CustomAddressableRegistration.Initialize);
         CommonHooks.OnMenuFirstBoot += MixerFinder.AssignMainMixer;
         CreateCementComponents();
     }
