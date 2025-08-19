@@ -1,9 +1,12 @@
 using CementGB.Mod.CustomContent;
 using CementGB.Mod.Modules.CustomContent.CustomMaps;
+using CementGB.Mod.Utilities;
 using HarmonyLib;
+using Il2CppAudio;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
 using Il2CppTMPro;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 
 using ConsoleColor = System.ConsoleColor;
@@ -28,10 +31,15 @@ internal static class OnSceneListCompletePatch
             if (!mapRef.IsValid || mapRef.SceneData == null)
                 continue;
 
-            if (mapRef.SceneData.AudioConfig)
+            if (!mapRef.SceneData._audioConfig)
             {
-                mapRef.SceneData.AudioConfig.audioMixer = MixerFinder.MainMixer;
+                mapRef.SceneData._audioConfig = ScriptableObject.CreateInstance<SceneAudioConfig>();
+                mapRef.SceneData._audioConfig.MakePersistent();
             }
+
+            mapRef.SceneData._audioConfig.audioMixer = MixerFinder.MainMixer;
+            if (mapRef.SceneData._audioConfig.musicData.maxVolume == 1f)
+                mapRef.SceneData._audioConfig.musicData.maxVolume = 0.15f;
 
             var sceneDataRef = new AssetReference(mapRef.SceneData.name);
 
