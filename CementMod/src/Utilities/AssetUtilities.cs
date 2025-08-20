@@ -12,11 +12,10 @@ public static class AssetUtilities
 {
     public static ushort NewUID(this CostumeDatabase instance)
     {
-        instance.searchSpeeder.Capacity = int.MaxValue;
         var num = (ushort)(instance.searchSpeeder.Count == 0 ? 410 : instance.searchSpeeder.GetKey(instance.searchSpeeder.Count - 1) + 1);
         return num;
     }
-    
+
     /// <summary>
     ///     Checks if the provided AsyncOperationHandle succeeded. Checks if the handle is valid, status is succeeded, and
     ///     result is not null.

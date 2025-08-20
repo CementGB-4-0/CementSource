@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using CementGB.Mod.CustomContent.Costumes;
 using CementGB.Mod.Utilities;
-using GBMDK;
 using Il2CppCostumes;
 using Il2CppGB.Data.Loading;
 using Il2CppInterop.Runtime;
@@ -123,7 +122,6 @@ public static class CustomAddressableRegistration
             {
                 if (ret.All(resourceLocation => resourceLocation.PrimaryKey != location.PrimaryKey))
                 {
-                    //_ = ResolveModdedInternalId(location);
                     ret.Add(location);
                 }
             }

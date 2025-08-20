@@ -20,9 +20,10 @@ public class CustomCostumeRefHolder(AssetReferenceT<CostumeObject> dataRef)
         }
     }
 
-    public bool IsValid(string primaryKey) => Data && Data.name == primaryKey && Data.CostumeItems.Length > 0;
-    
+    public bool IsValid(string primaryKey)
+    {
+        return Data && Data.name == primaryKey && Data.CostumeItems.Length > 0;
+    }
+
     private CostumeObject _costumeData;
-    
-    private Dictionary<string, AssetReference> _optionalRefs = new(); // TODO: Make all ref holders have a base class/interface they all inherit from
 }
