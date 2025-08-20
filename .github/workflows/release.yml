@@ -33,9 +33,8 @@ jobs:
             file: CementMod/CementMod.csproj
 
         - run: |
-            dotnet build -o dist/Mods --configuration Release
+            dotnet build --configuration Release
             cp README.md dist/README.md
-            rm dist/Mods/CementGB.deps.json
             cd dist; zip -r ../CementGB-CementGB-${{ steps.version_step.outputs.version }}.zip *
 
         - uses: marvinpinto/action-automatic-releases@latest
@@ -49,13 +48,15 @@ jobs:
               CementGB-CementGB-${{ steps.version_step.outputs.version }}.zip
               dist/Mods/CementGB.dll
         
-        - uses: dhkatz/thunderstore-publish@v1
+        - uses: dhkatz/thunderstore-publish@v1.0.1
           if: ${{ !env.ACT }}
           with:
             token: ${{ secrets.TS_TOKEN }}
             namespace: CementGB
-            community: gang-beasts
-            categories: 
+            name: CementGB
+            version: ${{ steps.version_step.outputs.version }}
+            communities: gang-beasts
+            categories: |
               Tools
               Libraries
               Mods
