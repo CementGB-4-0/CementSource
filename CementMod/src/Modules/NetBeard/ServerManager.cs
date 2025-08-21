@@ -184,11 +184,7 @@ public class ServerManager : MonoBehaviour
         Mod.Logger.Msg($"{ServerLogPrefix} Setting up server boot...");
         var bootstrapper = FindObjectOfType<NetworkBootstrapper>();
         bootstrapper.AutoRunServer = IsServer && !DontAutoStart;
-        UnityServicesManager.Instance.Initialise(
-            UnityServicesManager.InitialiseFlags.DedicatedServer,
-            null,
-            "",
-            "DGS");
+        // UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.DedicatedServer, null, "", "DGS");
         MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
         NetMemberContext.LocalHostedGame = true;
         GameManagerNew.add_OnGameManagerCreated((Action)SetConfigOnGameManager);
