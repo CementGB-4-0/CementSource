@@ -15,7 +15,8 @@ internal static class CustomAddressablesPatches
     {
         private static void Postfix(string id, ref string __result)
         {
-            if (id.StartsWith($"{{{CustomAddressableRegistration.ModsDirectoryPropertyName}}}") && id.EndsWith(".bundle"))
+            if (id.StartsWith($"{{{CustomAddressableRegistration.ModsDirectoryPropertyName}}}") &&
+                id.EndsWith(".bundle"))
             {
                 __result = CustomAddressableRegistration.ResolveModdedInternalId(__result);
             }

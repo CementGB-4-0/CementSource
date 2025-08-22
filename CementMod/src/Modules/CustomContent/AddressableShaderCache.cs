@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using CementGB.Mod.Utilities;
 using Il2CppInterop.Runtime;
@@ -14,9 +16,9 @@ namespace CementGB.Mod.CustomContent;
 
 public static class AddressableShaderCache
 {
-    private static readonly System.Collections.Generic.Dictionary<string, Shader> CachedShaders = [];
+    private static readonly Dictionary<string, Shader> CachedShaders = [];
 
-    public static System.Collections.IEnumerator ReloadAddressableShaders(GameObject parent = null)
+    public static IEnumerator ReloadAddressableShaders(GameObject parent = null)
     {
         yield return new WaitForEndOfFrame();
         LoggingUtilities.VerboseLog(ConsoleColor.DarkYellow, "Reloading Addressable shaders. . .");
@@ -27,7 +29,7 @@ public static class AddressableShaderCache
         }
         else
         {
-            var rendList = new System.Collections.Generic.List<MeshRenderer>();
+            var rendList = new List<MeshRenderer>();
             rendList.AddRange(parent.GetComponents<MeshRenderer>());
             rendList.AddRange(parent.GetComponentsInChildren<MeshRenderer>());
 
@@ -46,7 +48,7 @@ public static class AddressableShaderCache
         LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen, "Reloaded Addressable shaders!");
     }
 
-    private static System.Collections.IEnumerator InitCacheShaders()
+    private static IEnumerator InitCacheShaders()
     {
         Mod.Logger.Msg("Caching Addressable game shaders, please wait. . .");
         var stopwatch = new Stopwatch();
@@ -82,7 +84,7 @@ public static class AddressableShaderCache
                         $"Addressable shader of key {location.PrimaryKey} could not be loaded, not caching. . .");
                     continue;
                 }
-                
+
                 if (!CachedShaders.ContainsKey(location.PrimaryKey))
                     CachedShaders.Add(location.PrimaryKey, assetHandle.Result);
 
@@ -91,7 +93,7 @@ public static class AddressableShaderCache
 
             handle.Release();
         }
-        
+
         stopwatch.Stop();
         Mod.Logger.Msg(
             ConsoleColor.Green,
@@ -100,6 +102,6 @@ public static class AddressableShaderCache
 
     internal static void Initialize()
     {
-        MelonCoroutines.Start(InitCacheShaders());
+        _ = MelonCoroutines.Start(InitCacheShaders());
     }
 }

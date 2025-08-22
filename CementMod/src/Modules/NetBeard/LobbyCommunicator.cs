@@ -1,4 +1,10 @@
-﻿using Il2Cpp;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Il2Cpp;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.Game;
@@ -6,12 +12,6 @@ using Il2CppGB.Gamemodes;
 using Il2CppGB.UnityServices.Matchmaking;
 using MelonLoader;
 using Newtonsoft.Json;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace CementGB.Mod.Modules.NetBeard;
 
@@ -36,7 +36,7 @@ internal static class LobbyCommunicator
             {
                 if (prefix == "gamedata")
                 {
-                    MelonCoroutines.Start(HandleGBGameData(payload));
+                    _ = MelonCoroutines.Start(HandleGBGameData(payload));
                 }
             };
         }
@@ -50,35 +50,37 @@ internal static class LobbyCommunicator
 
         GameManagerNew.Instance.EndGameSession("DISCONNECT_GAME_COMPLETE");
 
-        GBGameData gameData = JsonConvert.DeserializeObject<GBGameData>(payload);
+        var gameData = JsonConvert.DeserializeObject<GBGameData>(payload);
         LobbyCommunicator.gameData = gameData;
 
         Mod.Logger.Msg(ConsoleColor.Blue, "Received new modded session data");
 
         if (gameData.MapName.ToLower() == "random")
         {
-            GameManagerNew.Instance.tracker = MonoSingleton<Global>.Instance.Resources.GetData<GameModeSetupConfiguration>("GameModeSetupConfiguration");
+            GameManagerNew.Instance.tracker =
+                MonoSingleton<Global>.Instance.Resources.GetData<GameModeSetupConfiguration>(
+                    "GameModeSetupConfiguration");
 
-            GameModeEnum gameModeEnum = GameModeHelpers.GamemodeIDToEnum(gameData.Gamemode);
+            var gameModeEnum = GameModeHelpers.GamemodeIDToEnum(gameData.Gamemode);
             var mapsFor = GameManagerNew.Instance.tracker.Maps.GetMapsFor(gameModeEnum, false);
 
-            List<string> maps = new List<string>();
-            foreach (ModeMapStatus modeMapStatus in mapsFor)
+            var maps = new List<string>();
+            foreach (var modeMapStatus in mapsFor)
             {
                 maps.Add(modeMapStatus.MapName);
             }
 
-            RotationConfig rotationConfig = GBConfigLoader.CreateRotationConfig(
+            var rotationConfig = GBConfigLoader.CreateRotationConfig(
                 maps.ToArray(), gameModeEnum,
                 gameData.NumberOfWins, true,
-                gameData.StageTimeLimit, 0);
+                gameData.StageTimeLimit);
 
             GameManagerNew.Instance.ChangeRotationConfig(rotationConfig);
         }
 
         else
         {
-            RotationConfig rotationConfig = GBConfigLoader.CreateRotationConfig(
+            var rotationConfig = GBConfigLoader.CreateRotationConfig(
                 gameData.MapName, gameData.Gamemode,
                 gameData.NumberOfWins, gameData.StageTimeLimit);
 
@@ -93,7 +95,7 @@ internal static class LobbyCommunicator
 
     internal static void SendLobbyDataToServer(GBGameData data)
     {
-        string serializedData = JsonConvert.SerializeObject(data);
+        var serializedData = JsonConvert.SerializeObject(data);
         ClientServerCommunicator.QueueMessage("gamedata", serializedData);
     }
 

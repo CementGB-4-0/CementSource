@@ -22,6 +22,7 @@ using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace CementGB.Mod;
+
 /// <summary>
 ///     The main entrypoint for Cement. This is where everything initializes from. Public members include important paths
 ///     and MelonMod overrides.
@@ -119,15 +120,16 @@ public class Mod : MelonMod
     {
         base.OnLateInitializeMelon();
 
-        PlatformEvents.add_OnPlatformInitializedEvent((PlatformEvents.PlatformVoidEventDel)CustomAddressableRegistration.Initialize);
+        PlatformEvents.add_OnPlatformInitializedEvent(
+            (PlatformEvents.PlatformVoidEventDel)CustomAddressableRegistration.Initialize);
         CommonHooks.OnMenuFirstBoot += MixerFinder.AssignMainMixer;
         CreateCementComponents();
     }
 
     private static void FileStructure()
     {
-        Directory.CreateDirectory(UserDataPath);
-        Directory.CreateDirectory(CustomContentPath);
+        _ = Directory.CreateDirectory(UserDataPath);
+        _ = Directory.CreateDirectory(CustomContentPath);
     }
 
     private static void CreateCementComponents()
@@ -136,9 +138,9 @@ public class Mod : MelonMod
         Object.DontDestroyOnLoad(CementCompContainer);
         CementCompContainer.MakePersistent();
 
-        CementCompContainer.AddComponent<NetBeard>();
-        CementCompContainer.AddComponent<ServerManager>();
-        CementCompContainer.AddComponent<Pool>();
+        _ = CementCompContainer.AddComponent<NetBeard>();
+        _ = CementCompContainer.AddComponent<ServerManager>();
+        _ = CementCompContainer.AddComponent<Pool>();
         //CementCompContainer.AddComponent<BeastInput>();
     }
 
@@ -151,7 +153,7 @@ public class Mod : MelonMod
             (!_mapArgDidTheThing || (ServerManager.IsServer && !ServerManager.DontAutoStart)))
         {
             _mapArgDidTheThing = true;
-            MelonCoroutines.Start(JumpToMap());
+            _ = MelonCoroutines.Start(JumpToMap());
         }
     }
 
