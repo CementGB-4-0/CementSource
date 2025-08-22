@@ -54,7 +54,7 @@ public static class EmbeddedUtilities
     ///     Reads all text from an embedded file. File must be marked as an EmbeddedResource in the mod's csproj.
     /// </summary>
     /// <param name="assembly">
-    ///     The assembly the file is embedded in. Its usually okay to use
+    ///     The assembly the file is embedded in. It's usually okay to use
     ///     <c>Assembly.GetExecutingAssembly</c> or <c>MelonMod.MelonAssembly.Assembly</c> to get the current assembly.
     /// </param>
     /// <param name="resourceName">

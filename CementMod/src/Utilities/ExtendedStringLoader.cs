@@ -11,7 +11,8 @@ public static class ExtendedStringLoader
     internal static readonly Dictionary<string, string> items = [];
 
     /// <summary>
-    ///     Registers a key-value pair for localization. When the key is loading via GB's <c>StringLoader.LoadString</c>
+    ///     Registers a key-value pair for rudimentary localization. When the key is loading via GB's
+    ///     <c>StringLoader.LoadString</c>
     ///     methods, it returns the value string instead.
     /// </summary>
     /// <param name="key">
@@ -23,7 +24,8 @@ public static class ExtendedStringLoader
     {
         if (!items.TryAdd(key, value))
         {
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
+            LoggingUtilities.VerboseLog(
+                ConsoleColor.DarkRed,
                 $"'{key}' has already been registered in ExtendedStringLoader");
         }
     }

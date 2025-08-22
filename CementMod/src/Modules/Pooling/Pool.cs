@@ -100,7 +100,7 @@ public class Pool : MonoBehaviour
         }
 
         // Removes it so that it can't be pooled again
-        spawnedObjects.Remove(gameObject);
+        _ = spawnedObjects.Remove(gameObject);
 
         // Pools the object and sets it to inactive
         gameObject.SetActive(false);
@@ -141,7 +141,7 @@ public class Pool : MonoBehaviour
                 @object.AddComponent<Poolable>().SetId(id);
             }
 
-            pooledObjects.Remove(@object);
+            _ = pooledObjects.Remove(@object);
         }
 
         @object.name = prefab.name;

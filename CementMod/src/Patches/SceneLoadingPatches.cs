@@ -1,11 +1,14 @@
 using CementGB.Mod.CustomContent;
+using CementGB.Mod.Modules.CustomContent.CustomMaps;
+using CementGB.Mod.Utilities;
 using HarmonyLib;
+using Il2CppAudio;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
 using Il2CppTMPro;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 using ConsoleColor = System.ConsoleColor;
-using Object = Il2CppSystem.Object;
 using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Mod.Patches;
@@ -17,26 +20,34 @@ internal static class OnSceneListCompletePatch
     {
         var sceneList = __instance._sceneList.TryCast<AddressableDataCache>();
 
-        if (!sceneList)
+        if (!sceneList || sceneList == null)
+        {
             return;
+        }
 
         foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
         {
-            var sceneDataRef = new AssetReference(mapRef.SceneData.name);
-            
-            Resources._assetList.Add(
-                new Resources.LoadLoadedItem(sceneDataRef)
-                {
-                    Key = mapRef.SceneData.name
-                });
-            
-            sceneList._assets.Add(new AddressableDataCache.AssetData
-            {
-                Asset = sceneDataRef,
-                Key = mapRef.SceneName
-            });
+            if (!mapRef.IsValid || mapRef.SceneData == null)
+                continue;
 
-            Mod.Logger.Msg(ConsoleColor.DarkGreen, $"New custom stage registered in SceneLoader : Key: {mapRef.SceneName}");
+            if (!mapRef.SceneData._audioConfig)
+            {
+                mapRef.SceneData._audioConfig = ScriptableObject.CreateInstance<SceneAudioConfig>();
+                mapRef.SceneData._audioConfig.MakePersistent();
+            }
+
+            mapRef.SceneData._audioConfig.audioMixer = MixerFinder.MainMixer;
+            if (mapRef.SceneData._audioConfig.musicData.maxVolume == 1f)
+                mapRef.SceneData._audioConfig.musicData.maxVolume = 0.15f;
+
+            var sceneDataRef = new AssetReference(mapRef.SceneData.name);
+
+            Resources._assetList.Add(new Resources.LoadLoadedItem(sceneDataRef) { Key = mapRef.SceneData.name });
+            sceneList._assets.Add(new AddressableDataCache.AssetData { Asset = sceneDataRef, Key = mapRef.SceneName });
+
+            Mod.Logger.Msg(
+                ConsoleColor.DarkGreen,
+                $"New custom stage registered in SceneLoader : Key: {mapRef.SceneName}");
         }
     }
 }
@@ -46,9 +57,13 @@ internal static class SetSubTitlePatch
 {
     private static bool Prefix(LoadScreenDisplayHandler __instance, ref string name)
     {
-        if (!CustomAddressableRegistration.IsModdedKey(name)) return true;
+        if (!CustomAddressableRegistration.IsModdedKey(name))
+        {
+            return true;
+        }
+
         __instance._subTitle.GetComponent<TextMeshProUGUI>().text = name;
-        
+
         return false;
     }
 }

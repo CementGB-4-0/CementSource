@@ -3,43 +3,59 @@ using CementGB.Mod.Utilities;
 using GBMDK;
 using Il2CppGB.Data.Loading;
 using UnityEngine.AddressableAssets;
-using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace CementGB.Mod.CustomContent;
 
 /// <summary>
-/// Holds references to scene data loaded on mod init to hold onto and cache loading results.
+///     Holds references to scene data loaded on mod init to hold onto and cache loading results.
 /// </summary>
-public class CustomMapRefHolder(IResourceLocation sceneDataLoc, CustomMapInfo customMapInfo)
+public class CustomMapRefHolder(IResourceLocation sceneDataLoc, IResourceLocation? mapInfoLoc = null)
 {
-    public string SceneName => sceneDataLoc.PrimaryKey.Split("-Data")[0];
+    /// <summary>
+    ///     The name of the map, parsed from the loaded SceneData.
+    /// </summary>
+    public readonly string? SceneName = sceneDataLoc.PrimaryKey?.Split("-Data")[0];
 
-    public SceneData SceneData
+    /// <summary>
+    ///     Provides gamemode selection info for the map. May be null depending on how the map was created in GBMDK.
+    /// </summary>
+    public CustomMapInfo? SceneInfo { get; private set; }
+
+    public SceneData? SceneData { get; private set; }
+
+    /// <summary>
+    ///     Checks if the ref holder has all it needs to function properly in patches.
+    /// </summary>
+    /// <seealso cref="SceneData" />
+    /// <seealso cref="SceneInfo" />
+    public bool IsValid => SceneInfo != null && SceneData != null;
+
+    internal void LoadReferences()
     {
-        get
-        {
-            if (_sceneData) return _sceneData;
-            
-            var sceneDataHandle = Addressables.LoadAssetAsync<SceneData>(sceneDataLoc);
-            if (!sceneDataHandle.HandleSynchronousAddressableOperation())
-                throw new Exception("Failed to load scene data from cached ResourceLocation!");
-                
-            _sceneData = sceneDataHandle.Result;
-            sceneDataHandle.Release();
-            return _sceneData;
-        }
-    }
+        if (SceneName == null)
+            return;
 
-    private SceneData _sceneData;
-    
-    public CustomMapInfo sceneInfo = customMapInfo;
-
-    public bool IsValid
-    {
-        get
+        var sceneDataHandle = Addressables.LoadAssetAsync<SceneData>(sceneDataLoc);
+        var sceneInfo = CustomMapInfo.CreateDefault(SceneName);
+        if (mapInfoLoc != null)
         {
-            return sceneDataLoc != null;
+            var mapInfoHandle = Addressables.LoadAssetAsync<CustomMapInfo>(mapInfoLoc);
+            if (mapInfoHandle.HandleSynchronousAddressableOperation())
+            {
+                sceneInfo = mapInfoHandle.Result;
+                sceneInfo.MakePersistent();
+            }
         }
+
+        if (!sceneDataHandle.HandleSynchronousAddressableOperation())
+            throw new Exception(
+                $"Scene data failed to load from ResourceLocation! | PrimaryKey: {sceneDataLoc.PrimaryKey}");
+
+        var sceneData = sceneDataHandle.Result;
+        sceneData.MakePersistent();
+
+        SceneInfo = sceneInfo;
+        SceneData = sceneData;
     }
 }

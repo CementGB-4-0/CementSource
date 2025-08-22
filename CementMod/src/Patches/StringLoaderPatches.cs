@@ -9,16 +9,18 @@ internal class LoadStringPatch
 {
     private static void Postfix(string key, ref string __result)
     {
-        if (__result == null || __result.StartsWith("Couldn't find value"))
+        if (__result != null && !__result.StartsWith("Couldn't find value"))
         {
-            if (!ExtendedStringLoader.items.ContainsKey(key))
-            {
-                __result = key;
-                return;
-            }
-
-            __result = ExtendedStringLoader.items[key];
+            return;
         }
+
+        if (!ExtendedStringLoader.items.TryGetValue(key, out var item))
+        {
+            __result = key;
+            return;
+        }
+
+        __result = item;
     }
 }
 
@@ -27,15 +29,17 @@ internal class LoadRawStringPatch
 {
     private static void Postfix(string key, ref string __result)
     {
-        if (__result == null || __result.StartsWith("Couldn't find value"))
+        if (__result != null && !__result.StartsWith("Couldn't find value"))
         {
-            if (!ExtendedStringLoader.items.ContainsKey(key))
-            {
-                return;
-            }
-
-            __result = ExtendedStringLoader.items[key];
+            return;
         }
+
+        if (!ExtendedStringLoader.items.TryGetValue(key, out var item))
+        {
+            return;
+        }
+
+        __result = item;
     }
 }
 
@@ -44,15 +48,17 @@ internal class TryLoadStringPatch
 {
     private static void Postfix(ref string pulledString, string key, ref bool __result)
     {
-        if (!__result)
+        if (__result)
         {
-            if (!ExtendedStringLoader.items.ContainsKey(key))
-            {
-                return;
-            }
-
-            pulledString = ExtendedStringLoader.items[key];
-            __result = true;
+            return;
         }
+
+        if (!ExtendedStringLoader.items.TryGetValue(key, out var item))
+        {
+            return;
+        }
+
+        pulledString = item;
+        __result = true;
     }
 }
