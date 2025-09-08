@@ -1,7 +1,7 @@
 using System;
+using CementGB.Mod.CustomContent;
 using Il2CppGB.Game;
-using UnityEngine.Events;
-using UnityEngine.SceneManagement;
+using MelonLoader;
 
 namespace CementGB.Mod;
 
@@ -15,26 +15,34 @@ public static class CommonHooks
     /// <summary>
     ///     Fired when the Menu scene loads for the first time in the app's lifespan. Will reset on application quit.
     /// </summary>
-    public static event Action OnMenuFirstBoot;
+    public static event Action? OnMenuFirstBoot;
 
-    public static event Action OnGameManagerCreated;
-    public static event Action OnRoundStart;
-    public static event Action OnRoundEnd;
+    public static event Action? OnGameManagerCreated;
+
+    public static event Action? OnRoundStart;
+
+    public static event Action? OnRoundEnd;
 
     internal static void Initialize()
     {
-        SceneManager.add_sceneLoaded((UnityAction<Scene, LoadSceneMode>)OnSceneWasLoaded);
+        MelonEvents.OnSceneWasLoaded.Subscribe(OnSceneWasLoaded);
 
         GameManagerNew.add_OnGameManagerCreated(new Action(() => { OnGameManagerCreated?.Invoke(); }));
         GameManagerNew.add_OnRoundStart(new Action(() => { OnRoundStart?.Invoke(); }));
         GameManagerNew.add_OnRoundEnd(new Action(() => { OnRoundEnd?.Invoke(); }));
     }
 
-    private static void OnSceneWasLoaded(Scene scene, LoadSceneMode mode)
+    private static void OnSceneWasLoaded(int buildIndex, string sceneName)
     {
-        if (scene.name != "Menu" || _menuFirstBoot) return;
+        if (sceneName == "Menu" && !_menuFirstBoot)
+        {
+            _menuFirstBoot = true;
+            OnMenuFirstBoot?.Invoke();
+        }
 
-        _menuFirstBoot = true;
-        OnMenuFirstBoot?.Invoke();
+        if (CustomAddressableRegistration.IsModdedKey(sceneName))
+        {
+            _ = MelonCoroutines.Start(AddressableShaderCache.ReloadAddressableShaders());
+        }
     }
 }

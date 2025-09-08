@@ -28,11 +28,11 @@ public static class HookModule
         var harmonyInstance = hook.callingMod is not null
             ? hook.callingMod.HarmonyInstance
             : Melon<Mod>.Instance.HarmonyInstance;
-        harmonyInstance.Patch(hook.original, prefix, postfix);
+        _ = harmonyInstance.Patch(hook.original, prefix, postfix);
 
         if (canToggle)
         {
-            harmonyInstance.Patch(hook.hook, beforeEitherFix);
+            _ = harmonyInstance.Patch(hook.hook, beforeEitherFix);
         }
 
         var resultString =

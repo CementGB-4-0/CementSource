@@ -9,6 +9,19 @@ namespace CementGB.Mod.Modules.CustomContent.Patches;
 [HarmonyPatch]
 internal static class CustomAddressablesPatches
 {
+    [HarmonyPatch(typeof(AddressablesImpl), nameof(AddressablesImpl.ResolveInternalId))]
+    private static class ResolveInternalIdPatch
+    {
+        private static void Postfix(string id, ref string __result)
+        {
+            if (id.StartsWith($"{{{CustomAddressableRegistration.ModsDirectoryPropertyName}}}") &&
+                id.EndsWith(".bundle"))
+            {
+                __result = CustomAddressableRegistration.ResolveModdedInternalId(__result);
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(AssetReference), nameof(AssetReference.RuntimeKeyIsValid))]
     private static class AssetReferenceRuntimeKeyIsValidPatch
     {
@@ -44,7 +57,8 @@ internal static class CustomAddressablesPatches
     {
         private static bool Prefix(Resources.LoadLoadedItem __instance, ref AsyncOperationHandle __result)
         {
-            if (!CustomAddressableRegistration.IsModdedKey(__instance.Key) || string.IsNullOrWhiteSpace(__instance.Key))
+            if (!CustomAddressableRegistration.IsModdedKey(__instance.Key) ||
+                string.IsNullOrWhiteSpace(__instance.Key))
             {
                 return true;
             }

@@ -24,7 +24,8 @@ public static class ExtendedStringLoader
     {
         if (!items.TryAdd(key, value))
         {
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
+            LoggingUtilities.VerboseLog(
+                ConsoleColor.DarkRed,
                 $"'{key}' has already been registered in ExtendedStringLoader");
         }
     }

@@ -2,10 +2,13 @@
 using System.Collections;
 using System.IO;
 using System.Linq;
-using CementGB.Mod.Modules.CustomContent.Utilities;
+using CementGB.Mod.CustomContent;
+using CementGB.Mod.Modules.CustomContent.CustomMaps;
 using CementGB.Mod.Modules.NetBeard;
 using CementGB.Mod.Modules.PoolingModule;
+using CementGB.Mod.Utilities;
 using Il2Cpp;
+using Il2CppCS.CorePlatform;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.UI;
@@ -37,7 +40,7 @@ public class Mod : MelonMod
     /// <remarks>See <see cref="AssetUtilities" /> for modded Addressable helpers.</remarks>
     public static readonly string CustomContentPath = MelonEnvironment.ModsDirectory;
 
-    private static GameObject _cementCompContainer;
+    private static GameObject? _cementCompContainer;
     private static bool _mapArgDidTheThing;
 
     public static string
@@ -63,6 +66,7 @@ public class Mod : MelonMod
 
             return _cementCompContainer;
         }
+
         set
         {
             Object.Destroy(_cementCompContainer);
@@ -84,11 +88,15 @@ public class Mod : MelonMod
         // Initialize static classes that need initializing
         CementPreferences.Initialize();
         if (!CementPreferences.VerboseMode)
-            Logger.Msg(System.ConsoleColor.White,
+        {
+            Logger.Msg(
+                System.ConsoleColor.White,
                 "Verbose Mode disabled! Enable verbose mode in UserData/CementGB/CementGB.cfg for more detailed logging.");
+        }
+
         CommonHooks.Initialize();
 
-        //Script.ReloadScripts();
+        // Script.ReloadScripts();
     }
 
     /// <summary>
@@ -112,13 +120,16 @@ public class Mod : MelonMod
     {
         base.OnLateInitializeMelon();
 
+        PlatformEvents.add_OnPlatformInitializedEvent(
+            (PlatformEvents.PlatformVoidEventDel)CustomAddressableRegistration.Initialize);
+        CommonHooks.OnMenuFirstBoot += MixerFinder.AssignMainMixer;
         CreateCementComponents();
     }
 
     private static void FileStructure()
     {
-        Directory.CreateDirectory(UserDataPath);
-        Directory.CreateDirectory(CustomContentPath);
+        _ = Directory.CreateDirectory(UserDataPath);
+        _ = Directory.CreateDirectory(CustomContentPath);
     }
 
     private static void CreateCementComponents()
@@ -127,18 +138,22 @@ public class Mod : MelonMod
         Object.DontDestroyOnLoad(CementCompContainer);
         CementCompContainer.MakePersistent();
 
-        CementCompContainer.AddComponent<ServerManager>();
-        CementCompContainer.AddComponent<Pool>();
+        _ = CementCompContainer.AddComponent<NetBeard>();
+        _ = CementCompContainer.AddComponent<ServerManager>();
+        _ = CementCompContainer.AddComponent<Pool>();
+        //CementCompContainer.AddComponent<BeastInput>();
     }
 
     public override void OnUpdate()
     {
+        MainThreadDispatcher.DispatchActions();
+
         if (SceneManager.GetActiveScene().name == "Menu" &&
             Global.Instance.SceneLoader && !string.IsNullOrWhiteSpace(MapArg) &&
             (!_mapArgDidTheThing || (ServerManager.IsServer && !ServerManager.DontAutoStart)))
         {
             _mapArgDidTheThing = true;
-            MelonCoroutines.Start(JumpToMap());
+            _ = MelonCoroutines.Start(JumpToMap());
         }
     }
 

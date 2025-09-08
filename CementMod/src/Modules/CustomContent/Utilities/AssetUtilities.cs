@@ -20,7 +20,10 @@ public static class AssetUtilities
     /// <returns>Whether the passed handle succeeded, and the result is not null.</returns>
     public static bool IsHandleSuccess(AsyncOperationHandle handle)
     {
-        return handle.IsValid() && handle.Status == AsyncOperationStatus.Succeeded && handle.Result != null;
+        return handle.IsValid() &&
+               handle.Status ==
+               AsyncOperationStatus.Succeeded &&
+               handle.Result != null;
     }
 
     /// <summary>
@@ -36,21 +39,27 @@ public static class AssetUtilities
         where T : Il2CppObjectBase
     {
         if (!handle.IsDone)
+        {
             yield return handle;
+        }
 
         if (!IsHandleSuccess(handle))
         {
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
+            LoggingUtilities.VerboseLog(
+                ConsoleColor.DarkRed,
                 $"Failed to load asset from asynchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {!handle.IsValid() || handle.Result == null}");
-            if (handle.IsValid()) handle.Release();
+            if (handle.IsValid())
+            {
+                handle.Release();
+            }
+
             yield break;
         }
 
         var res = handle.Result;
 
         var obj = res.TryCast<Object>();
-        if (obj)
-            obj.MakePersistent();
+        obj?.MakePersistent();
     }
 
     /// <summary>
@@ -69,15 +78,19 @@ public static class AssetUtilities
 
         if (!IsHandleSuccess(handle))
         {
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed,
+            LoggingUtilities.VerboseLog(
+                ConsoleColor.DarkRed,
                 $"Failed to load asset from synchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {!handle.IsValid() || handle.Result == null}");
-            if (handle.IsValid()) handle.Release();
+            if (handle.IsValid())
+            {
+                handle.Release();
+            }
+
             return false;
         }
 
         var obj = res.TryCast<Object>();
-        if (obj)
-            obj.MakePersistent();
+        obj?.MakePersistent();
 
         return true;
     }
@@ -89,12 +102,15 @@ public static class AssetUtilities
     /// <param name="bundle">The bundle to load the asset from.</param>
     /// <param name="name">The exact name of the asset to load.</param>
     /// <returns>The loaded asset with <c>hideFlags</c> set persistently.</returns>
-    public static T LoadPersistentAsset<T>(this AssetBundle bundle, string name) where T : Object
+    public static T? LoadPersistentAsset<T>(this AssetBundle bundle, string name) where T : Object
     {
         var asset = bundle.LoadAsset<T>(name);
 
         if (!asset)
+        {
             return null;
+        }
+
         asset.MakePersistent();
         return asset;
     }
@@ -112,18 +128,23 @@ public static class AssetUtilities
     {
         var request = bundle.LoadAssetAsync<T>(name);
 
-        request.add_completed((Il2CppSystem.Action<AsyncOperation>)(a =>
-        {
-            if (!request.asset)
-                return;
+        request.add_completed(
+            (Il2CppSystem.Action<AsyncOperation>)(a =>
+            {
+                if (!request.asset)
+                {
+                    return;
+                }
 
-            var result = request.asset.TryCast<T>();
-            if (!result)
-                return;
+                var result = request.asset.TryCast<T>();
+                if (result == null)
+                {
+                    return;
+                }
 
-            result.MakePersistent();
-            onLoaded?.Invoke(result);
-        }));
+                result.MakePersistent();
+                onLoaded?.Invoke(result);
+            }));
     }
 
     /// <summary>
@@ -138,18 +159,23 @@ public static class AssetUtilities
     {
         var request = bundle.LoadAllAssetsAsync<T>();
 
-        request.add_completed(new Action<AsyncOperation>(a =>
-        {
-            if (!request.asset)
-                return;
+        request.add_completed(
+            new Action<AsyncOperation>(a =>
+            {
+                if (!request.asset)
+                {
+                    return;
+                }
 
-            var result = request.asset.TryCast<T>();
-            if (!result)
-                return;
+                var result = request.asset.TryCast<T>();
+                if (result == null)
+                {
+                    return;
+                }
 
-            result.MakePersistent();
-            onLoaded?.Invoke(result);
-        }));
+                result.MakePersistent();
+                onLoaded?.Invoke(result);
+            }));
     }
 
     /*     /// <summary>

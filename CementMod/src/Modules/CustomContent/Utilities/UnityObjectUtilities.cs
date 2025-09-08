@@ -15,6 +15,8 @@ public static class UnityObjectUtilities
     {
         objec.hideFlags = HideFlags.HideAndDontSave | HideFlags.DontUnloadUnusedAsset;
         if (dontDestroyOnLoad)
+        {
             Object.DontDestroyOnLoad(objec);
+        }
     }
 }

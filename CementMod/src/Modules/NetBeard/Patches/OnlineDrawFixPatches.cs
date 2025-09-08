@@ -1,4 +1,4 @@
-using System;
+using CementGB.Mod.Modules.NetBeard;
 using HarmonyLib;
 using Il2CppCoreNet.Objects;
 using Il2CppCoreNet.Utils;
@@ -6,7 +6,7 @@ using Il2CppGB.Game;
 using Il2CppGB.Networking.Objects;
 using Il2CppGB.Networking.Utils;
 
-namespace CementGB.Mod.Modules.NetBeard.Patches;
+namespace CementGB.Mod.Patches;
 
 [HarmonyPatch(typeof(GameMode), nameof(GameMode.InitBeast))]
 internal static class GameModeInitBeastPatch
@@ -14,10 +14,12 @@ internal static class GameModeInitBeastPatch
     private static void Postfix(GameMode __instance)
     {
         if (!ServerManager.IsServer)
+        {
             return;
+        }
 
         var collection = __instance._Model.GetCollection<NetMember>("NET_MEMBERS");
-        if (collection.Count == 1 && NetUtils.GetPlayers<NetBeast>((NetMember)collection[(Index)0]).Count == 1)
+        if (collection.Count == 1 && NetUtils.GetPlayers<NetBeast>(collection[0]).Count == 1)
         {
             __instance.localSingleGang = true;
             return;
@@ -26,21 +28,32 @@ internal static class GameModeInitBeastPatch
         var num = 0;
         foreach (var netMember in collection)
         {
-            if (netMember.Spectating) continue;
+            if (netMember.Spectating)
+            {
+                continue;
+            }
+
             foreach (var netBeast in NetUtils.GetPlayers<NetBeast>(netMember))
             {
-                if (netBeast.GameOver) continue;
-                GBNetUtils.RemoveBeastFromGang(netBeast);
+                if (netBeast.GameOver)
+                {
+                    continue;
+                }
+
+                if (netBeast.GangId != num)
+                {
+                    GBNetUtils.RemoveBeastFromGang(netBeast);
+                }
+
                 netBeast.GangId = num;
                 GBNetUtils.SetBeastsGang(netBeast);
                 num++;
+
                 // Added rollover as a safety net to fix an impossible gang
                 // Players will now be forced into gangs if necessary?
-                num %= GBNetUtils.Model.GetCollection<NetGang>("NET_GANGS").Count;
+                // num %= GBNetUtils.Model.GetCollection<NetGang>("NET_GANGS").Count;
             }
         }
-
-        __instance.localSingleGang = false;
     }
 }
 
@@ -50,7 +63,9 @@ internal static class GameModeValidPatch
     private static void Postfix(ref bool __result)
     {
         if (ServerManager.IsServer)
+        {
             __result = true;
+        }
     }
 }
 
@@ -60,6 +75,8 @@ internal static class GameModeOverPatch
     private static void Postfix(ref bool __result)
     {
         if (ServerManager.IsServer)
+        {
             __result = GameMode.GetNumRemainingGangsAlive() < 2 && GBNetUtils.GetParticipatingPlayers().Count != 1;
+        }
     }
 }

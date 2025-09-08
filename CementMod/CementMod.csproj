@@ -8,20 +8,24 @@
         <RootNamespace>CementGB.Mod</RootNamespace>
         <AssemblyName>CementGB</AssemblyName>
         <Author>CementGB Team</Author>
-        <Version>4.0.0</Version>
+        <Version>4.1.0</Version>
 
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <LangVersion>12</LangVersion>
         <DefineConstants>$(DefineConstants);MELONLOADER</DefineConstants>
-        <Nullable>disable</Nullable>
+        <Nullable>enable</Nullable>
         <Optimize>false</Optimize>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
         <OutputType>Library</OutputType>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <DocumentationFile Condition=" '$(Configuration)' == 'Release' ">$(ProjectDir)../dist/Mods/CementGB.xml</DocumentationFile>
 
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+        <AnalysisLevel>preview-All</AnalysisLevel>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 
         <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with MelonLoader or the game -->
         <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->
@@ -47,7 +51,6 @@
         <ErrorReport>prompt</ErrorReport>
         <DefineConstants>$(DefineConstants);RELEASE;TRACE</DefineConstants>
 
-        <OutputPath>$(ProjectDir)..\dist\Mods\</OutputPath>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
 
@@ -56,8 +59,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="GangBeasts.GameLibs" Version="1.26.0-gh13"/>
-        <PackageReference Include="LavaGang.MelonLoader" Version="0.7.0"/>
+        <PackageReference Include="GangBeasts.GameLibs" Version="1.27.0"/>
+        <PackageReference Include="LavaGang.MelonLoader" Version="0.7.1"/>
         <PackageReference Include="Il2CppInterop.Common" Version="1.4.6-ci.579"/>
         <PackageReference Include="Il2CppInterop.Runtime" Version="1.4.6-ci.579"/>
         <PackageReference Include="Il2CppInterop.HarmonySupport" Version="1.4.6-ci.579"/>
@@ -81,8 +84,9 @@
             <Output TaskParameter="Lines" PropertyName="GameDir"/>
         </ReadLinesFromFile>
 
-        <!-- Copy the built mod dll into game Mods folder -->
+        <!-- Copy the built mod dll into game Mods folder/dist Thunderstore staging folder -->
         <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Mods"/>
+        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(SolutionDir)/dist/Mods"/>
     </Target>
 
     <Target Name="AddGeneratedFiles" BeforeTargets="BeforeCompile;CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(IntermediateOutputPath)GeneratedFile.cs">
@@ -120,7 +124,7 @@ namespace $(RootNamespace)
     "version_number": "$(MelonLoaderModVersion)",
     "description": "A general-purpose modding API for Gang Beasts.",
     "dependencies": [
-        "LavaGang-MelonLoader-0.7.0"
+        "LavaGang-MelonLoader-0.7.1"
     ]
 }
                 ]]>
