@@ -18,7 +18,7 @@ public static class CementPreferences
     ///     Enables extra log messages for debugging.
     ///     Controlled by a MelonPreference.
     /// </summary>
-    public static bool VerboseMode => _verboseModeEntry?.Value ?? false;
+    public static bool VerboseMode => _verboseModeEntry?.Value ?? Mod.DebugArg;
 
     internal static void Initialize()
     {

@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using CementGB.Mod.Modules.CustomContent;
+using CementGB.Mod.Modules.CustomContent.Utilities;
 using CementGB.Mod.Utilities;
 using Il2CppGB.Data.Loading;
 using Il2CppInterop.Runtime;

@@ -1,4 +1,4 @@
-using CementGB.Mod.Utilities;
+using CementGB.Mod.Modules.CustomContent.Utilities;
 using Il2CppGB.Gamemodes;
 using Il2CppInterop.Runtime.InteropTypes.Fields;
 using MelonLoader;

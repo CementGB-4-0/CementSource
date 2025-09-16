@@ -1,6 +1,6 @@
 using CementGB.Mod.CustomContent;
 using CementGB.Mod.Modules.CustomContent.CustomMaps;
-using CementGB.Mod.Utilities;
+using CementGB.Mod.Modules.CustomContent.Utilities;
 using HarmonyLib;
 using Il2CppAudio;
 using Il2CppGB.Core.Loading;
@@ -37,7 +37,7 @@ internal static class OnSceneListCompletePatch
             }
 
             mapRef.SceneData._audioConfig.audioMixer = MixerFinder.MainMixer;
-            if (mapRef.SceneData._audioConfig.musicData.maxVolume == 1f)
+            if (Mathf.Approximately(mapRef.SceneData._audioConfig.musicData.maxVolume, 1f))
                 mapRef.SceneData._audioConfig.musicData.maxVolume = 0.15f;
 
             var sceneDataRef = new AssetReference(mapRef.SceneData.name);

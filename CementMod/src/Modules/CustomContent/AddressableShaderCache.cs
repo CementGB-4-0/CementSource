@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using CementGB.Mod.CustomContent;
 using CementGB.Mod.Modules.CustomContent.Utilities;
 using CementGB.Mod.Utilities;
 using Il2CppInterop.Runtime;
@@ -10,6 +11,7 @@ using Il2CppSystem.Linq;
 using MelonLoader;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Events;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -28,10 +30,10 @@ public static class AddressableShaderCache
     private static void OnSceneWasLoaded(Scene scene, LoadSceneMode mode)
     {
         if (CustomAddressableRegistration.IsModdedKey(scene.name))
-            MelonCoroutines.Start(ReloadAddressableShaders());
+            _ = MelonCoroutines.Start(ReloadAddressableShaders());
     }
 
-    private static IEnumerator ReloadAddressableShaders(GameObject parent = null)
+    private static IEnumerator ReloadAddressableShaders(GameObject? parent = null)
     {
         yield return new WaitForEndOfFrame();
         LoggingUtilities.VerboseLog(ConsoleColor.DarkYellow, "Reloading Addressable shaders. . .");
@@ -87,6 +89,8 @@ public static class AddressableShaderCache
             var result = handle.Result.Cast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
             foreach (var location in result)
             {
+                if (CachedShaders.ContainsKey(location.PrimaryKey)) continue;
+
                 var assetHandle = Addressables.LoadAssetAsync<Shader>(location);
                 yield return assetHandle.HandleAsynchronousAddressableOperation();
 
@@ -98,8 +102,8 @@ public static class AddressableShaderCache
                     continue;
                 }
 
-                if (!CachedShaders.ContainsKey(location.PrimaryKey))
-                    CachedShaders.Add(location.PrimaryKey, assetHandle.Result);
+                assetHandle.Result.MakePersistent();
+                CachedShaders.Add(location.PrimaryKey, assetHandle.Result);
 
                 assetHandle.Release();
             }
@@ -110,11 +114,17 @@ public static class AddressableShaderCache
         stopwatch.Stop();
         Mod.Logger.Msg(
             ConsoleColor.Green,
-            $"Caching Addressable game shaders done! Total time taken: {stopwatch.Elapsed}");
+            $"Caching Addressable game shaders done! Total time taken: {stopwatch.ElapsedMilliseconds}ms");
+    }
+
+    private static void StartShaderReload(Scene scene, LoadSceneMode mode)
+    {
+        _ = MelonCoroutines.Start(InitCacheShaders());
     }
 
     internal static void Initialize()
     {
         _ = MelonCoroutines.Start(InitCacheShaders());
+        SceneManager.add_sceneLoaded((UnityAction<Scene, LoadSceneMode>)StartShaderReload);
     }
 }

@@ -21,9 +21,7 @@ public static class AssetUtilities
     public static bool IsHandleSuccess(AsyncOperationHandle handle)
     {
         return handle.IsValid() &&
-               handle.Status ==
-               AsyncOperationStatus.Succeeded &&
-               handle.Result != null;
+               handle is { Status: AsyncOperationStatus.Succeeded, Result: not null };
     }
 
     /// <summary>
@@ -47,7 +45,7 @@ public static class AssetUtilities
         {
             LoggingUtilities.VerboseLog(
                 ConsoleColor.DarkRed,
-                $"Failed to load asset from asynchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {!handle.IsValid() || handle.Result == null}");
+                $"Failed to perform action in asynchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {!handle.IsValid() || handle.Result == null}");
             if (handle.IsValid())
             {
                 handle.Release();
@@ -80,7 +78,7 @@ public static class AssetUtilities
         {
             LoggingUtilities.VerboseLog(
                 ConsoleColor.DarkRed,
-                $"Failed to load asset from synchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {!handle.IsValid() || handle.Result == null}");
+                $"Failed to perform action in synchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {!handle.IsValid() || handle.Result == null}");
             if (handle.IsValid())
             {
                 handle.Release();

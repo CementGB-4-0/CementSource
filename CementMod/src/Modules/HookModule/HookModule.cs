@@ -16,7 +16,7 @@ public static class HookModule
     /// </summary>
     /// <param name="hook">The <see cref="CementHook" /> info to patch with.</param>
     /// <param name="canToggle">Whether the hook can be toggled on/off or not. Currently not functional.</param>
-    public static void CreateHook(CementHook hook, bool canToggle = true)
+    public static void CreateHook(CementHook hook/*, bool canToggle = true */)
     {
         var doBeforeHook = () => true;
 
@@ -24,16 +24,18 @@ public static class HookModule
         var postfix = hook.isPrefix ? null : new HarmonyMethod(hook.hook);
 
         HarmonyMethod beforeEitherFix = new(doBeforeHook.Method);
-
+ 
         var harmonyInstance = hook.callingMod is not null
             ? hook.callingMod.HarmonyInstance
             : Melon<Mod>.Instance.HarmonyInstance;
         _ = harmonyInstance.Patch(hook.original, prefix, postfix);
 
+        /*
         if (canToggle)
         {
             _ = harmonyInstance.Patch(hook.hook, beforeEitherFix);
         }
+        */
 
         var resultString =
             $"New {(hook.isPrefix ? "PREFIX" : "POSTFIX")} hook on {hook.original.DeclaringType?.Name}.{hook.original.Name} registered to {hook.hook.DeclaringType?.Name}.{hook.hook.Name} with {typeof(HarmonyLib.Harmony)} instance {harmonyInstance.Id}";
@@ -49,7 +51,7 @@ public static class HookModule
     {
         public MethodInfo original;
         public MethodInfo hook;
-        public MelonMod callingMod;
+        public MelonMod? callingMod;
         public bool isPrefix;
 
         /// <summary>
@@ -63,7 +65,7 @@ public static class HookModule
         ///     <c>false</c> if you want it to run after. Typically to guarantee other mod compatibility, you want to prefer
         ///     running your code after the base game.
         /// </param>
-        public CementHook(MethodInfo original, MethodInfo hook, bool isPrefix, MelonMod callingMod = null) : this()
+        public CementHook(MethodInfo original, MethodInfo hook, bool isPrefix, MelonMod? callingMod = null) : this()
         {
             this.original = original;
             this.callingMod = callingMod;
