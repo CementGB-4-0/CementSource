@@ -32,13 +32,11 @@ internal static class ModdedServerPatches
             return true;
         }
 
-        var shouldJoinModded = ClientServerCommunicator.IsServerRunning();
+        var shouldJoinModded = TCPCommunicator.Client?.Connected ?? false;
         if (!shouldJoinModded)
         {
             return true;
         }
-
-        ClientServerCommunicator.Init();
 
         var stageTime = 0;
 
@@ -59,7 +57,7 @@ internal static class ModdedServerPatches
             isRandomSelected,
             stageTime);
 
-        var address = LobbyCommunicator.UserIP ?? IPAddress.Loopback; // Offline safety net
+        var address = IPAddress.Loopback; // Offline safety net
 
         MonoSingleton<Global>.Instance.buttonController.HideButton(InputMapActions.Accept);
         __instance.PopulateVisibleButtons(true);
@@ -93,7 +91,8 @@ internal static class ModdedServerPatches
                 var result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done")
                 {
                     IpAddress = address.ToString(),
-                    Port = ServerManager.DefaultPort
+                    Port = ServerManager.DefaultPort,
+                    State = MatchmakingState.Success
                 };
 
                 LobbyManager.Instance.LobbyStates.MatchmakingComplete(result);
@@ -106,7 +105,8 @@ internal static class ModdedServerPatches
     [HarmonyPrefix]
     private static bool SingleplayerOnlineBypass(MenuHandlerGamemodes __instance)
     {
-        var shouldJoinModded = ClientServerCommunicator.IsServerRunning();
+        TCPCommunicator.Init();
+        var shouldJoinModded = TCPCommunicator.Client?.Connected ?? false;
 
         if (!shouldJoinModded || !__instance.PrivateGame)
         {

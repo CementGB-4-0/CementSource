@@ -1,0 +1,148 @@
+﻿using System;
+using System.Collections.Concurrent;
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading.Tasks;
+using CementGB.Mod.Utilities;
+using MelonLoader;
+using UnityEngine;
+
+namespace CementGB.Mod.Modules.NetBeard;
+
+public static class TCPCommunicator
+{
+    private const int TCPPort = ServerManager.DefaultPort + 1;
+
+    private static readonly IPAddress TCPServerIP = IPAddress.Loopback;
+
+    public delegate void MessageData(string prefix, string payload);
+
+    private static readonly ConcurrentQueue<string> QueuedMessages = new();
+
+    private static bool _firstInitCall = true;
+    private static Task? _currentClientLoop;
+    private static Task? _currentServerLoop;
+
+    public static TcpListener? Server { get; set; }
+    public static TcpClient? Client { get; set; }
+
+    public static event MessageData? OnClientReceivedMessage;
+    public static event MessageData? OnServerReceivedMessage;
+
+    public static void QueueMessage(string prefix, string payload)
+    {
+        QueuedMessages.Enqueue($"{prefix};{payload}");
+    }
+
+    internal static void Init()
+    {
+        if (_firstInitCall)
+        {
+            _firstInitCall = false;
+            Application.add_quitting(new Action(() =>
+            {
+                Server?.Stop();
+                Client?.Close();
+            }));
+
+            MelonEvents.OnUpdate.Subscribe(OnUpdate);
+        }
+
+        if (!ServerManager.IsServer || Server != null) return;
+
+        Server = new TcpListener(IPAddress.Loopback, TCPPort);
+        Server.Start();
+    }
+
+    private static void OnUpdate()
+    {
+        if (ServerManager.IsServer && Server != null)
+            _currentServerLoop ??= Task.Run(ServerLoop);
+        else
+            _currentClientLoop ??= Task.Run(ClientLoop);
+    }
+
+    private static async Task ClientLoop()
+    {
+        try
+        {
+            Client ??= new TcpClient(TCPServerIP.ToString(), TCPPort);
+            if (!Client.Connected)
+                await Client.ConnectAsync(TCPServerIP, TCPPort);
+
+            await HandleStream(Client);
+        }
+        catch (SocketException e)
+        {
+            Mod.Logger.Error($"Client connection error: {e}");
+            await Task.Delay(1000);
+        }
+
+        _currentClientLoop = null;
+    }
+
+    private static async Task ServerLoop()
+    {
+        if (Server == null)
+            return;
+
+        try
+        {
+            Client ??= await Server.AcceptTcpClientAsync();
+            await HandleStream(Client);
+        }
+        catch (SocketException e)
+        {
+            Mod.Logger.Error($"Server connection error: {e}");
+            await Task.Delay(1000);
+        }
+
+        _currentServerLoop = null;
+    }
+
+    private static async Task HandleWriting(NetworkStream stream)
+    {
+        var streamWriter = new StreamWriter(stream)
+        {
+            AutoFlush = true
+        };
+        while (QueuedMessages.TryDequeue(out var msg))
+        {
+            await streamWriter.WriteLineAsync(msg);
+            LoggingUtilities.VerboseLog(msg);
+        }
+
+        await Task.Delay(10);
+    }
+
+    private static async Task HandleReading(NetworkStream stream)
+    {
+        var streamReader = new StreamReader(stream);
+        var nextMessage = await streamReader.ReadLineAsync();
+        if (string.IsNullOrWhiteSpace(nextMessage)) return;
+
+        var messageContents = DataFromMessage(nextMessage);
+
+        if (!string.IsNullOrWhiteSpace(messageContents[0]) && !string.IsNullOrWhiteSpace(messageContents[1]))
+        {
+            if (ServerManager.IsServer && Server != null) OnServerReceivedMessage?.Invoke(messageContents[0], messageContents[1]);
+            else OnClientReceivedMessage?.Invoke(messageContents[0], messageContents[1]);
+        }
+    }
+
+    private static Task HandleStream(TcpClient client)
+    {
+        var stream = client.GetStream();
+
+        _ = HandleWriting(stream);
+        _ = HandleReading(stream);
+        return Task.CompletedTask;
+    }
+
+    private static string[] DataFromMessage(string message)
+    {
+        var split = message.IndexOf(';');
+        return split == -1 ? ["", ""] : [message[..split], message[(split + 1)..]];
+    }
+}

@@ -17,22 +17,13 @@ namespace CementGB.Mod.Modules.NetBeard;
 
 internal static class LobbyCommunicator
 {
-    public static GBGameData gameData;
-    public static IPAddress UserIP { get; private set; }
+    public static IPAddress? UserExternalIP { get; private set; }
 
-
-    public static async void Awake()
+    internal static async void Awake()
     {
-        ClientServerCommunicator.Init();
-
-        if (!ServerManager.IsServer)
+        if (ServerManager.IsServer)
         {
-            UserIP = await GetExternalIpAddress();
-        }
-
-        else
-        {
-            ClientServerCommunicator.OnServerReceivedMessage += (prefix, payload) =>
+            TCPCommunicator.OnServerReceivedMessage += (prefix, payload) =>
             {
                 if (prefix == "gamedata")
                 {
@@ -40,9 +31,13 @@ internal static class LobbyCommunicator
                 }
             };
         }
+        else
+        {
+            UserExternalIP = await GetExternalIpAddress();
+        }
     }
 
-    internal static IEnumerator HandleGBGameData(string payload)
+    private static IEnumerator HandleGBGameData(string payload)
     {
         // Absolutely 100% make sure we're running on the main thread
         // Hacky I know dont hate me I'll refactor :(
@@ -51,7 +46,6 @@ internal static class LobbyCommunicator
         GameManagerNew.Instance.EndGameSession("DISCONNECT_GAME_COMPLETE");
 
         var gameData = JsonConvert.DeserializeObject<GBGameData>(payload);
-        LobbyCommunicator.gameData = gameData;
 
         Mod.Logger.Msg(ConsoleColor.Blue, "Received new modded session data");
 
@@ -77,7 +71,6 @@ internal static class LobbyCommunicator
 
             GameManagerNew.Instance.ChangeRotationConfig(rotationConfig);
         }
-
         else
         {
             var rotationConfig = GBConfigLoader.CreateRotationConfig(
@@ -96,14 +89,13 @@ internal static class LobbyCommunicator
     internal static void SendLobbyDataToServer(GBGameData data)
     {
         var serializedData = JsonConvert.SerializeObject(data);
-        ClientServerCommunicator.QueueMessage("gamedata", serializedData);
+        TCPCommunicator.QueueMessage("gamedata", serializedData);
     }
 
-    internal static async Task<IPAddress> GetExternalIpAddress()
+    private static async Task<IPAddress?> GetExternalIpAddress()
     {
-        var externalIpString = (await new HttpClient().GetStringAsync("http://icanhazip.com"))
+        var externalIpString = (await new HttpClient().GetStringAsync("https://icanhazip.com"))
             .Replace("\\r\\n", "").Replace("\\n", "").Trim();
-        if (!IPAddress.TryParse(externalIpString, out var ipAddress)) return null;
-        return ipAddress;
+        return !IPAddress.TryParse(externalIpString, out var ipAddress) ? null : ipAddress;
     }
 }
