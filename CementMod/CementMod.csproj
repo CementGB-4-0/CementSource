@@ -8,7 +8,7 @@
         <RootNamespace>CementGB.Mod</RootNamespace>
         <AssemblyName>CementGB</AssemblyName>
         <Author>CementGB Team</Author>
-        <Version>4.1.0</Version>
+        <Version>4.1.1</Version>
 
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <LangVersion>12</LangVersion>
