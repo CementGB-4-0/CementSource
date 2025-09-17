@@ -12,6 +12,7 @@ using Il2CppGB.Core;
 using Il2CppGB.Game;
 using Il2CppGB.Gamemodes;
 using Il2CppGB.Menu;
+using Il2CppGB.Networking.Components.Client;
 using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI;
 using Il2CppGB.UnityServices.Matchmaking;
@@ -23,6 +24,23 @@ namespace CementGB.Mod.Patches;
 [HarmonyPatch]
 internal static class ModdedServerPatches
 {
+    [HarmonyPatch(typeof(Il2CppCoreNet.NetworkManager), nameof(Il2CppCoreNet.NetworkManager.LaunchClient))]
+    [HarmonyPrefix]
+    private static void LaunchClientPrefix(ref string IP)
+    {
+        if (TCPCommunicator.Client?.Connected is not true)
+            return;
+
+        IP = IPAddress.Loopback.ToString();
+    }
+
+    [HarmonyPatch(typeof(GBClientPlatformManager), nameof(GBClientPlatformManager.Awake))]
+    [HarmonyPostfix]
+    private static void ClientPlatformAwakePostfix(GBClientPlatformManager __instance)
+    {
+        __instance._wantsToLeave = false;
+    }
+
     [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic))]
     [HarmonyPrefix]
     private static bool StartGameLogicPatch(MenuHandlerGamemodes __instance)
@@ -57,7 +75,7 @@ internal static class ModdedServerPatches
             isRandomSelected,
             stageTime);
 
-        var address = IPAddress.Loopback; // Offline safety net
+        var address = LobbyCommunicator.UserExternalIP ?? IPAddress.Loopback; // Offline safety net
 
         MonoSingleton<Global>.Instance.buttonController.HideButton(InputMapActions.Accept);
         __instance.PopulateVisibleButtons(true);
@@ -105,7 +123,6 @@ internal static class ModdedServerPatches
     [HarmonyPrefix]
     private static bool SingleplayerOnlineBypass(MenuHandlerGamemodes __instance)
     {
-        TCPCommunicator.Init();
         var shouldJoinModded = TCPCommunicator.Client?.Connected ?? false;
 
         if (!shouldJoinModded || !__instance.PrivateGame)

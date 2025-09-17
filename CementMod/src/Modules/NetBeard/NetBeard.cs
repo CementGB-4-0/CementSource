@@ -9,7 +9,6 @@ internal class NetBeard : MonoBehaviour
     public void Start()
     {
         LobbyCommunicator.Awake();
-        if (ServerManager.IsServer)
-            TCPCommunicator.Init();
+        TCPCommunicator.Init();
     }
 }
