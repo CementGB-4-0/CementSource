@@ -69,13 +69,16 @@ public static class TCPCommunicator
         {
             Client ??= new TcpClient(TCPServerIP.ToString(), TCPPort);
             if (!Client.Connected)
+            {
                 await Client.ConnectAsync(TCPServerIP, TCPPort);
+                Mod.Logger.Msg(ConsoleColor.Green, "TCP lobby exchange client connected OK");
+            }
 
             await HandleStream(Client);
         }
         catch (SocketException e)
         {
-            Mod.Logger.Error($"Client connection error: {e}");
+            Mod.Logger.Error($"TCP lobby exchange client connection error: {e}");
             await Task.Delay(1000);
         }
 
@@ -89,7 +92,11 @@ public static class TCPCommunicator
 
         try
         {
-            Client ??= await Server.AcceptTcpClientAsync();
+            if (Client == null)
+            {
+                Client = await Server.AcceptTcpClientAsync();
+                Mod.Logger.Msg(ConsoleColor.Green, "Accepted local TCP lobby exchange client.");
+            }
             await HandleStream(Client);
         }
         catch (SocketException e)
@@ -110,7 +117,6 @@ public static class TCPCommunicator
         while (QueuedMessages.TryDequeue(out var msg))
         {
             await streamWriter.WriteLineAsync(msg);
-            LoggingUtilities.VerboseLog(msg);
         }
 
         await Task.Delay(10);

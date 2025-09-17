@@ -68,15 +68,3 @@ internal static class GameModeValidPatch
         }
     }
 }
-
-[HarmonyPatch(typeof(GameMode_Survival), nameof(GameMode_Survival.IsRoundOver))]
-internal static class GameModeOverPatch
-{
-    private static void Postfix(ref bool __result)
-    {
-        if (ServerManager.IsServer)
-        {
-            __result = GameMode.GetNumRemainingGangsAlive() < 2 && GBNetUtils.GetParticipatingPlayers().Count != 1;
-        }
-    }
-}
