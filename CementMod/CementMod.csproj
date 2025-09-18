@@ -27,6 +27,12 @@
         <AnalysisLevel>preview-All</AnalysisLevel>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 
+        <RestoreAdditionalProjectSources>
+            https://api.nuget.org/v3/index.json;
+            https://nuget.bepinex.dev/v3/index.json;
+            https://nuget.samboy.dev/v3/index.json
+        </RestoreAdditionalProjectSources>
+
         <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with MelonLoader or the game -->
         <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->
     </PropertyGroup>
