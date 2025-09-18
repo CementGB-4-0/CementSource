@@ -1,0 +1,190 @@
+using System;
+using System.Linq;
+using CementGB.Mod.Utilities;
+using Il2Cpp;
+using Il2CppCoreNet.Contexts;
+using Il2CppCoreNet.Model;
+using Il2CppCoreNet.Objects;
+using Il2CppCoreNet.Utils;
+using Il2CppGB.Config;
+using Il2CppGB.Core;
+using Il2CppGB.Core.Bootstrappers;
+using Il2CppGB.Game;
+using Il2CppGB.Networking.Objects;
+using Il2CppGB.Platform.Lobby;
+using MelonLoader;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace CementGB.Modules.NetBeard;
+
+public class ServerManager : InstancedCementModule
+{
+    /// <summary>
+    ///     The default IP setting for the server.
+    /// </summary>
+    public const string DefaultIP = "127.0.0.1";
+
+    /// <summary>
+    ///     The default Port setting for the server.
+    /// </summary>
+    public const int DefaultPort = 5999;
+
+    private const string ServerLogPrefix = "[SERVER]";
+
+    private static readonly string?
+        IpArg = CommandLineParser.Instance.GetValueForKey("-ip", Mod.CementPreferences.VerboseMode); // set to server via vanilla code
+    private static readonly string?
+        PortArg = CommandLineParser.Instance.GetValueForKey("-port", Mod.CementPreferences.VerboseMode); // set to server via vanilla code
+    
+    /// <summary>
+    ///     True if the -SERVER argument is passed to the Gang Beasts executable.
+    /// </summary>
+    public static bool IsServer => Environment.GetCommandLineArgs().Contains("-SERVER");
+
+    /// <summary>
+    ///     True if <see cref="IsServer" /> is false, but the ip and port are provided. Unlocks the DevelopmentTestServerUI.
+    /// </summary>
+    public static bool IsClientJoiner =>
+        !IsServer &&
+        (!string.IsNullOrWhiteSpace(IpArg) ||
+         !string.IsNullOrWhiteSpace(
+             PortArg)); // TODO: Auto start as client (similar to NetworkBootstrapper.AutoRunServer) if this is true
+
+    // public static bool IsForwardedHost => !IsServer && Environment.GetCommandLineArgs().Contains("-FWD");
+
+    /// <summary>
+    ///     True if the -DONT-AUTOSTART argument is passed. Will prevent the server or client from automatically joining the
+    ///     server as soon as it can.
+    /// </summary>
+    public static bool DontAutoStart => Environment.GetCommandLineArgs().Contains("-DONT-AUTOSTART");
+
+    /// <summary>
+    ///     The IP provided in launch arguments, or <see cref="DefaultIP" /> if none is provided.
+    /// </summary>
+    public static string IP => string.IsNullOrWhiteSpace(IpArg) ? DefaultIP : IpArg;
+
+    /// <summary>
+    ///     The Port provided in launch arguments, or <see cref="DefaultPort" /> if none is provided.
+    /// </summary>
+    public static int Port => string.IsNullOrWhiteSpace(PortArg) ? DefaultPort : int.Parse(PortArg);
+
+    /// <summary>
+    ///     Should the server load in low graphics mode?
+    /// </summary>
+    public static bool LowGraphicsMode => Environment.GetCommandLineArgs().Contains("-lowgraphics");
+
+    // public static int maxPlayers = 16;
+    private static bool _mapArgDidTheThing;
+
+    protected override void OnInitialize()
+    {
+        /*        PlatformEvents.add_OnLobbyCreatingEvent(new Action(() =>
+                {
+                    Global.NetworkMaxPlayers = (ushort)maxPlayers;
+                    Users.MaxUsers = maxPlayers;
+                }));*/
+
+        LobbyCommunicator.Awake();
+        LobbyManager.add_onSetupComplete(new Action(OnBoot));
+
+        if (!IsServer)
+            return;
+
+        Mod.Mod.Logger.Msg($"{ServerLogPrefix} Setting up pre-boot dedicated server overrides. . .");
+        AudioListener.pause = true;
+        Mod.Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
+    }
+
+    protected override void OnUpdate()
+    {
+        if (SceneManager.GetActiveScene().name == "Menu" &&
+            Global.Instance.SceneLoader && !string.IsNullOrWhiteSpace(Mod.Mod.MapArg) &&
+            (!_mapArgDidTheThing || (IsServer && !DontAutoStart)))
+        {
+            _mapArgDidTheThing = true;
+            //_ = MelonCoroutines.Start(JumpToMap());
+        }
+    }
+
+    private void OnBoot()
+    {
+        if (IsClientJoiner /*&& !IsForwardedHost*/ || IsServer)
+        {
+            NetworkBootstrapper.IsDedicatedServer = IsServer;
+            _ = LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
+            Mod.Mod.Logger.Msg(ConsoleColor.Green, "Added DevelopmentTestServer to lobby object.");
+        }
+
+        if (IsServer)
+            ServerBoot();
+    }
+
+    private static void ServerBoot()
+    {
+        Mod.Mod.Logger.Msg($"{ServerLogPrefix} Setting up server boot...");
+        var bootstrapper = UnityEngine.Object.FindObjectOfType<NetworkBootstrapper>();
+        bootstrapper.AutoRunServer = IsServer && !DontAutoStart;
+        // UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.DedicatedServer, null, "", "DGS");
+        MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
+        NetMemberContext.LocalHostedGame = true;
+        GameManagerNew.add_OnGameManagerCreated((Action)SetConfigOnGameManager);
+        NetUtils.Model.Subscribe("SERVER_READY", (NetModelItem<NetInt>.ItemHandler)OnServerReady);
+        NetUtils.Model.Subscribe(
+            "NET_PLAYERS",
+            (NetModelCollection<NetBeast>.ItemHandler)OnPlayerAdded,
+            null,
+            (NetModelCollection<NetBeast>.ItemHandler)OnPlayerRemoved);
+        NetUtils.Model.Subscribe(
+            "NET_MEMBERS",
+            (NetModelCollection<NetMember>.ItemHandler)OnNetMemberAdded,
+            null,
+            (NetModelCollection<NetMember>.ItemHandler)OnNetMemberRemoved);
+        Mod.Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
+    }
+
+    private static void OnServerReady(NetInt value)
+    {
+        if (value.Value == 1)
+        {
+            Mod.Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Ready for players!");
+        }
+    }
+
+    private static void OnNetMemberAdded(NetMember member)
+    {
+        Mod.Mod.Logger.Msg(
+            $"{ServerLogPrefix} NetMember with connection ID {member.ConnectionId} ADDED to model. (key \"NET_MEMBERS\")");
+    }
+
+    private static void OnNetMemberRemoved(NetMember member)
+    {
+        Mod.Mod.Logger.Msg(
+            $"{ServerLogPrefix} NetMember with connection ID {member.ConnectionId} REMOVED from model. (key \"NET_MEMBERS\")");
+    }
+
+    private static void OnPlayerAdded(NetBeast beast)
+    {
+        Mod.Mod.Logger.Msg(
+            $"{ServerLogPrefix} {(beast.playerType == NetPlayer.PlayerType.AI ? $"AI Beast with gang ID {beast.GangId}" : $"Player Beast with connection ID {beast.ConnectionId}")} ADDED to model. (key \"NET_PLAYERS\")");
+    }
+
+    private static void OnPlayerRemoved(NetBeast beast)
+    {
+        Mod.Mod.Logger.Msg(
+            $"{ServerLogPrefix} {(beast.playerType == NetPlayer.PlayerType.AI ? $"AI Beast with gang ID {beast.GangId}" : $"Player Beast with connection ID {beast.ConnectionId}")} removed from model. (key \"NET_PLAYERS\")");
+    }
+
+    private static void SetConfigOnGameManager()
+    {
+        if (!string.IsNullOrWhiteSpace(Mod.Mod.MapArg))
+        {
+            GameManagerNew.Instance.ChangeRotationConfig(
+                GBConfigLoader.CreateRotationConfig(
+                    Mod.Mod.MapArg,
+                    string.IsNullOrWhiteSpace(Mod.Mod.ModeArg) ? "melee" : Mod.Mod.ModeArg,
+                    8,
+                    int.MaxValue));
+        }
+    }
+}
