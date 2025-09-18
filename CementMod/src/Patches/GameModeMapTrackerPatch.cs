@@ -32,8 +32,12 @@ internal static class GameModeMapTrackerPatch
             var info = mapRef.SceneInfo;
             var modeMapStatus = new ModeMapStatus(mapRef.SceneName, true)
             {
-                AllowedModesLocal = info != null && info.allowedGamemodes != null ? info.allowedGamemodes.Get() : GameModeEnum.Melee,
-                AllowedModesOnline = info != null && info.allowedGamemodes != null ? info.allowedGamemodes.Get() : GameModeEnum.Melee
+                AllowedModesLocal = info != null && info.allowedGamemodes != null
+                    ? info.allowedGamemodes.Get()
+                    : GameModeEnum.Melee,
+                AllowedModesOnline = info != null && info.allowedGamemodes != null
+                    ? info.allowedGamemodes.Get()
+                    : GameModeEnum.Melee
             };
 
             return modeMapStatus;
@@ -47,7 +51,8 @@ internal static class GameModeMapTrackerPatch
 
                 foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
                 {
-                    if (mapRef.SceneData == null || mapRef.SceneName == null || !mapRef.IsValid || SceneNameAlreadyExists(__instance, mapRef.SceneName))
+                    if (mapRef.SceneData == null || mapRef.SceneName == null || !mapRef.IsValid ||
+                        SceneNameAlreadyExists(__instance, mapRef.SceneName))
                         continue;
 
                     ExtendedStringLoader.Register($"STAGE_{mapRef.SceneName.ToUpper()}", mapRef.SceneName);

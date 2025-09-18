@@ -5,30 +5,30 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace CementGB.Mod.Modules.NetBeard;
 
 internal static class ClientServerCommunicator
 {
+    public delegate void MessageData(string prefix, string payload);
+
+    private static readonly ConcurrentQueue<string> queuedMessages = new();
+    private static bool hasHookedQuit;
+    private static Task currentClientLoop;
     public static Mutex ServerMutex { get; private set; }
     public static TcpListener Server { get; private set; }
     public static TcpClient Client { get; set; }
 
-    public delegate void MessageData(string prefix, string payload);
-
     public static event MessageData OnClientReceivedMessage;
     public static event MessageData OnServerReceivedMessage;
-
-    private static ConcurrentQueue<string> queuedMessages = new();
-    private static bool hasHookedQuit;
-    private static Task currentClientLoop;
 
 
     internal static async void Init()
     {
         if (!hasHookedQuit)
         {
-            UnityEngine.Application.add_quitting(new Action(() =>
+            Application.add_quitting(new Action(() =>
             {
                 ServerMutex?.Dispose();
                 Server?.Stop();
@@ -42,23 +42,26 @@ internal static class ClientServerCommunicator
         {
             ServerMutex = new Mutex(true, "Global\\GBServer", out _);
 
-            Server = new(IPAddress.Loopback, ServerManager.DefaultPort);
+            Server = new TcpListener(IPAddress.Loopback, ServerManager.DefaultPort);
             Server.Start();
 
             while (true)
             {
-                TcpClient client = await Server.AcceptTcpClientAsync();
+                var client = await Server.AcceptTcpClientAsync();
                 _ = Task.Run(() => HandleClient(client));
             }
         }
 
-        else if (currentClientLoop == null || currentClientLoop?.IsCompleted == true)
+        if (currentClientLoop == null || currentClientLoop?.IsCompleted == true)
         {
             currentClientLoop = Task.Run(ClientLoop);
         }
     }
 
-    internal static void QueueMessage(string prefix, string payload) => queuedMessages.Enqueue($"{prefix};{payload}");
+    internal static void QueueMessage(string prefix, string payload)
+    {
+        queuedMessages.Enqueue($"{prefix};{payload}");
+    }
 
     private static async void ClientLoop()
     {
@@ -72,7 +75,7 @@ internal static class ClientServerCommunicator
                 break; // If no modded server was detected what's the point in constantly looking? Just check when we're readying up
             }
 
-            if (Client == null) Client = new("127.0.0.1", ServerManager.DefaultPort);
+            if (Client == null) Client = new TcpClient("127.0.0.1", ServerManager.DefaultPort);
             if (!Client.Connected)
             {
                 try
@@ -88,7 +91,7 @@ internal static class ClientServerCommunicator
                 }
             }
 
-            bool connectionAlive = await HandleStream(false, Client);
+            var connectionAlive = await HandleStream(false, Client);
 
             if (!connectionAlive)
             {
@@ -102,7 +105,7 @@ internal static class ClientServerCommunicator
     {
         while (true)
         {
-            bool shouldContinue = await HandleStream(true, client);
+            var shouldContinue = await HandleStream(true, client);
 
             if (!shouldContinue)
             {
@@ -115,19 +118,19 @@ internal static class ClientServerCommunicator
 
     private static async Task<bool> HandleStream(bool isServer, TcpClient client)
     {
-        using NetworkStream clientStream = client.GetStream();
+        using var clientStream = client.GetStream();
         if (clientStream == null) return false;
 
-        using StreamWriter streamWriter = new StreamWriter(clientStream) { AutoFlush = true };
-        using StreamReader streamReader = new StreamReader(clientStream);
+        using var streamWriter = new StreamWriter(clientStream) { AutoFlush = true };
+        using var streamReader = new StreamReader(clientStream);
 
         try
         {
-            Task sendTask = Task.Run(async () =>
+            var sendTask = Task.Run(async () =>
             {
                 while (client.Connected)
                 {
-                    while (queuedMessages.TryDequeue(out string msg))
+                    while (queuedMessages.TryDequeue(out var msg))
                         await streamWriter.WriteLineAsync(msg);
 
                     await Task.Delay(10);
@@ -136,13 +139,13 @@ internal static class ClientServerCommunicator
 
             while (true)
             {
-                string nextMessage = await streamReader.ReadLineAsync();
+                var nextMessage = await streamReader.ReadLineAsync();
 
                 // Surprisingly enough, this actually means the client was shut down
                 // ReadLineAsync yields progression of the method until a message can be read or received
                 if (nextMessage == null) break;
 
-                string[] messageContents = DataFromMessage(nextMessage);
+                var messageContents = DataFromMessage(nextMessage);
 
                 if (!string.IsNullOrWhiteSpace(messageContents[0]) && !string.IsNullOrWhiteSpace(messageContents[1]))
                 {
@@ -158,22 +161,22 @@ internal static class ClientServerCommunicator
             Mod.Logger.Error($"Stream handling error {ex}");
             return false;
         }
+
         return true;
     }
 
     private static string[] DataFromMessage(string message)
     {
-        int split = message.IndexOf(';');
+        var split = message.IndexOf(';');
         if (split == -1) return ["", ""];
         return [message[..split], message[(split + 1)..]];
-
     }
 
     internal static bool IsServerRunning()
     {
         try
         {
-            using Mutex foundMutex = Mutex.OpenExisting("Global\\GBServer");
+            using var foundMutex = Mutex.OpenExisting("Global\\GBServer");
             return true;
         }
         catch (Exception)
@@ -183,12 +186,11 @@ internal static class ClientServerCommunicator
     }
 }
 
-
 internal class LineStepper
 {
-    private int currentLine = 0;
-    private string toLogOnStep;
-    private ConsoleColor logColor;
+    private readonly ConsoleColor logColor;
+    private readonly string toLogOnStep;
+    private int currentLine;
 
 
     internal LineStepper(string log, ConsoleColor color)

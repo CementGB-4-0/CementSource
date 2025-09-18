@@ -1,3 +1,4 @@
+using System;
 using CementGB.Mod.Utilities;
 using GBMDK;
 using Il2CppGB.Data.Loading;
@@ -20,6 +21,7 @@ public class CustomMapRefHolder(IResourceLocation sceneDataLoc, IResourceLocatio
     ///     Provides gamemode selection info for the map. May be null depending on how the map was created in GBMDK.
     /// </summary>
     public CustomMapInfo? SceneInfo { get; private set; }
+
     public SceneData? SceneData { get; private set; }
 
     /// <summary>
@@ -47,7 +49,8 @@ public class CustomMapRefHolder(IResourceLocation sceneDataLoc, IResourceLocatio
         }
 
         if (!sceneDataHandle.HandleSynchronousAddressableOperation())
-            throw new System.Exception($"Scene data failed to load from ResourceLocation! | PrimaryKey: {sceneDataLoc.PrimaryKey}");
+            throw new Exception(
+                $"Scene data failed to load from ResourceLocation! | PrimaryKey: {sceneDataLoc.PrimaryKey}");
 
         var sceneData = sceneDataHandle.Result;
         sceneData.MakePersistent();

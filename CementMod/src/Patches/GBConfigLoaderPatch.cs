@@ -28,7 +28,10 @@ internal static class GBConfigLoaderPatch
                 {
                     var result = scene.SceneInfo;
 
-                    if (scene.SceneName == null || (!result && !masterMenuHandler.CurrentGamemode.HasFlag(GameModeEnum.Melee)) || result == null || result.allowedGamemodes == null || !result.allowedGamemodes.Get().HasFlag(masterMenuHandler.CurrentGamemode))
+                    if (scene.SceneName == null ||
+                        (!result && !masterMenuHandler.CurrentGamemode.HasFlag(GameModeEnum.Melee)) || result == null ||
+                        result.allowedGamemodes == null ||
+                        !result.allowedGamemodes.Get().HasFlag(masterMenuHandler.CurrentGamemode))
                     {
                         continue;
                     }

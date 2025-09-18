@@ -18,12 +18,12 @@ public static class AddressableShaderCache
 {
     private static readonly Dictionary<string, Shader> CachedShaders = [];
 
-    public static IEnumerator ReloadAddressableShaders(GameObject? parent = null)
+    public static IEnumerator ReloadAddressableShaders(GameObject parent = null)
     {
         yield return new WaitForEndOfFrame();
         LoggingUtilities.VerboseLog(ConsoleColor.DarkYellow, "Reloading Addressable shaders. . .");
         Il2CppArrayBase<MeshRenderer> renderers;
-        if (parent == null)
+        if (!parent)
         {
             renderers = Object.FindObjectsOfType<MeshRenderer>();
         }
@@ -37,13 +37,13 @@ public static class AddressableShaderCache
         }
 
         foreach (var meshRenderer in renderers)
+        {
             foreach (var material in meshRenderer.materials)
             {
                 if (CachedShaders.TryGetValue(material.shader.name, out var shader))
-                {
                     material.shader = shader;
-                }
             }
+        }
 
         LoggingUtilities.VerboseLog(ConsoleColor.DarkGreen, "Reloaded Addressable shaders!");
     }
@@ -86,9 +86,7 @@ public static class AddressableShaderCache
                 }
 
                 if (!CachedShaders.ContainsKey(location.PrimaryKey))
-                {
                     CachedShaders.Add(location.PrimaryKey, assetHandle.Result);
-                }
 
                 assetHandle.Release();
             }

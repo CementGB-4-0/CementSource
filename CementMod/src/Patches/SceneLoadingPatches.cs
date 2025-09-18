@@ -8,7 +8,6 @@ using Il2CppGB.Data.Loading;
 using Il2CppTMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-
 using ConsoleColor = System.ConsoleColor;
 using Resources = Il2CppGB.Core.Resources;
 

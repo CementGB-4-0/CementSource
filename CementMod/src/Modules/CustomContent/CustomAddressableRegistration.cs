@@ -69,7 +69,8 @@ public static class CustomAddressableRegistration
                      SearchOption.AllDirectories))
         {
             var catalogFile = new FileInfo(catalogPath);
-            if (!catalogFile.Exists || catalogFile.Directory == null || catalogFile.Directory.Parent == null || !bundleFile.Contains(catalogFile.Directory.Parent.Name))
+            if (!catalogFile.Exists || catalogFile.Directory == null || catalogFile.Directory.Parent == null ||
+                !bundleFile.Contains(catalogFile.Directory.Parent.Name))
             {
                 LoggingUtilities.VerboseLog($"Skipping catalog path {catalogPath}. . .");
                 continue;
@@ -98,11 +99,13 @@ public static class CustomAddressableRegistration
     {
         System.Collections.Generic.List<IResourceLocation> ret = [];
 
-        LoggingUtilities.VerboseLog($"Searching for all modded resource locations of type {Il2CppType.Of<T>().ToString()}. . .");
+        LoggingUtilities.VerboseLog(
+            $"Searching for all modded resource locations of type {Il2CppType.Of<T>().ToString()}. . .");
 
         foreach (var locator in _moddedResourceLocators)
         {
-            var handle = Addressables.LoadResourceLocationsAsync(locator.Keys.ToList().Cast<IList<Object>>(), Addressables.MergeMode.Union, Il2CppType.Of<T>());
+            var handle = Addressables.LoadResourceLocationsAsync(locator.Keys.ToList().Cast<IList<Object>>(),
+                Addressables.MergeMode.Union, Il2CppType.Of<T>());
 
             if (!handle.HandleSynchronousAddressableOperation())
                 continue;
@@ -121,7 +124,8 @@ public static class CustomAddressableRegistration
             }
         }
 
-        LoggingUtilities.VerboseLog($"Found {ret.Count} modded locations for resource type {Il2CppType.Of<T>().ToString()}.");
+        LoggingUtilities.VerboseLog(
+            $"Found {ret.Count} modded locations for resource type {Il2CppType.Of<T>().ToString()}.");
 
         if (ret.Count == 0)
         {
@@ -221,7 +225,8 @@ public static class CustomAddressableRegistration
             }
 
             var parsedSceneName = sceneDataLoc.PrimaryKey.Split("-Data")[0];
-            var infoLoc = GetAllModdedResourceLocationsOfType<Object>().FirstOrDefault(loc => loc.PrimaryKey == $"{parsedSceneName}-Info");
+            var infoLoc = GetAllModdedResourceLocationsOfType<Object>()
+                .FirstOrDefault(loc => loc.PrimaryKey == $"{parsedSceneName}-Info");
             var refHolder = new CustomMapRefHolder(sceneDataLoc, infoLoc);
             refHolder.LoadReferences();
             if (!refHolder.IsValid)
