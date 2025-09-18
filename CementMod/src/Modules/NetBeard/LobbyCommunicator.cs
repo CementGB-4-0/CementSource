@@ -95,7 +95,7 @@ internal static class LobbyCommunicator
     private static async Task<IPAddress?> GetExternalIpAddress()
     {
         var externalIpString = (await new HttpClient().GetStringAsync("https://icanhazip.com"))
-            .Replace("\\r\\n", "").Replace("\\n", "").Trim();
+            .Replace(@"\r\n", "").Replace("\\n", "").Trim();
         return !IPAddress.TryParse(externalIpString, out var ipAddress) ? null : ipAddress;
     }
 }
