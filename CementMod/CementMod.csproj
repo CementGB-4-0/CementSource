@@ -27,6 +27,12 @@
         <AnalysisLevel>preview-All</AnalysisLevel>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 
+        <RestoreAdditionalProjectSources>
+            https://api.nuget.org/v3/index.json;
+            https://nuget.bepinex.dev/v3/index.json;
+            https://nuget.samboy.dev/v3/index.json
+        </RestoreAdditionalProjectSources>
+
         <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with MelonLoader or the game -->
         <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->
     </PropertyGroup>
@@ -99,7 +105,6 @@
             <MelonLoaderModName Condition="'$(MelonLoaderModName)' == ''">$(AssemblyName)</MelonLoaderModName>
             <MelonLoaderModVersion Condition="'$(MelonLoaderModVersion)' == ''">$(Version)</MelonLoaderModVersion>
             <GeneratedTextInfo>
-                <![CDATA[
 namespace $(RootNamespace)
 {
     internal static class MyPluginInfo
@@ -109,7 +114,6 @@ namespace $(RootNamespace)
         public const string Version = "$(MelonLoaderModVersion)"%3B
     }
 }
-                ]]>
             </GeneratedTextInfo>
             <GeneratedFile1Path>$(IntermediateOutputPath)/MyPluginInfo.cs</GeneratedFile1Path>
         </PropertyGroup>
@@ -121,7 +125,6 @@ namespace $(RootNamespace)
 
         <PropertyGroup>
             <GeneratedTextManifestJson>
-                <![CDATA[ 
 {
     "name": "CementGB",
     "website_url": "https://github.com/CementGB-4-0/CementSource",
@@ -131,7 +134,6 @@ namespace $(RootNamespace)
         "LavaGang-MelonLoader-0.7.1"
     ]
 }
-                ]]>
             </GeneratedTextManifestJson>
             <GeneratedFile2Path>$(ProjectDir)../dist/manifest.json</GeneratedFile2Path>
         </PropertyGroup>
