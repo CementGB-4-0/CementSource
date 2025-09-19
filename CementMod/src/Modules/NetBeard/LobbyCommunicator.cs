@@ -46,6 +46,7 @@ internal static class LobbyCommunicator
         GameManagerNew.Instance.EndGameSession("DISCONNECT_GAME_COMPLETE");
 
         var gameData = JsonConvert.DeserializeObject<GBGameData>(payload);
+        if (gameData == null) yield break;
 
         Mod.Logger.Msg(ConsoleColor.Blue, "Received new modded session data");
 
