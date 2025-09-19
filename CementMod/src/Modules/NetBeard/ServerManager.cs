@@ -197,7 +197,7 @@ public class ServerManager : MonoBehaviour
             if (forwardExternalIP != null)
             {
                 Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Server successfully forwarded to address {forwardExternalIP}:{Port}");
-                LobbyCommunicator.UserIP = forwardExternalIP;
+                LobbyCommunicator.UserExternalIP = forwardExternalIP;
             }
         }
         Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
