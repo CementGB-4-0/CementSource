@@ -18,7 +18,7 @@ namespace CementGB.Mod.Modules.NetBeard;
 internal static class LobbyCommunicator
 {
     public static GBGameData gameData;
-    public static IPAddress UserIP { get; private set; }
+    public static IPAddress UserIP { get; set; }
 
 
     public static async void Awake()
@@ -99,7 +99,7 @@ internal static class LobbyCommunicator
         ClientServerCommunicator.QueueMessage("gamedata", serializedData);
     }
 
-    internal static async Task<IPAddress> GetExternalIpAddress()
+    internal static async Task<IPAddress?> GetExternalIpAddress()
     {
         var externalIpString = (await new HttpClient().GetStringAsync("http://icanhazip.com"))
             .Replace("\\r\\n", "").Replace("\\n", "").Trim();

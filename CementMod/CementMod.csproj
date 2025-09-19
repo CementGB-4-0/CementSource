@@ -34,7 +34,7 @@
         </RestoreAdditionalProjectSources>
 
         <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with MelonLoader or the game -->
-        <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -62,12 +62,12 @@
 
     <ItemGroup>
         <EmbeddedResource Include="Assets\**\*"/>
+        <EmbeddedResource Include="ref\embed\**\*" />
     </ItemGroup>
 
     <ItemGroup>
-        <!-- NetBeard Dependencies-->
-        <PackageReference Include="UPnP" Version="1.1.6"/>
-
+        <PackageReference Include="Open.Nat" Version="2.1.0"/>
+        
         <!-- CementGB Dependencies-->
         <PackageReference Include="GangBeasts.GameLibs" Version="1.27.0"/>
         <PackageReference Include="LavaGang.MelonLoader" Version="0.7.1"/>
@@ -82,6 +82,8 @@
         <PackageReference Include="MonoMod.Utils" Version="22.7.31.1"/>
         <PackageReference Include="Samboy063.Tomlet" Version="5.4.0"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+        
+        <Reference Include="ref/**/*.dll"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -96,6 +98,10 @@
 
         <!-- Copy the built mod dll into game Mods folder/dist Thunderstore staging folder -->
         <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Mods"/>
+        
+        <!-- Copy any assemblies not provided by MelonLoader to UserLibs folder -->
+        <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetDir)\Open.Nat.dll" DestinationFolder="$(GameDir)\UserLibs"/>
+        
         <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(SolutionDir)/dist/Mods"/>
     </Target>
 
