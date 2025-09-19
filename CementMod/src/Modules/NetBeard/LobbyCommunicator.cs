@@ -12,6 +12,7 @@ using Il2CppGB.Gamemodes;
 using Il2CppGB.UnityServices.Matchmaking;
 using MelonLoader;
 using Newtonsoft.Json;
+using Random = UnityEngine.Random;
 
 namespace CementGB.Mod.Modules.NetBeard;
 
@@ -59,10 +60,12 @@ internal static class LobbyCommunicator
             var gameModeEnum = GameModeHelpers.GamemodeIDToEnum(gameData.Gamemode);
             var mapsFor = GameManagerNew.Instance.tracker.Maps.GetMapsFor(gameModeEnum, false);
 
-            var maps = new List<string>();
-            foreach (var modeMapStatus in mapsFor)
+            var maps = new List<string>(mapsFor.Count);
+
+            foreach (var unused in mapsFor)
             {
-                maps.Add(modeMapStatus.MapName);
+                var mapIndex = Random.Range(0, mapsFor.Count - 1);
+                maps.Add(mapsFor[mapIndex].MapName);
             }
 
             var rotationConfig = GBConfigLoader.CreateRotationConfig(
