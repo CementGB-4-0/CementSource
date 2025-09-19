@@ -103,13 +103,15 @@ internal static class ModdedServerPatches
             new Action(() =>
             {
                 LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
+                LobbyManager.Instance.LobbyStates.IP = ServerManager.IpArg ?? address.ToString();
+                LobbyManager.Instance.LobbyStates.Port = ServerManager.Port;
                 LobbyManager.Instance.LobbyStates.UpdateLobbyState();
                 _ = LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
 
                 var result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done")
                 {
-                    IpAddress = address.ToString(),
-                    Port = ServerManager.DefaultPort,
+                    IpAddress = ServerManager.IpArg ?? address.ToString(),
+                    Port = ServerManager.Port,
                     State = MatchmakingState.Success
                 };
 

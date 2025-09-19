@@ -37,10 +37,10 @@ public class ServerManager : MonoBehaviour
 
     private const string ServerLogPrefix = "[SERVER]";
 
-    private static readonly string
+    public static readonly string?
         IpArg = CommandLineParser.Instance.GetValueForKey("-ip", false); // set to server via vanilla code
 
-    private static readonly string
+    public static readonly string?
         PortArg = CommandLineParser.Instance.GetValueForKey("-port", false); // set to server via vanilla code
 
     private static bool _autoLaunchUpdateEnabled = IsClientJoiner && !DontAutoStart;
