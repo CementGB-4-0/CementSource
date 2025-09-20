@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Il2Cpp;
 using Il2CppGB.Config;
 using Il2CppGB.Core;

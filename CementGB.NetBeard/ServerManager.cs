@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using CementGB.Mod.Utilities;
 using Il2Cpp;
 using Il2CppCoreNet.Contexts;
 using Il2CppCoreNet.Model;
@@ -12,7 +9,6 @@ using Il2CppGB.Core.Bootstrappers;
 using Il2CppGB.Game;
 using Il2CppGB.Networking.Objects;
 using Il2CppGB.Platform.Lobby;
-using MelonLoader;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 

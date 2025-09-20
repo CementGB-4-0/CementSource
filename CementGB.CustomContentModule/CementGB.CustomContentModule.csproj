@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <LangVersion>12</LangVersion>
@@ -8,7 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\CementGB.Mod\CementGB.Mod.csproj" />
+        <ProjectReference Include="..\CementGB.Mod\CementGB.Mod.csproj" />
     </ItemGroup>
-
+    
+    <Import Project="$(ProjectDir)../BuildModule.props" />
 </Project>

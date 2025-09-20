@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using CementGB.Mod.Utilities;
 using MelonLoader;
@@ -49,11 +46,13 @@ public abstract class InstancedCementModule
         return instance;
     }
 
-    public readonly HarmonyLib.Harmony HarmonyInstance;
+    protected readonly HarmonyLib.Harmony HarmonyInstance;
+    protected readonly Assembly ModuleAssembly;
 
     protected InstancedCementModule()
     {
         HarmonyInstance = new HarmonyLib.Harmony(GetType().Name);
+        ModuleAssembly = Assembly.GetCallingAssembly();
         SubscribeInternalMethods();
     }
 
@@ -61,7 +60,9 @@ public abstract class InstancedCementModule
 
     protected virtual void DoManualPatches()
     {
-        HarmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
+        Mod.Mod.Logger.Msg($"Cement Module {GetType().Name} applying patches. . .");
+        HarmonyInstance.PatchAll(ModuleAssembly);
+        Mod.Mod.Logger.Msg(ConsoleColor.Green, $"Done!");
     }
 
     protected virtual void OnUpdate() { }

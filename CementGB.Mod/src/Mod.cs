@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using CementGB.Mod.Utilities;
+﻿using CementGB.Mod.Utilities;
 using CementGB.Modules;
 using Il2Cpp;
 using Il2CppInterop.Runtime;
@@ -22,7 +19,7 @@ public class Mod : MelonMod
     ///     Cement's UserData path ("Gang Beasts\UserData\CementGB"). Created in <see cref="OnInitializeMelon" />.
     /// </summary>
     public static readonly string UserDataPath = Path.Combine(MelonEnvironment.UserDataDirectory, "CementGB");
-    public static readonly string ModulesPath = Path.Combine(UserDataPath, "Modules");
+    public static readonly string ModulesPath = Path.Combine(MelonEnvironment.UserLibsDirectory, "CementGBModules");
 
     public static string
         MapArg => CommandLineParser.Instance.GetValueForKey("-map", false);
@@ -96,6 +93,7 @@ public class Mod : MelonMod
     private static void FileStructure()
     {
         _ = Directory.CreateDirectory(UserDataPath);
+        _ = Directory.CreateDirectory(ModulesPath);
     }
 
     public override void OnUpdate()

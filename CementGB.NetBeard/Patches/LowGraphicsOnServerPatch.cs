@@ -1,5 +1,4 @@
-﻿using System;
-using CementGB.Modules.NetBeard;
+﻿using CementGB.Modules.NetBeard;
 using HarmonyLib;
 using Il2Cpp;
 using UnityEditor.PostProcessing;

@@ -1,4 +1,3 @@
-using System.IO;
 using MelonLoader;
 
 namespace CementGB.Mod;

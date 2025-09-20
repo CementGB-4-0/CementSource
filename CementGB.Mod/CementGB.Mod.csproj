@@ -3,7 +3,7 @@
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 
-        <TargetFramework>net6</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
 
         <RootNamespace>CementGB.Mod</RootNamespace>
         <AssemblyName>CementGB</AssemblyName>
@@ -14,6 +14,7 @@
         <LangVersion>12</LangVersion>
         <DefineConstants>$(DefineConstants);MELONLOADER</DefineConstants>
         <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
         <Optimize>false</Optimize>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
@@ -86,7 +87,7 @@
 
         <!-- Copy the built mod dll into game Mods folder/dist Thunderstore staging folder -->
         <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Mods"/>
-        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(SolutionDir)/dist/Mods"/>
+        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)../dist/Mods"/>
     </Target>
 
     <Target Name="AddGeneratedFiles" BeforeTargets="BeforeCompile;CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(IntermediateOutputPath)GeneratedFile.cs">

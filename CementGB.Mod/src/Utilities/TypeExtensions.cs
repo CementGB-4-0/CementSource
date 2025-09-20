@@ -1,5 +1,3 @@
-using System;
-
 namespace CementGB.Mod.Utilities;
 
 public static class TypeExtensions

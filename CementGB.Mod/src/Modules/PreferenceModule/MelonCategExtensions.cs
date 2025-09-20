@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using MelonLoader;
+﻿using MelonLoader;
 
 namespace CementGB.Modules.PreferenceModule;
 

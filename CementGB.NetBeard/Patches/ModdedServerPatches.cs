@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using CementGB.Modules.NetBeard;
 using HarmonyLib;
 using Il2Cpp;
