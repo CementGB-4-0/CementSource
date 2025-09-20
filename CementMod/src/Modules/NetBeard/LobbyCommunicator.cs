@@ -32,10 +32,8 @@ internal static class LobbyCommunicator
                 }
             };
         }
-        else
-        {
-            UserExternalIP = await GetExternalIpAddress();
-        }
+
+        UserExternalIP = await GetExternalIpAddress();
     }
 
     private static IEnumerator HandleGBGameData(string payload)
@@ -98,7 +96,7 @@ internal static class LobbyCommunicator
 
     private static async Task<IPAddress?> GetExternalIpAddress()
     {
-        var externalIpString = (await new HttpClient().GetStringAsync("https://icanhazip.com"))
+        var externalIpString = (await new HttpClient().GetStringAsync("https://ipv4.icanhazip.com"))
             .Replace(@"\r\n", "").Replace("\\n", "").Trim();
         return !IPAddress.TryParse(externalIpString, out var ipAddress) ? null : ipAddress;
     }
