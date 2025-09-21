@@ -50,7 +50,7 @@ internal static class GameModeMapTrackerPatch
 
                 foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
                 {
-                    if (mapRef.SceneData == null || mapRef.SceneName == null || !mapRef.IsValid ||
+                    if (mapRef.SceneData == null || !mapRef.IsValid ||
                         SceneNameAlreadyExists(__instance, mapRef.SceneName))
                         continue;
 
@@ -59,7 +59,7 @@ internal static class GameModeMapTrackerPatch
                     __instance.AvailableMaps.Add(LoadMapInfo(mapRef));
                     LoggingUtilities.VerboseLog(
                         ConsoleColor.DarkGreen,
-                        $"Registered allowed gamemodes and UI selector for custom scene \"{mapRef}\"!");
+                        $"Registered allowed gamemodes and UI selector for custom scene \"{mapRef.SceneName}\"!");
                 }
             }
         }

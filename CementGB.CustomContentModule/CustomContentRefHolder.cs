@@ -38,6 +38,11 @@ public abstract class CustomContentRefHolder
         var cachedAsset = _cachedAssets.FirstOrDefault(asset => asset.GetType().IsCastableTo(assetType) && asset.Cast<UnityEngine.Object>().name == key);
         if (cachedAsset != null) return cachedAsset;
 
+        if (key == null)
+        {
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Argument {nameof(key)} is null!");
+            return null;
+        }
         var handle = Addressables.LoadAssetAsync<Il2CppSystem.Object>(key);
         if (!handle.HandleSynchronousAddressableOperation())
             throw new Exception($"Failed to load asset of key: {key} (Is the object name different from the Addressable key?) | {nameof(assetType)} : {assetType}");
