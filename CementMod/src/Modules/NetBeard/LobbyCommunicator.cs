@@ -12,12 +12,13 @@ using Il2CppGB.Gamemodes;
 using Il2CppGB.UnityServices.Matchmaking;
 using MelonLoader;
 using Newtonsoft.Json;
+using Random = UnityEngine.Random;
 
 namespace CementGB.Mod.Modules.NetBeard;
 
 internal static class LobbyCommunicator
 {
-    public static IPAddress? UserExternalIP { get; private set; }
+    public static IPAddress? UserExternalIP { get; set; }
 
     internal static async void Awake()
     {
@@ -31,10 +32,8 @@ internal static class LobbyCommunicator
                 }
             };
         }
-        else
-        {
-            UserExternalIP = await GetExternalIpAddress();
-        }
+
+        UserExternalIP = await GetExternalIpAddress();
     }
 
     private static IEnumerator HandleGBGameData(string payload)
@@ -46,6 +45,7 @@ internal static class LobbyCommunicator
         GameManagerNew.Instance.EndGameSession("DISCONNECT_GAME_COMPLETE");
 
         var gameData = JsonConvert.DeserializeObject<GBGameData>(payload);
+        if (gameData == null) yield break;
 
         Mod.Logger.Msg(ConsoleColor.Blue, "Received new modded session data");
 
@@ -58,10 +58,12 @@ internal static class LobbyCommunicator
             var gameModeEnum = GameModeHelpers.GamemodeIDToEnum(gameData.Gamemode);
             var mapsFor = GameManagerNew.Instance.tracker.Maps.GetMapsFor(gameModeEnum, false);
 
-            var maps = new List<string>();
-            foreach (var modeMapStatus in mapsFor)
+            var maps = new List<string>(mapsFor.Count);
+
+            foreach (var unused in mapsFor)
             {
-                maps.Add(modeMapStatus.MapName);
+                var mapIndex = Random.Range(0, mapsFor.Count - 1);
+                maps.Add(mapsFor[mapIndex].MapName);
             }
 
             var rotationConfig = GBConfigLoader.CreateRotationConfig(
@@ -94,7 +96,7 @@ internal static class LobbyCommunicator
 
     private static async Task<IPAddress?> GetExternalIpAddress()
     {
-        var externalIpString = (await new HttpClient().GetStringAsync("https://icanhazip.com"))
+        var externalIpString = (await new HttpClient().GetStringAsync("https://ipv4.icanhazip.com"))
             .Replace(@"\r\n", "").Replace("\\n", "").Trim();
         return !IPAddress.TryParse(externalIpString, out var ipAddress) ? null : ipAddress;
     }

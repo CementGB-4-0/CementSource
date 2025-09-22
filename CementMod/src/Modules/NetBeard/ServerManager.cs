@@ -1,5 +1,8 @@
 using System;
 using System.Linq;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using CementGB.Mod.Utilities;
 using Il2Cpp;
 using Il2CppCoreNet.Contexts;
@@ -13,6 +16,7 @@ using Il2CppGB.Game;
 using Il2CppGB.Networking.Objects;
 using Il2CppGB.Platform.Lobby;
 using MelonLoader;
+using Open.Nat;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -33,10 +37,10 @@ public class ServerManager : MonoBehaviour
 
     private const string ServerLogPrefix = "[SERVER]";
 
-    private static readonly string
+    public static readonly string?
         IpArg = CommandLineParser.Instance.GetValueForKey("-ip", false); // set to server via vanilla code
 
-    private static readonly string
+    public static readonly string?
         PortArg = CommandLineParser.Instance.GetValueForKey("-port", false); // set to server via vanilla code
 
     private static bool _autoLaunchUpdateEnabled = IsClientJoiner && !DontAutoStart;
@@ -56,9 +60,10 @@ public class ServerManager : MonoBehaviour
              PortArg)); // TODO: Auto start as client (similar to NetworkBootstrapper.AutoRunServer) if this is true
 
     /// <summary>
-    ///     True if the -SERVER argument is not passed, but the -FWD argument is. Forwards a local game to an ip and port.
+    ///     True if IsServer is true and the -pfwd argument is added. Attempts to automatically port-forward the server instance using UPnP.
+    ///     This may be disabled on some networks, so it isn't for everybody.
     /// </summary>
-    public static bool IsForwardedHost => !IsServer && Environment.GetCommandLineArgs().Contains("-FWD");
+    public static bool IsForwardedHost => IsServer && Environment.GetCommandLineArgs().Contains("-pfwd");
 
     /// <summary>
     ///     True if the -DONT-AUTOSTART argument is passed. Will prevent the server or client from automatically joining the
@@ -95,15 +100,7 @@ public class ServerManager : MonoBehaviour
 
         if (MelonUtils.IsWindows && !Application.isBatchMode)
         {
-            if (IsForwardedHost)
-            {
-                _ = LoggingUtilities.MessageBox(
-                    0,
-                    $"Gang Beasts is loading in FWD mode. This will open a server on port {Port} upon creating a local game for LAN or port-forwarded players to join.\nIf this is unintended, please remove the launch argument \"-FWD\" from the Gang Beasts executable.",
-                    "Warning",
-                    0);
-            }
-            else if (IsClientJoiner)
+            if (IsClientJoiner)
             {
                 _ = LoggingUtilities.MessageBox(
                     0,
@@ -125,7 +122,7 @@ public class ServerManager : MonoBehaviour
 
     private void Update()
     {
-        if (!_autoLaunchUpdateEnabled || (!IsClientJoiner && !IsForwardedHost) ||
+        if (!_autoLaunchUpdateEnabled || !IsClientJoiner ||
             DontAutoStart || !LobbyManager.Instance || !LobbyManager.Instance._completedSetup ||
             SceneManager.GetActiveScene().name != "Menu")
         {
@@ -161,7 +158,7 @@ public class ServerManager : MonoBehaviour
 
     private void OnBoot()
     {
-        if ((IsClientJoiner && !IsForwardedHost) || IsServer)
+        if (IsClientJoiner || IsServer)
         {
             NetworkBootstrapper.IsDedicatedServer = IsServer;
             _ = LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
@@ -172,13 +169,9 @@ public class ServerManager : MonoBehaviour
         {
             ServerBoot();
         }
-        else if (IsClientJoiner && !DontAutoStart)
-        {
-            // TODO: Automatically join a server as fully ready client on boot
-        }
     }
 
-    private static void ServerBoot()
+    private static async void ServerBoot()
     {
         Mod.Logger.Msg($"{ServerLogPrefix} Setting up server boot...");
         var bootstrapper = FindObjectOfType<NetworkBootstrapper>();
@@ -198,15 +191,51 @@ public class ServerManager : MonoBehaviour
             (NetModelCollection<NetMember>.ItemHandler)OnNetMemberAdded,
             null,
             (NetModelCollection<NetMember>.ItemHandler)OnNetMemberRemoved);
+        if (IsForwardedHost)
+        {
+            var forwardExternalIP = await OpenPort(Port, Port, Protocol.Udp, "NetBeard: Modded Gang Beasts Server");
+            if (forwardExternalIP != null)
+            {
+                Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Server successfully forwarded to address {forwardExternalIP}:{Port}");
+                LobbyCommunicator.UserExternalIP = forwardExternalIP;
+            }
+        }
         Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
+    }
+
+    private static async Task<IPAddress?> OpenPort(int internalPort, int externalPort, Protocol protocol, string description)
+    {
+        try
+        {
+            var natDiscoverer = new NatDiscoverer();
+            var cancellationTokenSource = new CancellationTokenSource(5000);
+
+            var device = await natDiscoverer.DiscoverDeviceAsync(PortMapper.Upnp, cancellationTokenSource);
+
+            if (device != null)
+            {
+                var externalIp = await device.GetExternalIPAsync();
+                var mapping = new Mapping(protocol, internalPort, externalPort, description);
+                await device.CreatePortMapAsync(mapping);
+                return externalIp;
+            }
+        }
+        catch (NatDeviceNotFoundException ex)
+        {
+            Mod.Logger.Error($"No UPnP-enabled NAT device found or discovery timed out. {ex}");
+        }
+        catch (Exception ex)
+        {
+            Mod.Logger.Error($"An error occurred attempting to port forward: {ex}");
+        }
+
+        return null;
     }
 
     private static void OnServerReady(NetInt value)
     {
         if (value.Value == 1)
-        {
             Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Ready for players!");
-        }
     }
 
     private static void OnNetMemberAdded(NetMember member)
