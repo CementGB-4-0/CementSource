@@ -12,9 +12,8 @@ namespace CementGB.Mod.Modules.NetBeard;
 
 public static class TCPCommunicator
 {
-    private const int TCPPort = ServerManager.DefaultPort + 1;
-
     private static readonly IPAddress TCPServerIP = IPAddress.Loopback;
+    private static int TCPPort => ServerManager.Port + 1;
 
     public delegate void MessageData(string prefix, string payload);
 
