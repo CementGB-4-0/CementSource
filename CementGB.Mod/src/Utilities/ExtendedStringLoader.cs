@@ -1,4 +1,4 @@
-namespace CementGB.Mod.Utilities;
+namespace CementGB.Utilities;
 
 /// <summary>
 ///     This class registers simple modded string localization, e.g. "STAGE_GRIND" -> "Grind"

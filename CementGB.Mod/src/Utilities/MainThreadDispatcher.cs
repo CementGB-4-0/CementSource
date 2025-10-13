@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace CementGB.Mod.Utilities;
+namespace CementGB.Utilities;
 
 internal static class MainThreadDispatcher
 {

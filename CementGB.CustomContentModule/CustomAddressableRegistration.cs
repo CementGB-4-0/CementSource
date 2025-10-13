@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using CementGB.Modules.CustomContent;
 using CementGB.Modules.CustomContent.Utilities;
-using CementGB.Mod.Utilities;
+using CementGB.Utilities;
 using CementGB.Modules.CustomContent.CustomMaps;
 using Il2CppGB.Data.Loading;
 using Il2CppInterop.Runtime;
@@ -15,7 +15,7 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 using ConsoleColor = System.ConsoleColor;
 using Object = Il2CppSystem.Object;
 
-namespace CementGB.Mod.CustomContent;
+namespace CementGB.CustomContent;
 
 public static class CustomAddressableRegistration
 {

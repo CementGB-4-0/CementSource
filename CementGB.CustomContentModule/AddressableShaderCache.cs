@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Diagnostics;
-using CementGB.Mod.CustomContent;
-using CementGB.Mod.Utilities;
+using CementGB.CustomContent;
+using CementGB.Utilities;
 using CementGB.Modules.CustomContent.Utilities;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
@@ -63,7 +63,7 @@ public static class AddressableShaderCache
 
     private static IEnumerator InitCacheShaders()
     {
-        Mod.Mod.Logger.Msg("Caching Addressable game shaders, please wait. . .");
+        Mod.Logger.Msg("Caching Addressable game shaders, please wait. . .");
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
@@ -110,7 +110,7 @@ public static class AddressableShaderCache
         }
 
         stopwatch.Stop();
-        Mod.Mod.Logger.Msg(
+        Mod.Logger.Msg(
             ConsoleColor.Green,
             $"Caching Addressable game shaders done! Total time taken: {stopwatch.ElapsedMilliseconds}ms");
     }

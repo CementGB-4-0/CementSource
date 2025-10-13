@@ -1,4 +1,4 @@
-using CementGB.Mod.CustomContent;
+using CementGB.CustomContent;
 using HarmonyLib;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;

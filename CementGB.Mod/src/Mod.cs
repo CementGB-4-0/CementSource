@@ -1,4 +1,4 @@
-﻿using CementGB.Mod.Utilities;
+﻿using CementGB.Utilities;
 using CementGB.Modules;
 using Il2Cpp;
 using Il2CppInterop.Runtime;
@@ -7,7 +7,7 @@ using MelonLoader.Utils;
 using UnityEngine.Rendering.Universal;
 using Object = UnityEngine.Object;
 
-namespace CementGB.Mod;
+namespace CementGB;
 
 /// <summary>
 ///     The main entrypoint for Cement. This is where everything initializes from. Public members include important paths

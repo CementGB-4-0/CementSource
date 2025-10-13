@@ -5,8 +5,8 @@
 
         <TargetFramework>net6.0</TargetFramework>
 
-        <RootNamespace>CementGB.Mod</RootNamespace>
         <AssemblyName>CementGB</AssemblyName>
+        <RootNamespace>CementGB</RootNamespace>
         <Author>CementGB Team</Author>
         <Version>4.2.0</Version>
 
@@ -20,13 +20,18 @@
 
         <OutputType>Library</OutputType>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <DocumentationFile Condition=" '$(Configuration)' == 'Release' ">$(ProjectDir)../dist/Mods/CementGB.xml</DocumentationFile>
 
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 
         <AnalysisLevel>preview-All</AnalysisLevel>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+        <RestoreAdditionalProjectSources>
+            https://api.nuget.org/v3/index.json;
+            https://www.nuget.org/api/v2/;
+            https://nuget.bepinex.dev/v3/index.json
+        </RestoreAdditionalProjectSources>
 
         <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with MelonLoader or the game -->
         <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->
@@ -53,6 +58,7 @@
         <DefineConstants>$(DefineConstants);RELEASE;TRACE</DefineConstants>
 
         <WarningLevel>4</WarningLevel>
+        <DocumentationFile>$(ProjectDir)../dist/Mods/CementGB.xml</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

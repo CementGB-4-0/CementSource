@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using CementGB.Mod;
+using CementGB;
 using MelonLoader;
 
 [assembly: AssemblyCompany(MyPluginInfo.Author)]

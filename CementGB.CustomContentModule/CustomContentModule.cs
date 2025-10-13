@@ -1,4 +1,4 @@
-using CementGB.Mod.CustomContent;
+using CementGB.CustomContent;
 using GBMDK;
 using Il2CppCS.CorePlatform;
 using Il2CppInterop.Runtime.Injection;

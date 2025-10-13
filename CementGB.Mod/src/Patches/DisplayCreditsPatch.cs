@@ -1,10 +1,10 @@
-﻿using CementGB.Mod.Utilities;
+﻿using CementGB.Utilities;
 using HarmonyLib;
 using Il2Cpp;
 using MelonLoader;
 using UnityEngine;
 
-namespace CementGB.Mod.Patches;
+namespace CementGB.Patches;
 
 internal static class DisplayCreditsPatch
 {

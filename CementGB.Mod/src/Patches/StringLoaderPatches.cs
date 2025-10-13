@@ -1,8 +1,8 @@
-using CementGB.Mod.Utilities;
+using CementGB.Utilities;
 using HarmonyLib;
 using Il2CppGB.Data;
 
-namespace CementGB.Mod.Patches;
+namespace CementGB.Patches;
 
 [HarmonyPatch(typeof(StringLoader), nameof(StringLoader.LoadString))]
 internal class LoadStringPatch

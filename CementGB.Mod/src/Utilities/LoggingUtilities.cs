@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace CementGB.Mod.Utilities;
+namespace CementGB.Utilities;
 
 public static class LoggingUtilities
 {

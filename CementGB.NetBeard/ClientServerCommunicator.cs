@@ -1,14 +1,17 @@
 ﻿using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using MelonLoader;
 using UnityEngine;
 
 namespace CementGB.Modules.NetBeard;
 
 internal static class ClientServerCommunicator
 {
+    
     public delegate void MessageData(string prefix, string payload);
 
+    private static MelonLogger.Instance? Logger => InstancedCementModule.GetModule<ServerManager>()?.Logger;
     private static readonly ConcurrentQueue<string> queuedMessages = new();
     private static bool hasHookedQuit;
     private static Task currentClientLoop;
@@ -81,7 +84,7 @@ internal static class ClientServerCommunicator
 
                 catch (Exception ex)
                 {
-                    Mod.Mod.Logger.Error($"Exception when trying to speak to modded server \n{ex}");
+                    Logger?.Error($"Exception when trying to speak to modded server \n{ex}");
                     await Task.Delay(1000);
                     continue; // Redo connection, as we cannot do anything without it
                 }
@@ -154,7 +157,7 @@ internal static class ClientServerCommunicator
         catch (Exception ex)
         {
             // Connection either died or some unknown exception occured
-            Mod.Mod.Logger.Error($"Stream handling error {ex}");
+            CementGB.Mod.Logger.Error($"Stream handling error {ex}");
             return false;
         }
 
@@ -198,13 +201,13 @@ internal class LineStepper
     internal void Step(string identifier = "")
     {
         currentLine++;
-        Mod.Mod.Logger.Msg(logColor, string.Format(toLogOnStep, currentLine) + " " + identifier);
+        Mod.Logger.Msg(logColor, string.Format(toLogOnStep, currentLine) + " " + identifier);
         Thread.Sleep(1000);
     }
 
     internal void Reset()
     {
-        Mod.Mod.Logger.Msg("LineStepper: Reset");
+        Mod.Logger.Msg("LineStepper: Reset");
         currentLine = 0;
     }
 }

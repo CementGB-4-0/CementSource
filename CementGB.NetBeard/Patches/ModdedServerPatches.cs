@@ -17,7 +17,7 @@ using Il2CppGB.UnityServices.Matchmaking;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine.Networking;
 
-namespace CementGB.Mod.Patches;
+namespace CementGB.Modules.NetBeard.Patches;
 
 [HarmonyPatch]
 internal static class ModdedServerPatches

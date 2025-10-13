@@ -1,10 +1,10 @@
-using CementGB.Mod.CustomContent;
-using CementGB.Mod.Utilities;
+using CementGB.CustomContent;
+using CementGB.Utilities;
 using HarmonyLib;
 using Il2CppGB.Gamemodes;
 using ConsoleColor = System.ConsoleColor;
 
-namespace CementGB.Mod.Patches;
+namespace CementGB.Patches;
 
 internal static class GameModeMapTrackerPatch
 {

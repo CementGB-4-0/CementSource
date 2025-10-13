@@ -1,6 +1,6 @@
 using MelonLoader;
 
-namespace CementGB.Mod;
+namespace CementGB;
 
 /// <summary>
 ///     Provides some useful shorthand hooks for certain in-game events.

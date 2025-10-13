@@ -1,4 +1,4 @@
-namespace CementGB.Mod.Utilities;
+namespace CementGB.Utilities;
 
 public static class TypeExtensions
 {

@@ -1,6 +1,6 @@
 using System.Text;
 using CementGB.Modules.CustomContent.Utilities;
-using CementGB.Mod.Utilities;
+using CementGB.Utilities;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes;
 using UnityEngine.AddressableAssets;

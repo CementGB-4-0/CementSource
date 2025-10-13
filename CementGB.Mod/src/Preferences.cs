@@ -1,6 +1,6 @@
 using MelonLoader;
 
-namespace CementGB.Mod;
+namespace CementGB;
 
 /// <summary>
 ///     Home to Cement's individual MelonPreferences. If you are looking for the custom Preferences system, please refer

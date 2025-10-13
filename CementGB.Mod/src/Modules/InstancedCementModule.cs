@@ -1,5 +1,5 @@
 using System.Reflection;
-using CementGB.Mod.Utilities;
+using CementGB.Utilities;
 using MelonLoader;
 
 namespace CementGB.Modules;
@@ -7,6 +7,11 @@ namespace CementGB.Modules;
 public abstract class InstancedCementModule
 {
     private static readonly List<InstancedCementModule> ModuleHolder = [];
+
+    public static InstancedCementModule? GetModule<T>() where T : InstancedCementModule
+    {
+        return ModuleHolder.Find(instancedModule => instancedModule.GetType() == typeof(T)) ?? null;
+    }
 
     public static void BootstrapAllCementModulesInAssembly(Assembly? assembly = null)
     {
@@ -46,6 +51,8 @@ public abstract class InstancedCementModule
         return instance;
     }
 
+    public readonly MelonLogger.Instance Logger;
+
     protected readonly HarmonyLib.Harmony HarmonyInstance;
     protected readonly Assembly ModuleAssembly;
 
@@ -53,6 +60,7 @@ public abstract class InstancedCementModule
     {
         HarmonyInstance = new HarmonyLib.Harmony(GetType().Name);
         ModuleAssembly = Assembly.GetCallingAssembly();
+        Logger = new MelonLogger.Instance($"(Module){GetType().FullName}");
         SubscribeInternalMethods();
     }
 
@@ -60,9 +68,9 @@ public abstract class InstancedCementModule
 
     protected virtual void DoManualPatches()
     {
-        Mod.Mod.Logger.Msg($"Cement Module {GetType().Name} applying patches. . .");
+        Mod.Logger.Msg($"Cement Module {GetType().Name} applying patches. . .");
         HarmonyInstance.PatchAll(ModuleAssembly);
-        Mod.Mod.Logger.Msg(ConsoleColor.Green, $"Done!");
+        Mod.Logger.Msg(ConsoleColor.Green, "Done!");
     }
 
     protected virtual void OnUpdate() { }

@@ -1,11 +1,11 @@
-using CementGB.Mod.CustomContent;
+using CementGB.CustomContent;
 using HarmonyLib;
 using Il2CppGB.Gamemodes;
 using Il2CppGB.UI;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
-namespace CementGB.Mod.Patches;
+namespace CementGB.Patches;
 
 internal static class GBConfigLoaderPatch
 {

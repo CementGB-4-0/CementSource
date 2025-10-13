@@ -16,6 +16,7 @@ internal static class LobbyCommunicator
     public static GBGameData gameData;
     public static IPAddress UserIP { get; private set; }
 
+    private static MelonLogger.Instance? Logger => InstancedCementModule.GetModule<ServerManager>()?.Logger;
 
     public static async void Awake()
     {
@@ -49,7 +50,7 @@ internal static class LobbyCommunicator
         var gameData = JsonConvert.DeserializeObject<GBGameData>(payload);
         LobbyCommunicator.gameData = gameData;
 
-        Mod.Mod.Logger.Msg(ConsoleColor.Blue, "Received new modded session data");
+        Logger?.Msg(ConsoleColor.Blue, "Received new modded session data");
 
         if (gameData.MapName.ToLower() == "random")
         {

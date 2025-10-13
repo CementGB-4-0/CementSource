@@ -2,7 +2,7 @@
 using MelonLoader;
 using UnityEngine;
 
-namespace CementGB.Mod.Utilities;
+namespace CementGB.Utilities;
 
 /// <summary>
 ///     Utilities that make working with AssetBundles easier in the IL2CPP space. Implements shorthand for embedded

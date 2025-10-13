@@ -4,7 +4,7 @@ using Il2Cpp;
 using UnityEditor.PostProcessing;
 using UnityEngine;
 
-namespace CementGB.Mod.Patches;
+namespace CementGB.Modules.NetBeard.Patches;
 
 [HarmonyPatch(typeof(GraphicsManager), nameof(GraphicsManager.LoadSettings))]
 internal class LowGraphicsOnServerPatch

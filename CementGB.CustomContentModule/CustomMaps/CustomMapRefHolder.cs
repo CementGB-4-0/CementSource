@@ -3,7 +3,7 @@ using GBMDK;
 using Il2CppGB.Data.Loading;
 using UnityEngine.ResourceManagement.ResourceLocations;
 
-namespace CementGB.Mod.CustomContent;
+namespace CementGB.CustomContent;
 
 /// <summary>
 ///     Holds references to scene data loaded on mod init to hold onto and cache loading results.
