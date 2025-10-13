@@ -24,22 +24,26 @@ namespace CementGB.Mod.Patches;
 [HarmonyPatch]
 internal static class ModdedServerPatches
 {
-    [HarmonyPatch(typeof(Il2CppCoreNet.NetworkManager), nameof(Il2CppCoreNet.NetworkManager.LaunchClient))]
-    [HarmonyPrefix]
-    private static void LaunchClientPrefix(ref string IP)
-    {
-        Mod.Logger.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
-        if (TCPCommunicator.Client?.Connected is not true)
-            return;
-
-        IP = IPAddress.Loopback.ToString();
-    }
-
     [HarmonyPatch(typeof(GBClientPlatformManager), nameof(GBClientPlatformManager.Awake))]
     [HarmonyPostfix]
     private static void ClientPlatformAwakePostfix(GBClientPlatformManager __instance)
     {
         __instance._wantsToLeave = false;
+    }
+
+    [HarmonyPatch(typeof(Il2CppCoreNet.NetworkManager), nameof(Il2CppCoreNet.NetworkManager.LaunchClient))]
+    [HarmonyPrefix]
+    private static void LaunchClientPrefix(NetworkManager __instance, ref string IP)
+    {
+        if (GameManagerNew.Instance && GameManagerNew.Instance.CurrentGameType != GameManagerNew.GameType.Matchmaker)
+            return;
+        _ = LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
+        if (LobbyCommunicator.UserExternalIP == null || LobbyCommunicator.UserExternalIP.ToString() == IP)
+        {
+            IP = IPAddress.Loopback.ToString();
+            __instance.networkAddress = IP;
+        }
+        Mod.Logger.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
     }
 
     [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic))]
@@ -107,7 +111,6 @@ internal static class ModdedServerPatches
                 LobbyManager.Instance.LobbyStates.IP = address.ToString();
                 LobbyManager.Instance.LobbyStates.Port = ServerManager.Port;
                 LobbyManager.Instance.LobbyStates.UpdateLobbyState();
-                _ = LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
 
                 var result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done")
                 {
