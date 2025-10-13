@@ -28,6 +28,7 @@ internal static class ModdedServerPatches
     [HarmonyPrefix]
     private static void LaunchClientPrefix(ref string IP)
     {
+        Mod.Logger.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
         if (TCPCommunicator.Client?.Connected is not true)
             return;
 
@@ -103,14 +104,14 @@ internal static class ModdedServerPatches
             new Action(() =>
             {
                 LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
-                LobbyManager.Instance.LobbyStates.IP = ServerManager.IpArg ?? address.ToString();
+                LobbyManager.Instance.LobbyStates.IP = address.ToString();
                 LobbyManager.Instance.LobbyStates.Port = ServerManager.Port;
                 LobbyManager.Instance.LobbyStates.UpdateLobbyState();
                 _ = LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
 
                 var result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done")
                 {
-                    IpAddress = ServerManager.IpArg ?? address.ToString(),
+                    IpAddress = address.ToString(),
                     Port = ServerManager.Port,
                     State = MatchmakingState.Success
                 };

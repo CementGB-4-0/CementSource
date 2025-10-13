@@ -20,8 +20,6 @@ public static class TCPCommunicator
     private static readonly ConcurrentQueue<string> QueuedMessages = new();
 
     private static bool _firstInitCall = true;
-    private static Task? _currentClientLoop;
-    private static Task? _currentServerLoop;
 
     public static TcpListener? Server { get; set; }
     public static TcpClient? Client { get; set; }
@@ -56,10 +54,7 @@ public static class TCPCommunicator
 
     private static void OnUpdate()
     {
-        if (ServerManager.IsServer && Server != null)
-            _currentServerLoop ??= Task.Run(ServerLoop);
-        else
-            _currentClientLoop ??= Task.Run(ClientLoop);
+        _ = ServerManager.IsServer && Server != null ? Task.Run(ServerLoop) : Task.Run(ClientLoop);
     }
 
     private static async Task ClientLoop()
@@ -71,11 +66,8 @@ public static class TCPCommunicator
         }
         catch (SocketException e)
         {
-            Mod.Logger.Error($"TCP lobby exchange client connection error: {e}");
-            await Task.Delay(1000);
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"TCP client connection error: {e}");
         }
-
-        _currentClientLoop = null;
     }
 
     private static async Task ServerLoop()
@@ -90,11 +82,8 @@ public static class TCPCommunicator
         }
         catch (SocketException e)
         {
-            Mod.Logger.Error($"Server connection error: {e}");
-            await Task.Delay(1000);
+            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"TCP server connection error: {e}");
         }
-
-        _currentServerLoop = null;
     }
 
     private static async Task HandleWriting(NetworkStream stream)
