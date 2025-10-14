@@ -12,6 +12,7 @@ using Il2CppGB.Core;
 using Il2CppGB.Game;
 using Il2CppGB.Gamemodes;
 using Il2CppGB.Menu;
+using Il2CppGB.Networking.Components.Client;
 using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI;
 using Il2CppGB.UnityServices.Matchmaking;
@@ -23,6 +24,28 @@ namespace CementGB.Mod.Patches;
 [HarmonyPatch]
 internal static class ModdedServerPatches
 {
+    [HarmonyPatch(typeof(GBClientPlatformManager), nameof(GBClientPlatformManager.Awake))]
+    [HarmonyPostfix]
+    private static void ClientPlatformAwakePostfix(GBClientPlatformManager __instance)
+    {
+        __instance._wantsToLeave = false;
+    }
+
+    [HarmonyPatch(typeof(Il2CppCoreNet.NetworkManager), nameof(Il2CppCoreNet.NetworkManager.LaunchClient))]
+    [HarmonyPrefix]
+    private static void LaunchClientPrefix(NetworkManager __instance, ref string IP)
+    {
+        if (GameManagerNew.Instance && GameManagerNew.Instance.CurrentGameType != GameManagerNew.GameType.Matchmaker)
+            return;
+        _ = LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
+        if (LobbyCommunicator.UserExternalIP == null || LobbyCommunicator.UserExternalIP.ToString() == IP)
+        {
+            IP = IPAddress.Loopback.ToString();
+            __instance.networkAddress = IP;
+        }
+        Mod.Logger.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
+    }
+
     [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic))]
     [HarmonyPrefix]
     private static bool StartGameLogicPatch(MenuHandlerGamemodes __instance)
@@ -32,13 +55,11 @@ internal static class ModdedServerPatches
             return true;
         }
 
-        var shouldJoinModded = ClientServerCommunicator.IsServerRunning();
+        var shouldJoinModded = TCPCommunicator.Client?.Connected ?? false;
         if (!shouldJoinModded)
         {
             return true;
         }
-
-        ClientServerCommunicator.Init();
 
         var stageTime = 0;
 
@@ -59,7 +80,7 @@ internal static class ModdedServerPatches
             isRandomSelected,
             stageTime);
 
-        var address = LobbyCommunicator.UserIP ?? IPAddress.Loopback; // Offline safety net
+        var address = LobbyCommunicator.UserExternalIP ?? IPAddress.Loopback; // Offline safety net
 
         MonoSingleton<Global>.Instance.buttonController.HideButton(InputMapActions.Accept);
         __instance.PopulateVisibleButtons(true);
@@ -87,13 +108,15 @@ internal static class ModdedServerPatches
             new Action(() =>
             {
                 LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
+                LobbyManager.Instance.LobbyStates.IP = address.ToString();
+                LobbyManager.Instance.LobbyStates.Port = ServerManager.Port;
                 LobbyManager.Instance.LobbyStates.UpdateLobbyState();
-                _ = LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
 
                 var result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done")
                 {
                     IpAddress = address.ToString(),
-                    Port = ServerManager.DefaultPort
+                    Port = ServerManager.Port,
+                    State = MatchmakingState.Success
                 };
 
                 LobbyManager.Instance.LobbyStates.MatchmakingComplete(result);
@@ -106,7 +129,7 @@ internal static class ModdedServerPatches
     [HarmonyPrefix]
     private static bool SingleplayerOnlineBypass(MenuHandlerGamemodes __instance)
     {
-        var shouldJoinModded = ClientServerCommunicator.IsServerRunning();
+        var shouldJoinModded = TCPCommunicator.Client?.Connected ?? false;
 
         if (!shouldJoinModded || !__instance.PrivateGame)
         {

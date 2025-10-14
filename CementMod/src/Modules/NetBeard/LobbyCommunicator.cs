@@ -12,27 +12,19 @@ using Il2CppGB.Gamemodes;
 using Il2CppGB.UnityServices.Matchmaking;
 using MelonLoader;
 using Newtonsoft.Json;
+using Random = UnityEngine.Random;
 
 namespace CementGB.Mod.Modules.NetBeard;
 
 internal static class LobbyCommunicator
 {
-    public static GBGameData gameData;
-    public static IPAddress UserIP { get; private set; }
+    public static IPAddress? UserExternalIP { get; set; }
 
-
-    public static async void Awake()
+    internal static async void Awake()
     {
-        ClientServerCommunicator.Init();
-
-        if (!ServerManager.IsServer)
+        if (ServerManager.IsServer)
         {
-            UserIP = await GetExternalIpAddress();
-        }
-
-        else
-        {
-            ClientServerCommunicator.OnServerReceivedMessage += (prefix, payload) =>
+            TCPCommunicator.OnServerReceivedMessage += (prefix, payload) =>
             {
                 if (prefix == "gamedata")
                 {
@@ -40,9 +32,11 @@ internal static class LobbyCommunicator
                 }
             };
         }
+
+        UserExternalIP = await GetExternalIpAddress();
     }
 
-    internal static IEnumerator HandleGBGameData(string payload)
+    private static IEnumerator HandleGBGameData(string payload)
     {
         // Absolutely 100% make sure we're running on the main thread
         // Hacky I know dont hate me I'll refactor :(
@@ -51,7 +45,7 @@ internal static class LobbyCommunicator
         GameManagerNew.Instance.EndGameSession("DISCONNECT_GAME_COMPLETE");
 
         var gameData = JsonConvert.DeserializeObject<GBGameData>(payload);
-        LobbyCommunicator.gameData = gameData;
+        if (gameData == null) yield break;
 
         Mod.Logger.Msg(ConsoleColor.Blue, "Received new modded session data");
 
@@ -64,10 +58,12 @@ internal static class LobbyCommunicator
             var gameModeEnum = GameModeHelpers.GamemodeIDToEnum(gameData.Gamemode);
             var mapsFor = GameManagerNew.Instance.tracker.Maps.GetMapsFor(gameModeEnum, false);
 
-            var maps = new List<string>();
-            foreach (var modeMapStatus in mapsFor)
+            var maps = new List<string>(mapsFor.Count);
+
+            foreach (var unused in mapsFor)
             {
-                maps.Add(modeMapStatus.MapName);
+                var mapIndex = Random.Range(0, mapsFor.Count - 1);
+                maps.Add(mapsFor[mapIndex].MapName);
             }
 
             var rotationConfig = GBConfigLoader.CreateRotationConfig(
@@ -77,7 +73,6 @@ internal static class LobbyCommunicator
 
             GameManagerNew.Instance.ChangeRotationConfig(rotationConfig);
         }
-
         else
         {
             var rotationConfig = GBConfigLoader.CreateRotationConfig(
@@ -96,14 +91,13 @@ internal static class LobbyCommunicator
     internal static void SendLobbyDataToServer(GBGameData data)
     {
         var serializedData = JsonConvert.SerializeObject(data);
-        ClientServerCommunicator.QueueMessage("gamedata", serializedData);
+        TCPCommunicator.QueueMessage("gamedata", serializedData);
     }
 
-    internal static async Task<IPAddress> GetExternalIpAddress()
+    private static async Task<IPAddress?> GetExternalIpAddress()
     {
-        var externalIpString = (await new HttpClient().GetStringAsync("http://icanhazip.com"))
-            .Replace("\\r\\n", "").Replace("\\n", "").Trim();
-        if (!IPAddress.TryParse(externalIpString, out var ipAddress)) return null;
-        return ipAddress;
+        var externalIpString = (await new HttpClient().GetStringAsync("https://ipv4.icanhazip.com"))
+            .Replace(@"\r\n", "").Replace("\\n", "").Trim();
+        return !IPAddress.TryParse(externalIpString, out var ipAddress) ? null : ipAddress;
     }
 }
