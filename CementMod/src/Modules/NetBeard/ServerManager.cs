@@ -63,7 +63,7 @@ public class ServerManager : MonoBehaviour
     ///     True if IsServer is true and the -pfwd argument is added. Attempts to automatically port-forward the server instance using UPnP.
     ///     This may be disabled on some networks, so it isn't for everybody.
     /// </summary>
-    public static bool IsForwardedHost => IsServer && Environment.GetCommandLineArgs().Contains("-pfwd");
+    public static bool PortForward => IsServer && Environment.GetCommandLineArgs().Contains("-pfwd");
 
     /// <summary>
     ///     True if the -DONT-AUTOSTART argument is passed. Will prevent the server or client from automatically joining the
@@ -82,7 +82,7 @@ public class ServerManager : MonoBehaviour
     public static int Port => string.IsNullOrWhiteSpace(PortArg) ? DefaultPort : int.Parse(PortArg);
 
     /// <summary>
-    ///     Should the server load in low graphics mode?
+    ///     Should the server load in low graphics mode? Will also cap the server to 60fps.
     /// </summary>
     public static bool LowGraphicsMode => Environment.GetCommandLineArgs().Contains("-lowgraphics");
 
@@ -169,6 +169,9 @@ public class ServerManager : MonoBehaviour
         {
             ServerBoot();
         }
+
+        if (Application.isBatchMode)
+            MelonEvents.OnUpdate.Subscribe(RemoveRendering);
     }
 
     private static async void ServerBoot()
@@ -191,7 +194,7 @@ public class ServerManager : MonoBehaviour
             (NetModelCollection<NetMember>.ItemHandler)OnNetMemberAdded,
             null,
             (NetModelCollection<NetMember>.ItemHandler)OnNetMemberRemoved);
-        if (IsForwardedHost)
+        if (PortForward)
         {
             var forwardExternalIP = await OpenPort(Port, Port, Protocol.Udp, "NetBeard: Modded Gang Beasts Server");
             if (forwardExternalIP != null)
@@ -201,6 +204,19 @@ public class ServerManager : MonoBehaviour
             }
         }
         Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
+    }
+
+    private static void RemoveRendering()
+    {
+        foreach (var meshRenderer in FindObjectsOfType<Renderer>())
+        {
+            meshRenderer.forceRenderingOff = true;
+        }
+
+        foreach (var ui in FindObjectsOfType<CanvasRenderer>())
+        {
+            ui.cull = true;
+        }
     }
 
     private static async Task<IPAddress?> OpenPort(int internalPort, int externalPort, Protocol protocol, string description)

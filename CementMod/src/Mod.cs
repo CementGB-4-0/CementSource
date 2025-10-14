@@ -161,7 +161,10 @@ public class Mod : MelonMod
     {
         foreach (var amb in Object.FindObjectsOfTypeAll(Il2CppType.Of<ScreenSpaceAmbientOcclusion>()))
         {
-            amb.Cast<ScreenSpaceAmbientOcclusion>().m_Settings.AfterOpaque = sceneName != "Menu";
+            var castedAmb = amb.Cast<ScreenSpaceAmbientOcclusion>();
+            castedAmb.m_Settings.AfterOpaque = sceneName != "Menu" && !Application.isBatchMode;
+            if (Application.isBatchMode)
+                castedAmb.m_Settings.Intensity = 0;
         }
     }
 
