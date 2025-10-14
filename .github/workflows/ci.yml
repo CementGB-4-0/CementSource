@@ -31,13 +31,13 @@ jobs:
               with:
                 file: CementMod/CementMod.csproj
 
-            - run: dotnet build CementMod -o ./build/ --configuration Release /p:Version=${{ steps.version_step.outputs.version }}.${{ github.run_number }}
+            - run: |
+                cp README.md dist/README.md
+                dotnet build CementMod --configuration Release /p:VersionSuffix=-ci.${{ github.run_number }}
 
             - uses: actions/upload-artifact@v4
               if: ${{ !env.ACT }}
               with: 
                 name: output-artifact
-                path: |
-                  ./build/CementGB.dll
-                  ./build/CementGB.xml
+                path: ./dist/*
                 overwrite: true

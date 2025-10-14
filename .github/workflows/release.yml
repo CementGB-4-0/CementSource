@@ -49,6 +49,7 @@ jobs:
               dist/Mods/CementGB.dll
         
         - uses: dhkatz/thunderstore-publish@v1.0.1
+          continue-on-error: true
           if: ${{ !env.ACT }}
           with:
             token: ${{ secrets.TS_TOKEN }}
