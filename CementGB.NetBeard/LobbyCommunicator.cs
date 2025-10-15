@@ -19,14 +19,12 @@ namespace CementGB.Modules.NetBeard;
 internal static class LobbyCommunicator
 {
     public static GBGameData gameData;
-    public static IPAddress? UserExternalIP { get; private set; }
+    public static IPAddress? UserExternalIP { get; set; }
 
     private static MelonLogger.Instance? Logger => InstancedCementModule.GetModule<ServerManager>()?.Logger;
 
     public static async void Awake()
     {
-        ClientServerCommunicator.Init();
-
         if (ServerManager.IsServer)
         {
             TCPCommunicator.OnServerReceivedMessage += (prefix, payload) =>

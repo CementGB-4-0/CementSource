@@ -21,10 +21,10 @@ public class Mod : MelonMod
     public static readonly string UserDataPath = Path.Combine(MelonEnvironment.UserDataDirectory, "CementGB");
     public static readonly string ModulesPath = Path.Combine(MelonEnvironment.UserLibsDirectory, "CementGBModules");
 
-    public static string
+    public static string?
         MapArg => CommandLineParser.Instance.GetValueForKey("-map", false);
 
-    public static string
+    public static string?
         ModeArg => CommandLineParser.Instance.GetValueForKey("-mode", false);
 
     public static bool

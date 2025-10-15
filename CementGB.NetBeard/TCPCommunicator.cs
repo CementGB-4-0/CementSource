@@ -4,11 +4,11 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using CementGB.Mod.Utilities;
+using CementGB.Utilities;
 using MelonLoader;
 using UnityEngine;
 
-namespace CementGB.Mod.Modules.NetBeard;
+namespace CementGB.Modules.NetBeard;
 
 public static class TCPCommunicator
 {
