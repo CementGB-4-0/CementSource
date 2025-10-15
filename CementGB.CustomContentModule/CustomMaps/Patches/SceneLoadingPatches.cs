@@ -1,21 +1,22 @@
-using CementGB.CustomContent;
-using CementGB.Modules.CustomContent.CustomMaps;
 using CementGB.Modules.CustomContent.Utilities;
 using HarmonyLib;
 using Il2CppAudio;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
 using Il2CppTMPro;
+using MelonLoader;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using ConsoleColor = System.ConsoleColor;
 using Resources = Il2CppGB.Core.Resources;
 
-namespace CementGB.Patches;
+namespace CementGB.Modules.CustomContent.Patches;
 
 [HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneListComplete))]
 internal static class OnSceneListCompletePatch
 {
+    private static MelonLogger.Instance? Logger => InstancedCementModule.GetModule<CustomContentModule>()?.Logger;
+    
     private static void Postfix(SceneLoader __instance)
     {
         var sceneList = __instance._sceneList.TryCast<AddressableDataCache>();
@@ -44,9 +45,9 @@ internal static class OnSceneListCompletePatch
 
             Resources._assetList.Add(new Resources.LoadLoadedItem(sceneDataRef) { Key = mapRef.SceneData.name });
             sceneList._assets.Add(new AddressableDataCache.AssetData { Asset = sceneDataRef, Key = mapRef.SceneName });
-
-            Mod.Logger.Msg(
-                ConsoleColor.DarkGreen,
+                
+            Logger?.Msg(
+                ConsoleColor.Green,
                 $"New custom stage registered in SceneLoader : Key: {mapRef.SceneName}");
         }
     }

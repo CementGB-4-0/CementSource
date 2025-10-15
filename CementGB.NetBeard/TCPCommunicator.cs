@@ -81,7 +81,7 @@ public static class TCPCommunicator
         }
         catch (SocketException e)
         {
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"TCP server connection error: {e}");
+            ServerManager.Logger?.VerboseLog(ConsoleColor.DarkRed, $"TCP server connection error: {e}");
         }
     }
 

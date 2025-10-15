@@ -3,6 +3,7 @@ using CementGB.Modules.CustomContent.Utilities;
 using CementGB.Utilities;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes;
+using MelonLoader;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceLocations;
 
@@ -11,6 +12,8 @@ namespace CementGB.Modules.CustomContent;
 public abstract class CustomContentRefHolder
 {
     private static readonly Type RequiredBaseType = typeof(UnityEngine.Object);
+
+    private static MelonLogger.Instance? Logger => InstancedCementModule.GetModule<CustomContentModule>()?.Logger;
 
     public abstract Type[] AssetTypes { get; }
     public abstract string CustomContentTypeString { get; }
@@ -40,7 +43,7 @@ public abstract class CustomContentRefHolder
 
         if (key == null)
         {
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"Argument {nameof(key)} is null!");
+            Logger?.VerboseLog(ConsoleColor.DarkRed, $"Argument {nameof(key)} is null!");
             return null;
         }
         var handle = Addressables.LoadAssetAsync<Il2CppSystem.Object>(key);

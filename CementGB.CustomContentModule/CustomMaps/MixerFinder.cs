@@ -1,6 +1,6 @@
 ﻿using UnityEngine.Audio;
 
-namespace CementGB.Modules.CustomContent.CustomMaps;
+namespace CementGB.Modules.CustomContent;
 
 internal static class MixerFinder
 {

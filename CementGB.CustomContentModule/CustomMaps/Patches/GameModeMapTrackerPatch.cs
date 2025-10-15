@@ -1,15 +1,18 @@
-using CementGB.CustomContent;
+using CementGB.Modules.CustomContent;
 using CementGB.Utilities;
 using HarmonyLib;
 using Il2CppGB.Gamemodes;
+using MelonLoader;
 using ConsoleColor = System.ConsoleColor;
 
-namespace CementGB.Patches;
+namespace CementGB.Modules.CustomContent.Patches;
 
 internal static class GameModeMapTrackerPatch
 {
     private static readonly List<GameModeMapTracker> _instancesAlreadyExecuted = [];
 
+    private static MelonLogger.Instance? Logger => InstancedCementModule.GetModule<CustomContentModule>()?.Logger;
+    
     private static bool SceneNameAlreadyExists(GameModeMapTracker __instance, string sceneName)
     {
         foreach (var map in __instance.AvailableMaps)
@@ -57,7 +60,7 @@ internal static class GameModeMapTrackerPatch
                     ExtendedStringLoader.Register($"STAGE_{mapRef.SceneName.ToUpper()}", mapRef.SceneName);
 
                     __instance.AvailableMaps.Add(LoadMapInfo(mapRef));
-                    LoggingUtilities.VerboseLog(
+                    Logger?.VerboseLog(
                         ConsoleColor.DarkGreen,
                         $"Registered allowed gamemodes and UI selector for custom scene \"{mapRef.SceneName}\"!");
                 }

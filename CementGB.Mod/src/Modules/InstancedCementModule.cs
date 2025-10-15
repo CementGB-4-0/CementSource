@@ -26,7 +26,7 @@ public abstract class InstancedCementModule
         }
     }
 
-    public static List<Type> GetAssemblyModuleTypes(Assembly? assembly = null)
+    private static List<Type> GetAssemblyModuleTypes(Assembly? assembly = null)
     {
         assembly ??= Assembly.GetCallingAssembly();
         var assemblyTypes = assembly.GetTypes();
@@ -58,9 +58,9 @@ public abstract class InstancedCementModule
 
     protected InstancedCementModule()
     {
-        HarmonyInstance = new HarmonyLib.Harmony(GetType().Name);
+        HarmonyInstance = new HarmonyLib.Harmony(GetType().FullName);
         ModuleAssembly = Assembly.GetCallingAssembly();
-        Logger = new MelonLogger.Instance($"(Module){GetType().FullName}");
+        Logger = new MelonLogger.Instance($"Module_{ModuleAssembly.GetName().Name}");
         SubscribeInternalMethods();
     }
 

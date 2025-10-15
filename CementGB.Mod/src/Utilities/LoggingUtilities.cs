@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using MelonLoader;
 
 namespace CementGB.Utilities;
 
@@ -20,11 +21,13 @@ public static class LoggingUtilities
     ///     method. Optional.
     /// </param>
     /// <param name="lineNumber">The line number this method was called on. Optional.</param>
+    /// <param name="logger">MelonLogger.Instance to use. Defaults to CementGB's main logger</param>
     public static void VerboseLog(
         ConsoleColor color,
         string message,
         [CallerMemberName] string? callerName = null,
-        [CallerLineNumber] int lineNumber = 0)
+        [CallerLineNumber] int lineNumber = 0,
+        MelonLogger.Instance? logger = null)
     {
         if (!CementPreferences.VerboseMode)
         {
@@ -42,11 +45,12 @@ public static class LoggingUtilities
 
             if (methodBase.Name == callerName)
             {
-                fullCallerName = $"{methodBase.ReflectedType?.Namespace}.{methodBase.ReflectedType?.Name}.{callerName}";
+                fullCallerName = $"{methodBase.ReflectedType?.Name}.{callerName}";
             }
         }
 
-        Mod.Logger.Msg(color, callerName == null ? $"{message}" : $"[{fullCallerName}] {message} | Ln {lineNumber}");
+        logger ??= Mod.Logger;
+        logger.Msg(color, callerName == null ? $"{message}" : $"[{fullCallerName}] {message} | Ln {lineNumber}");
     }
 
     /// <summary>
@@ -65,5 +69,24 @@ public static class LoggingUtilities
         [CallerLineNumber] int lineNumber = 0)
     {
         VerboseLog(ConsoleColor.DarkGray, message, callerName, lineNumber);
+    }
+
+    public static void VerboseLog(
+        this MelonLogger.Instance logger,
+        string message,
+        [CallerMemberName] string? callerName = null,
+        [CallerLineNumber] int lineNumber = 0)
+    {
+        logger.VerboseLog(ConsoleColor.DarkGray, message, callerName, lineNumber);
+    }
+
+    public static void VerboseLog(
+        this MelonLogger.Instance logger,
+        ConsoleColor color,
+        string message,
+        [CallerMemberName] string? callerName = null,
+        [CallerLineNumber] int lineNumber = 0)
+    {
+        VerboseLog(color, message, callerName, lineNumber, logger);
     }
 }

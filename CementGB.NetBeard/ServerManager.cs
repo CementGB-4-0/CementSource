@@ -32,10 +32,10 @@ public class ServerManager : InstancedCementModule
     private const string ServerLogPrefix = "[SERVER]";
 
     public static readonly string?
-        IpArg = CommandLineParser.Instance.GetValueForKey("-ip", CementPreferences.VerboseMode); // set to server via vanilla code
+        IpArg = CommandLineParser.Instance.GetValueForKey("-ip", false); // set to server via vanilla code
 
     public static readonly string?
-        PortArg = CommandLineParser.Instance.GetValueForKey("-port", CementPreferences.VerboseMode); // set to server via vanilla code
+        PortArg = CommandLineParser.Instance.GetValueForKey("-port", false); // set to server via vanilla code
 
     private static bool _autoLaunchUpdateEnabled = IsClientJoiner && !DontAutoStart;
 
@@ -80,6 +80,8 @@ public class ServerManager : InstancedCementModule
     ///     Should the server load in low graphics mode? Will also cap the server to 60fps.
     /// </summary>
     public static bool LowGraphicsMode => Environment.GetCommandLineArgs().Contains("-lowgraphics");
+
+    internal new static MelonLogger.Instance? Logger => GetModule<ServerManager>()?.Logger;
 
     // public static int maxPlayers = 16;
 
