@@ -9,9 +9,10 @@ using Il2CppGB.Core.Bootstrappers;
 using Il2CppGB.Game;
 using Il2CppGB.Networking.Objects;
 using Il2CppGB.Platform.Lobby;
+using MelonLoader;
+using Open.Nat;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using CementGB;
 
 namespace CementGB.Modules.NetBeard;
 
@@ -29,11 +30,14 @@ public class ServerManager : InstancedCementModule
 
     private const string ServerLogPrefix = "[SERVER]";
 
-    private static readonly string?
+    public static readonly string?
         IpArg = CommandLineParser.Instance.GetValueForKey("-ip", CementPreferences.VerboseMode); // set to server via vanilla code
-    private static readonly string?
+
+    public static readonly string?
         PortArg = CommandLineParser.Instance.GetValueForKey("-port", CementPreferences.VerboseMode); // set to server via vanilla code
-    
+
+    private static bool _autoLaunchUpdateEnabled = IsClientJoiner && !DontAutoStart;
+
     /// <summary>
     ///     True if the -SERVER argument is passed to the Gang Beasts executable.
     /// </summary>
@@ -48,7 +52,12 @@ public class ServerManager : InstancedCementModule
          !string.IsNullOrWhiteSpace(
              PortArg)); // TODO: Auto start as client (similar to NetworkBootstrapper.AutoRunServer) if this is true
 
-    // public static bool IsForwardedHost => !IsServer && Environment.GetCommandLineArgs().Contains("-FWD");
+    /// <summary>
+    ///     True if IsServer is true and the -pfwd argument is added. Attempts to automatically port-forward the server
+    ///     instance using UPnP.
+    ///     This may be disabled on some networks, so it isn't for everybody.
+    /// </summary>
+    public static bool PortForward => IsServer && Environment.GetCommandLineArgs().Contains("-pfwd");
 
     /// <summary>
     ///     True if the -DONT-AUTOSTART argument is passed. Will prevent the server or client from automatically joining the
@@ -67,7 +76,7 @@ public class ServerManager : InstancedCementModule
     public static int Port => string.IsNullOrWhiteSpace(PortArg) ? DefaultPort : int.Parse(PortArg);
 
     /// <summary>
-    ///     Should the server load in low graphics mode?
+    ///     Should the server load in low graphics mode? Will also cap the server to 60fps.
     /// </summary>
     public static bool LowGraphicsMode => Environment.GetCommandLineArgs().Contains("-lowgraphics");
 
@@ -106,7 +115,7 @@ public class ServerManager : InstancedCementModule
 
     private void OnBoot()
     {
-        if (IsClientJoiner /*&& !IsForwardedHost*/ || IsServer)
+        if (IsClientJoiner || IsServer)
         {
             NetworkBootstrapper.IsDedicatedServer = IsServer;
             _ = LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
@@ -115,9 +124,12 @@ public class ServerManager : InstancedCementModule
 
         if (IsServer)
             ServerBoot();
+
+        if (Application.isBatchMode)
+            MelonEvents.OnUpdate.Subscribe(RemoveRendering);
     }
 
-    private static void ServerBoot()
+    private static async void ServerBoot()
     {
         Mod.Logger.Msg($"{ServerLogPrefix} Setting up server boot...");
         var bootstrapper = UnityEngine.Object.FindObjectOfType<NetworkBootstrapper>();
@@ -131,21 +143,74 @@ public class ServerManager : InstancedCementModule
             "NET_PLAYERS",
             (NetModelCollection<NetBeast>.ItemHandler)OnPlayerAdded,
             null,
-            null);
+            (NetModelCollection<NetBeast>.ItemHandler)OnPlayerRemoved);
         NetUtils.Model.Subscribe(
             "NET_MEMBERS",
             (NetModelCollection<NetMember>.ItemHandler)OnNetMemberAdded,
             null,
             (NetModelCollection<NetMember>.ItemHandler)OnNetMemberRemoved);
+        
+        if (PortForward)
+        {
+            var forwardExternalIP = await OpenPort(Port, Port, Protocol.Udp, "NetBeard: Modded Gang Beasts Server");
+            if (forwardExternalIP != null)
+            {
+                Mod.Logger.Msg(ConsoleColor.Green,
+                    $"{ServerLogPrefix} Server successfully forwarded to address {forwardExternalIP}:{Port}");
+                LobbyCommunicator.UserExternalIP = forwardExternalIP;
+            }
+        }
+
         Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
+    }
+
+    private static void RemoveRendering()
+    {
+        foreach (var meshRenderer in FindObjectsOfType<Renderer>())
+        {
+            meshRenderer.forceRenderingOff = true;
+        }
+
+        foreach (var ui in FindObjectsOfType<CanvasRenderer>())
+        {
+            ui.cull = true;
+        }
+    }
+
+    private static async Task<IPAddress?> OpenPort(int internalPort, int externalPort, Protocol protocol,
+        string description)
+    {
+        try
+        {
+            var natDiscoverer = new NatDiscoverer();
+            var cancellationTokenSource = new CancellationTokenSource(5000);
+
+            var device = await natDiscoverer.DiscoverDeviceAsync(PortMapper.Upnp, cancellationTokenSource);
+
+            if (device != null)
+            {
+                var externalIp = await device.GetExternalIPAsync();
+                var mapping = new Mapping(protocol, internalPort, externalPort, description);
+                await device.CreatePortMapAsync(mapping);
+                return externalIp;
+            }
+        }
+        catch (NatDeviceNotFoundException ex)
+        {
+            Mod.Logger.Error($"No UPnP-enabled NAT device found or discovery timed out. {ex}");
+        }
+        catch (Exception ex)
+        {
+            Mod.Logger.Error($"An error occurred attempting to port forward: {ex}");
+        }
+
+        return null;
     }
 
     private static void OnServerReady(NetInt value)
     {
         if (value.Value == 1)
-        {
             Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Ready for players!");
-        }
     }
 
     private static void OnNetMemberAdded(NetMember member)
@@ -164,6 +229,12 @@ public class ServerManager : InstancedCementModule
     {
         Mod.Logger.Msg(
             $"{ServerLogPrefix} {(beast.playerType == NetPlayer.PlayerType.AI ? $"AI Beast with gang ID {beast.GangId}" : $"Player Beast with connection ID {beast.ConnectionId}")} ADDED to model. (key \"NET_PLAYERS\")");
+    }
+
+    private static void OnPlayerRemoved(NetBeast beast)
+    {
+        Mod.Logger.Msg(
+            $"{ServerLogPrefix} {(beast.playerType == NetPlayer.PlayerType.AI ? $"AI Beast with gang ID {beast.GangId}" : $"Player Beast with connection ID {beast.ConnectionId}")} removed from model. (key \"NET_PLAYERS\")");
     }
 
     private static void SetConfigOnGameManager()

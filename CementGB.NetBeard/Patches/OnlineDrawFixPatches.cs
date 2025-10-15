@@ -1,7 +1,6 @@
 using CementGB.Modules.NetBeard;
 using HarmonyLib;
-using Il2CppCoreNet.Objects;
-using Il2CppCoreNet.Utils;
+using Il2CppCoreNet.Contexts;
 using Il2CppGB.Game;
 using Il2CppGB.Networking.Objects;
 using Il2CppGB.Networking.Utils;
@@ -18,41 +17,34 @@ internal static class GameModeInitBeastPatch
             return;
         }
 
-        var collection = __instance._Model.GetCollection<NetMember>("NET_MEMBERS");
-        if (collection.Count == 1 && NetUtils.GetPlayers<NetBeast>(collection[0]).Count == 1)
+        if (NetMemberContext.GetPlayers<NetBeast>().Length == 1)
         {
             __instance.localSingleGang = true;
             return;
         }
 
+        __instance.localSingleGang = false;
+
         var num = 0;
-        foreach (var netMember in collection)
+        foreach (var netBeast in NetMemberContext.GetPlayers<NetBeast>())
         {
-            if (netMember.Spectating)
+            if (netBeast.GameOver || !netBeast.Alive)
             {
                 continue;
             }
 
-            foreach (var netBeast in NetUtils.GetPlayers<NetBeast>(netMember))
+            if (netBeast.GangId != num)
             {
-                if (netBeast.GameOver)
-                {
-                    continue;
-                }
-
-                if (netBeast.GangId != num)
-                {
-                    GBNetUtils.RemoveBeastFromGang(netBeast);
-                }
-
-                netBeast.GangId = num;
-                GBNetUtils.SetBeastsGang(netBeast);
-                num++;
-
-                // Added rollover as a safety net to fix an impossible gang
-                // Players will now be forced into gangs if necessary?
-                // num %= GBNetUtils.Model.GetCollection<NetGang>("NET_GANGS").Count;
+                GBNetUtils.RemoveBeastFromGang(netBeast);
             }
+
+            netBeast.GangId = num;
+            GBNetUtils.SetBeastsGang(netBeast);
+            num++;
+
+            // Added rollover as a safety net to fix an impossible gang
+            // Players will now be forced into gangs if necessary?
+            num %= GBNetUtils.Model.GetCollection<NetGang>("NET_GANGS").Count;
         }
     }
 }
@@ -65,18 +57,6 @@ internal static class GameModeValidPatch
         if (ServerManager.IsServer)
         {
             __result = true;
-        }
-    }
-}
-
-[HarmonyPatch(typeof(GameMode_Survival), nameof(GameMode_Survival.IsRoundOver))]
-internal static class GameModeOverPatch
-{
-    private static void Postfix(ref bool __result)
-    {
-        if (ServerManager.IsServer)
-        {
-            __result = GameMode.GetNumRemainingGangsAlive() < 2 && GBNetUtils.GetParticipatingPlayers().Count != 1;
         }
     }
 }

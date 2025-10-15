@@ -32,14 +32,12 @@ jobs:
                 file: CementGB.Mod/CementGB.Mod.csproj
 
             - run: |
-                dotnet build --configuration Release /p:Version=${{ steps.version_step.outputs.version }}.${{ github.run_number }}
                 cp README.md dist/README.md
-                cd dist; zip -r ../CementGB-CementGB-${{ steps.version_step.outputs.version }}.zip *
+                dotnet build CementMod --configuration Release /p:VersionSuffix=-ci.${{ github.run_number }}
 
             - uses: actions/upload-artifact@v4
               if: ${{ !env.ACT }}
               with: 
                 name: output-artifact
-                path: |
-                  ./CementGB-CementGB-${{ steps.version_step.outputs.version }}.zip
+                path: ./dist/*
                 overwrite: true

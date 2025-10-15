@@ -3,7 +3,7 @@
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net6</TargetFramework>
 
         <AssemblyName>CementGB</AssemblyName>
         <RootNamespace>CementGB</RootNamespace>
@@ -29,12 +29,12 @@
 
         <RestoreAdditionalProjectSources>
             https://api.nuget.org/v3/index.json;
-            https://www.nuget.org/api/v2/;
-            https://nuget.bepinex.dev/v3/index.json
+            https://nuget.bepinex.dev/v3/index.json;
+            https://nuget.samboy.dev/v3/index.json
         </RestoreAdditionalProjectSources>
 
         <!-- Not necessary at the moment as we don't use any NuGet packages or assemblies that don't come with MelonLoader or the game -->
-        <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -63,9 +63,13 @@
 
     <ItemGroup>
         <EmbeddedResource Include="Assets\**\*"/>
+        <EmbeddedResource Include="ref\embed\**\*"/>
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="Open.Nat" Version="2.1.0"/>
+
+        <!-- CementGB Dependencies-->
         <PackageReference Include="GangBeasts.GameLibs" Version="1.27.0"/>
         <PackageReference Include="LavaGang.MelonLoader" Version="0.7.1"/>
         <PackageReference Include="Il2CppInterop.Common" Version="1.4.6-ci.579"/>
@@ -79,6 +83,8 @@
         <PackageReference Include="MonoMod.Utils" Version="22.7.31.1"/>
         <PackageReference Include="Samboy063.Tomlet" Version="5.4.0"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+
+        <Reference Include="ref/**/*.dll"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -93,7 +99,11 @@
 
         <!-- Copy the built mod dll into game Mods folder/dist Thunderstore staging folder -->
         <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Mods"/>
+        <!-- Copy any assemblies not provided by MelonLoader to UserLibs folder -->
+        <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetDir)\Open.Nat.dll" DestinationFolder="$(GameDir)\UserLibs"/>
+
         <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)../dist/Mods"/>
+        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetDir)\Open.Nat.dll" DestinationFolder="$(SolutionDir)/dist/UserLibs"/>
     </Target>
 
     <Target Name="AddGeneratedFiles" BeforeTargets="BeforeCompile;CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(IntermediateOutputPath)GeneratedFile.cs">
@@ -101,8 +111,7 @@
             <MelonLoaderModAuthor Condition="'$(MelonLoaderModAuthor)' == ''">$(Author)</MelonLoaderModAuthor>
             <MelonLoaderModName Condition="'$(MelonLoaderModName)' == ''">$(AssemblyName)</MelonLoaderModName>
             <MelonLoaderModVersion Condition="'$(MelonLoaderModVersion)' == ''">$(Version)</MelonLoaderModVersion>
-            <GeneratedTextInfo>
-                <![CDATA[
+            <GeneratedTextInfo><![CDATA[
 namespace $(RootNamespace)
 {
     internal static class MyPluginInfo
@@ -112,7 +121,7 @@ namespace $(RootNamespace)
         public const string Version = "$(MelonLoaderModVersion)"%3B
     }
 }
-                ]]>
+]]>
             </GeneratedTextInfo>
             <GeneratedFile1Path>$(IntermediateOutputPath)/MyPluginInfo.cs</GeneratedFile1Path>
         </PropertyGroup>
@@ -123,8 +132,7 @@ namespace $(RootNamespace)
         <WriteLinesToFile Lines="$(GeneratedTextInfo)" File="$(GeneratedFile1Path)" WriteOnlyWhenDifferent="true" Overwrite="true"/>
 
         <PropertyGroup>
-            <GeneratedTextManifestJson>
-                <![CDATA[ 
+            <GeneratedTextManifestJson><![CDATA[
 {
     "name": "CementGB",
     "website_url": "https://github.com/CementGB-4-0/CementSource",
@@ -134,7 +142,7 @@ namespace $(RootNamespace)
         "LavaGang-MelonLoader-0.7.1"
     ]
 }
-                ]]>
+]]>
             </GeneratedTextManifestJson>
             <GeneratedFile2Path>$(ProjectDir)../dist/manifest.json</GeneratedFile2Path>
         </PropertyGroup>
