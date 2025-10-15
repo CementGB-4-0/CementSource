@@ -60,7 +60,8 @@ public class ServerManager : MonoBehaviour
              PortArg)); // TODO: Auto start as client (similar to NetworkBootstrapper.AutoRunServer) if this is true
 
     /// <summary>
-    ///     True if IsServer is true and the -pfwd argument is added. Attempts to automatically port-forward the server instance using UPnP.
+    ///     True if IsServer is true and the -pfwd argument is added. Attempts to automatically port-forward the server
+    ///     instance using UPnP.
     ///     This may be disabled on some networks, so it isn't for everybody.
     /// </summary>
     public static bool PortForward => IsServer && Environment.GetCommandLineArgs().Contains("-pfwd");
@@ -199,10 +200,12 @@ public class ServerManager : MonoBehaviour
             var forwardExternalIP = await OpenPort(Port, Port, Protocol.Udp, "NetBeard: Modded Gang Beasts Server");
             if (forwardExternalIP != null)
             {
-                Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Server successfully forwarded to address {forwardExternalIP}:{Port}");
+                Mod.Logger.Msg(ConsoleColor.Green,
+                    $"{ServerLogPrefix} Server successfully forwarded to address {forwardExternalIP}:{Port}");
                 LobbyCommunicator.UserExternalIP = forwardExternalIP;
             }
         }
+
         Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
     }
 
@@ -219,7 +222,8 @@ public class ServerManager : MonoBehaviour
         }
     }
 
-    private static async Task<IPAddress?> OpenPort(int internalPort, int externalPort, Protocol protocol, string description)
+    private static async Task<IPAddress?> OpenPort(int internalPort, int externalPort, Protocol protocol,
+        string description)
     {
         try
         {

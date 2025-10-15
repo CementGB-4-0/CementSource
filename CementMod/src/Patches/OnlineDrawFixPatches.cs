@@ -22,6 +22,7 @@ internal static class GameModeInitBeastPatch
             __instance.localSingleGang = true;
             return;
         }
+
         __instance.localSingleGang = false;
 
         var num = 0;
