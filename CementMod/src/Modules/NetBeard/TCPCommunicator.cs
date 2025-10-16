@@ -12,14 +12,14 @@ namespace CementGB.Mod.Modules.NetBeard;
 
 public static class TCPCommunicator
 {
-    private static readonly IPAddress TCPServerIP = IPAddress.Loopback;
-    private static int TCPPort => ServerManager.Port + 1;
-
     public delegate void MessageData(string prefix, string payload);
+
+    private static readonly IPAddress TCPServerIP = IPAddress.Loopback;
 
     private static readonly ConcurrentQueue<string> QueuedMessages = new();
 
     private static bool _firstInitCall = true;
+    private static int TCPPort => ServerManager.Port + 1;
 
     public static TcpListener? Server { get; set; }
     public static TcpClient? Client { get; set; }
@@ -109,7 +109,8 @@ public static class TCPCommunicator
 
         if (!string.IsNullOrWhiteSpace(messageContents[0]) && !string.IsNullOrWhiteSpace(messageContents[1]))
         {
-            if (ServerManager.IsServer && Server != null) OnServerReceivedMessage?.Invoke(messageContents[0], messageContents[1]);
+            if (ServerManager.IsServer && Server != null)
+                OnServerReceivedMessage?.Invoke(messageContents[0], messageContents[1]);
             else OnClientReceivedMessage?.Invoke(messageContents[0], messageContents[1]);
         }
     }

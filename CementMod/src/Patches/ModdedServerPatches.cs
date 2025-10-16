@@ -43,6 +43,7 @@ internal static class ModdedServerPatches
             IP = IPAddress.Loopback.ToString();
             __instance.networkAddress = IP;
         }
+
         Mod.Logger.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
     }
 

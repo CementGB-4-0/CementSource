@@ -60,7 +60,7 @@ internal static class LobbyCommunicator
 
             var maps = new List<string>(mapsFor.Count);
 
-            foreach (var unused in mapsFor)
+            foreach (var _ in mapsFor)
             {
                 var mapIndex = Random.Range(0, mapsFor.Count - 1);
                 maps.Add(mapsFor[mapIndex].MapName);
