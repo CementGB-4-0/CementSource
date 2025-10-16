@@ -64,9 +64,8 @@ public static class TCPCommunicator
             Client ??= new TcpClient(TCPServerIP.ToString(), TCPPort);
             await HandleStream(Client);
         }
-        catch (SocketException e)
+        catch (SocketException)
         {
-            LoggingUtilities.VerboseLog(ConsoleColor.DarkRed, $"TCP client connection error: {e}");
         }
     }
 
