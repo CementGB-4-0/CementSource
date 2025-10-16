@@ -408,5 +408,7 @@ CementGB.xml
 CementGB.deps.json
 CementGB.dll
 dist/manifest.json
+dist/
+!dist/icon.png
 
 .idea
