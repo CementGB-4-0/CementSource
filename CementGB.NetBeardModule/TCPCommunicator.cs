@@ -11,15 +11,15 @@ public static class TCPCommunicator
 {
     public delegate void MessageData(string prefix, string payload);
 
-    private static readonly IPAddress TCPServerIP = IPAddress.Loopback;
-
     private static readonly ConcurrentQueue<string> QueuedMessages = new();
 
     private static bool _firstInitCall = true;
-    private static int TCPPort => NetBeardModule.Port + 1;
 
-    public static TcpListener? Server { get; set; }
-    public static TcpClient? Client { get; set; }
+    private static IPAddress TCPServerIP => IPAddress.Parse(NetBeardModule.IP);
+    private static int TCPPort => NetBeardModule.Port;
+
+    public static TcpListener? Server { get; private set; }
+    public static TcpClient? Client { get; private set; }
 
     public static event MessageData? OnClientReceivedMessage;
     public static event MessageData? OnServerReceivedMessage;

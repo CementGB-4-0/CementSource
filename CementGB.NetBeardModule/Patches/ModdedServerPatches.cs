@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using CementGB.Utilities;
 using HarmonyLib;
 using Il2Cpp;
 using Il2CppCoatsink.UnityServices.Matchmaking;
@@ -60,14 +61,8 @@ internal static class ModdedServerPatches
             return true;
         }
 
-        var stageTime = 0;
-
-        if (__instance.PrivateGame || __instance.type == MenuHandlerGamemodes.MenuType.Local ||
-            __instance.type == MenuHandlerGamemodes.MenuType.LocalWireless)
-        {
-            var num2 = __instance.winsSetup.CurrentValue * 60;
-            stageTime = __instance.CurrentGamemode == GameModeEnum.Football ? num2 : 300;
-        }
+        var num2 = __instance.winsSetup.CurrentValue * 60;
+        var stageTime = __instance.CurrentGamemode == GameModeEnum.Football ? num2 : 300;
 
         var currentSelectedLevels = __instance.mapSetup.GetCurrentSelectedLevels(out var isRandomSelected);
         __instance.selectedConfig = GBConfigLoader.CreateRotationConfig(
@@ -135,7 +130,7 @@ internal static class ModdedServerPatches
             return true;
         }
 
-        Mod.Logger.Msg(ConsoleColor.Blue, "Bypassing matchmaker auth, player joining modded server");
+        NetBeardModule.Logger?.VerboseLog("Bypassing matchmaker auth, player joining modded server");
         __instance.StartGameLogic();
         return false;
     }
@@ -149,7 +144,8 @@ internal static class ModdedServerPatches
             return true;
         }
 
-        Mod.Logger.Msg(ConsoleColor.Blue, "Server tried to disconnect player that took too long to load");
+        NetBeardModule.Logger?.Warning(
+            $"{NetBeardModule.ServerLogPrefix} Server tried to disconnect player that took too long to load; blocked");
         return false;
     }
 
@@ -166,17 +162,16 @@ internal static class ModdedServerPatches
         __instance.ActiveGameMode?.Cleanup();
         __instance.ActiveGameMode = null;
 
-        LogCS.Log(
-            "[MODDEDSERVER] About to disconnect all players with reason: " + disconnectMessage,
-            LogCS.LogType.LogInfo,
-            2,
-            true);
+        NetBeardModule.Logger?.Warning(
+            $"{NetBeardModule.ServerLogPrefix} About to disconnect all players with reason: " + disconnectMessage);
         NetUtils.DisconnectAllPlayers(disconnectMessage);
         __instance.CurrentState = GameManagerNew.GameState.Inactive;
         __instance._SceneManager.expectedNumPlayers = -1;
         __instance.authPassed = false;
         __instance.gameManagerSetup = false;
         __instance.joinTimer.Active = false;
+        NetBeardModule.Logger?.Msg(ConsoleColor.Green,
+            $"{NetBeardModule.ServerLogPrefix} Disconnected all players and deactivated server.");
 
         return false;
     }
@@ -190,12 +185,14 @@ internal static class ModdedServerPatches
             return true;
         }
 
-        Mod.Logger.Msg(ConsoleColor.Blue, "Setting up join timers for modded server");
+        NetBeardModule.Logger?.Msg($"{NetBeardModule.ServerLogPrefix} Setting up join timers for modded server. . .");
 
         __instance.LOAD_TIME_MAX = 120f;
         __instance.READY_TIME_MAX = 30f;
 
         __instance.timer = __instance.LOAD_TIME_MAX;
+
+        NetBeardModule.Logger?.Msg(ConsoleColor.Green, $"{NetBeardModule.ServerLogPrefix} Done!");
 
         return false;
     }
@@ -206,6 +203,7 @@ internal static class ModdedServerPatches
     {
         if (NetBeardModule.IsServer)
         {
+            __result.Ip = NetBeardModule.IP;
             __result.ServerPort = NetBeardModule.Port;
         }
     }

@@ -32,7 +32,7 @@ internal static class LobbyCommunicator
             };
         }
 
-        UserExternalIP = await GetExternalIpAddress();
+        UserExternalIP ??= await GetExternalIpAddress();
     }
 
     private static IEnumerator HandleGBGameData(string payload)

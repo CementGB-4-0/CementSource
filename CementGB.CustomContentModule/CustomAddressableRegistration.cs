@@ -8,7 +8,6 @@ using Il2CppSystem.Linq;
 using MelonLoader;
 using MelonLoader.Utils;
 using UnityEngine.AddressableAssets;
-using UnityEngine.AddressableAssets.Initialization;
 using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using ConsoleColor = System.ConsoleColor;
@@ -19,21 +18,22 @@ namespace CementGB.Modules.CustomContent;
 public static class CustomAddressableRegistration
 {
     public const string ModsDirectoryPropertyName = "MelonLoader.Utils.MelonEnvironment.ModsDirectory";
-    
+
     /// <summary>
     ///     The path Cement reads custom content from. Custom content must be in its own folder.
     /// </summary>
     /// <remarks>See <see cref="AssetUtilities" /> for modded Addressable helpers.</remarks>
     public static readonly string CustomContentPath = MelonEnvironment.ModsDirectory;
 
-    private static readonly Dictionary<string, Il2CppSystem.Collections.Generic.List<Object>> _catalogSortedAddressableKeys =
-        [];
-
-    private static MelonLogger.Instance? Logger => InstancedCementModule.GetModule<CustomContentModule>()?.Logger;
+    private static readonly Dictionary<string, Il2CppSystem.Collections.Generic.List<Object>>
+        _catalogSortedAddressableKeys =
+            [];
 
     private static readonly List<IResourceLocator> _moddedResourceLocators = [];
     private static readonly List<CustomMapRefHolder> _customMaps = [];
     private static readonly List<string> _baseGameAddressableKeys = [];
+
+    private static MelonLogger.Instance? Logger => InstancedCementModule.GetModule<CustomContentModule>()?.Logger;
 
     /// <summary>
     ///     Dictionary lookup for all modded Addressable keys (as strings), sorted by catalog path.
@@ -108,19 +108,21 @@ public static class CustomAddressableRegistration
     {
         List<IResourceLocation> ret = [];
 
-        Logger.VerboseLog(
+        Logger?.VerboseLog(
             $"Searching for all modded resource locations of type {Il2CppType.Of<T>().ToString()}. . .");
 
         foreach (var locator in ModdedResourceLocators)
         {
-            var handle = Addressables.LoadResourceLocationsAsync(locator.Keys.ToList().Cast<Il2CppSystem.Collections.Generic.IList<Object>>(),
+            var handle = Addressables.LoadResourceLocationsAsync(
+                locator.Keys.ToList().Cast<Il2CppSystem.Collections.Generic.IList<Object>>(),
                 Addressables.MergeMode.Union, Il2CppType.Of<T>());
 
             if (!handle.HandleSynchronousAddressableOperation())
                 continue;
 
             var locatorLocations = handle.Result;
-            var locatorLocationsCasted = locatorLocations?.TryCast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
+            var locatorLocationsCasted =
+                locatorLocations?.TryCast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
             if (locatorLocationsCasted == null)
                 continue;
 
@@ -134,12 +136,12 @@ public static class CustomAddressableRegistration
             }
         }
 
-        Logger.VerboseLog(
+        Logger?.VerboseLog(
             $"Found {ret.Count} modded locations for resource type {Il2CppType.Of<T>().ToString()}.");
 
         if (ret.Count == 0)
         {
-            Logger.VerboseLog(
+            Logger?.VerboseLog(
                 ConsoleColor.DarkRed,
                 $"Returned empty array! Type {Il2CppType.Of<T>().ToString()} probably wasn't found in modded Addressables.");
         }
@@ -188,7 +190,7 @@ public static class CustomAddressableRegistration
 
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        
+
         foreach (var contentMod in Directory.EnumerateDirectories(
                      CustomContentPath,
                      "*",

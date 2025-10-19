@@ -4,12 +4,14 @@ using Il2CppCoreNet.Contexts;
 using Il2CppCoreNet.Model;
 using Il2CppCoreNet.Objects;
 using Il2CppCoreNet.Utils;
+using Il2CppCS.CorePlatform;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.Core.Bootstrappers;
 using Il2CppGB.Game;
 using Il2CppGB.Networking.Objects;
 using Il2CppGB.Platform.Lobby;
+using Il2CppGB.UI.Beasts;
 using MelonLoader;
 using Open.Nat;
 using UnityEngine;
@@ -29,7 +31,7 @@ public class NetBeardModule : InstancedCementModule
     /// </summary>
     public const int DefaultPort = 5999;
 
-    private const string ServerLogPrefix = "[SERVER]";
+    public const string ServerLogPrefix = "[SERVER]";
 
     public static readonly string?
         IpArg = CommandLineParser.Instance.GetValueForKey("-ip", false); // set to server via vanilla code
@@ -67,9 +69,9 @@ public class NetBeardModule : InstancedCementModule
     public static bool DontAutoStart => Environment.GetCommandLineArgs().Contains("-DONT-AUTOSTART");
 
     /// <summary>
-    ///     The IP provided in launch arguments, or <see cref="DefaultIP" /> if none is provided.
+    ///     The IP provided in launch arguments, or <see cref="DefaultIP" /> if none is provided/game is server.
     /// </summary>
-    public static string IP => string.IsNullOrWhiteSpace(IpArg) ? DefaultIP : IpArg;
+    public static string IP => string.IsNullOrWhiteSpace(IpArg) || IsServer ? DefaultIP : IpArg;
 
     /// <summary>
     ///     The Port provided in launch arguments, or <see cref="DefaultPort" /> if none is provided.
@@ -116,9 +118,26 @@ public class NetBeardModule : InstancedCementModule
 
         if (IsServer)
             ServerBoot();
+        else if (IsClientJoiner && !DontAutoStart)
+            PlatformEvents.add_OnGameSetup((PlatformEvents.PlatformVoidEventDel)OnSetupComplete);
 
         if (Application.isBatchMode)
             MelonEvents.OnUpdate.Subscribe(RemoveRendering);
+    }
+
+    private void OnSetupComplete()
+    {
+        if (!BasePlatformManager.Instance.IsJoiningLobby && !BasePlatformManager.Instance.IsInLobby)
+        {
+            LobbyManager.Instance.LobbyStates.SelfState = LobbyState.Game.Online;
+            BasePlatformManager.Instance.CreateLobby(LOBBY_TYPE.PUBLIC, Global.NetworkMaxPlayers);
+        }
+
+        LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
+        LobbyManager.Instance.LobbyStates.UpdateLobbyState();
+        LobbyManager.Instance.LocalBeasts.GetPlayerInfo(0).CurrentState = BeastUtils.PlayerState.Ready;
+        LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
+        MonoSingleton<Global>.Instance.UNetManager.LaunchClient(IP, Port);
     }
 
     private async void ServerBoot()
@@ -126,7 +145,6 @@ public class NetBeardModule : InstancedCementModule
         Logger?.Msg($"{ServerLogPrefix} Setting up server boot...");
         var bootstrapper = Object.FindObjectOfType<NetworkBootstrapper>();
         bootstrapper.AutoRunServer = IsServer && !DontAutoStart;
-        // UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.DedicatedServer, null, "", "DGS");
         MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
         NetMemberContext.LocalHostedGame = true;
         GameManagerNew.add_OnGameManagerCreated((Action)SetConfigOnGameManager);
@@ -169,7 +187,7 @@ public class NetBeardModule : InstancedCementModule
         }
     }
 
-    private async Task<IPAddress?> OpenPort(int internalPort, int externalPort, Protocol protocol,
+    private static async Task<IPAddress?> OpenPort(int internalPort, int externalPort, Protocol protocol,
         string description)
     {
         try
@@ -189,7 +207,7 @@ public class NetBeardModule : InstancedCementModule
         }
         catch (NatDeviceNotFoundException ex)
         {
-            Logger?.Error($"No UPnP-enabled NAT device found or discovery timed out. {ex}");
+            Logger?.Error($"Failed to port forward: No UPnP-enabled NAT device found or discovery timed out. {ex}");
         }
         catch (Exception ex)
         {
