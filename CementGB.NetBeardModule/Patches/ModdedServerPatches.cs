@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using CementGB.Modules.NetBeard;
 using HarmonyLib;
 using Il2Cpp;
 using Il2CppCoatsink.UnityServices.Matchmaking;
@@ -18,7 +17,7 @@ using Il2CppGB.UnityServices.Matchmaking;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine.Networking;
 
-namespace CementGB.Modules.NetBeard.Patches;
+namespace CementGB.Modules.NetBeardModule.Patches;
 
 [HarmonyPatch]
 internal static class ModdedServerPatches
@@ -109,13 +108,13 @@ internal static class ModdedServerPatches
             {
                 LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
                 LobbyManager.Instance.LobbyStates.IP = address.ToString();
-                LobbyManager.Instance.LobbyStates.Port = ServerManager.Port;
+                LobbyManager.Instance.LobbyStates.Port = NetBeardModule.Port;
                 LobbyManager.Instance.LobbyStates.UpdateLobbyState();
 
                 var result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done")
                 {
                     IpAddress = address.ToString(),
-                    Port = ServerManager.Port,
+                    Port = NetBeardModule.Port,
                     State = MatchmakingState.Success
                 };
 
@@ -145,7 +144,7 @@ internal static class ModdedServerPatches
     [HarmonyPrefix]
     private static bool AntiTimeoutDisconnect(NetworkConnection conn, string reason)
     {
-        if (!ServerManager.IsServer || reason != "DISCONNECT_PLAYER_LOADING_TIMEOUT")
+        if (!NetBeardModule.IsServer || reason != "DISCONNECT_PLAYER_LOADING_TIMEOUT")
         {
             return true;
         }
@@ -158,7 +157,7 @@ internal static class ModdedServerPatches
     [HarmonyPrefix]
     private static bool ShutdownFix(GameManagerNew __instance, string disconnectMessage)
     {
-        if (!ServerManager.IsServer)
+        if (!NetBeardModule.IsServer)
         {
             return true;
         }
@@ -186,7 +185,7 @@ internal static class ModdedServerPatches
     [HarmonyPrefix]
     private static bool JoinTimerFix(NetServerSceneManager __instance)
     {
-        if (!ServerManager.IsServer)
+        if (!NetBeardModule.IsServer)
         {
             return true;
         }
@@ -205,22 +204,22 @@ internal static class ModdedServerPatches
     [HarmonyPostfix]
     private static void ModdedPortApplicator(ref ServerConfig __result)
     {
-        if (ServerManager.IsServer)
+        if (NetBeardModule.IsServer)
         {
-            __result.ServerPort = ServerManager.Port;
+            __result.ServerPort = NetBeardModule.Port;
         }
     }
 
     /*    [HarmonyPatch(typeof(Il2CppCoatsink.Platform.Users), nameof(Il2CppCoatsink.Platform.Users.MaxUsers), MethodType.Getter), HarmonyPostfix]
-        public static void MaxUserSetter(ref int __result) => __result = ServerManager.maxPlayers;
+        public static void MaxUserSetter(ref int __result) => __result = NetBeardModule.maxPlayers;
 
         [HarmonyPatch(typeof(Il2CppGB.UI.Beasts.BeastMenuSpawner), nameof(Il2CppGB.UI.Beasts.BeastMenuSpawner.Awake)), HarmonyPrefix]
         public static void SpawnPointAdjuster(Il2CppGB.UI.Beasts.BeastMenuSpawner __instance)
         {
-            if (ServerManager.maxPlayers % 8 == 0) // New max players fits into 8.
+            if (NetBeardModule.maxPlayers % 8 == 0) // New max players fits into 8.
             {
                 List<Transform> toDuplicate = __instance._spawnPoint.ToList<Transform>();
-                int extraRows = (ServerManager.maxPlayers / 8) - 1;
+                int extraRows = (NetBeardModule.maxPlayers / 8) - 1;
 
                 if (extraRows > 0) // More spawns are needed
                 {

@@ -1,18 +1,17 @@
-using CementGB.Modules.NetBeard;
 using HarmonyLib;
 using Il2CppCoreNet.Contexts;
 using Il2CppGB.Game;
 using Il2CppGB.Networking.Objects;
 using Il2CppGB.Networking.Utils;
 
-namespace CementGB.Modules.NetBeard.Patches;
+namespace CementGB.Modules.NetBeardModule.Patches;
 
 [HarmonyPatch(typeof(GameMode), nameof(GameMode.InitBeast))]
 internal static class GameModeInitBeastPatch
 {
     private static void Postfix(GameMode __instance)
     {
-        if (!ServerManager.IsServer)
+        if (!NetBeardModule.IsServer)
         {
             return;
         }
@@ -54,7 +53,7 @@ internal static class GameModeValidPatch
 {
     private static void Postfix(ref bool __result)
     {
-        if (ServerManager.IsServer)
+        if (NetBeardModule.IsServer)
         {
             __result = true;
         }

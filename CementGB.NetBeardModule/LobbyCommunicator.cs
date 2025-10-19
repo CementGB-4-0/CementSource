@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Il2Cpp;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
@@ -14,18 +10,18 @@ using MelonLoader;
 using Newtonsoft.Json;
 using Random = UnityEngine.Random;
 
-namespace CementGB.Modules.NetBeard;
+namespace CementGB.Modules.NetBeardModule;
 
 internal static class LobbyCommunicator
 {
     public static GBGameData? gameData;
     public static IPAddress? UserExternalIP { get; set; }
 
-    private static MelonLogger.Instance? Logger => InstancedCementModule.GetModule<ServerManager>()?.Logger;
+    private static MelonLogger.Instance? Logger => InstancedCementModule.GetModule<NetBeardModule>()?.Logger;
 
     public static async void Awake()
     {
-        if (ServerManager.IsServer)
+        if (NetBeardModule.IsServer)
         {
             TCPCommunicator.OnServerReceivedMessage += (prefix, payload) =>
             {

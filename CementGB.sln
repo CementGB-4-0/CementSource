@@ -14,7 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CementGB.CustomContentModule", "CementGB.CustomContentModule\CementGB.CustomContentModule.csproj", "{3A953A62-393E-4F9B-BB75-52E8713A4406}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CementGB.NetBeard", "CementGB.NetBeard\CementGB.NetBeard.csproj", "{E4848AFD-0B5F-41B7-BB13-60EDD9604442}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CementGB.NetBeardModule", "CementGB.NetBeardModule\CementGB.NetBeardModule.csproj", "{E4848AFD-0B5F-41B7-BB13-60EDD9604442}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

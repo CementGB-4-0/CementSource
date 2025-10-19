@@ -1,17 +1,16 @@
-﻿using CementGB.Modules.NetBeard;
-using HarmonyLib;
+﻿using HarmonyLib;
 using Il2Cpp;
 using UnityEditor.PostProcessing;
 using UnityEngine;
 
-namespace CementGB.Modules.NetBeard.Patches;
+namespace CementGB.Modules.NetBeardModule.Patches;
 
 [HarmonyPatch(typeof(GraphicsManager), nameof(GraphicsManager.LoadSettings))]
 internal class LowGraphicsOnServerPatch
 {
     public static void Postfix(GraphicsManager __instance)
     {
-        if (!(ServerManager.IsServer && ServerManager.LowGraphicsMode))
+        if (!(NetBeardModule.IsServer && NetBeardModule.LowGraphicsMode))
         {
             return;
         }

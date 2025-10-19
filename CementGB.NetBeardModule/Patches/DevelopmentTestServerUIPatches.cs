@@ -1,7 +1,7 @@
 using HarmonyLib;
 using Il2Cpp;
 
-namespace CementGB.Modules.NetBeard.Patches;
+namespace CementGB.Modules.NetBeardModule.Patches;
 
 internal static class DevelopmentTestServerUIPatches
 {
@@ -10,8 +10,8 @@ internal static class DevelopmentTestServerUIPatches
     {
         private static void Postfix(DevelopmentTestServerUI __instance)
         {
-            __instance.m_config.connectIP = ServerManager.IP;
-            __instance.m_config.connectPort = ServerManager.Port;
+            __instance.m_config.connectIP = NetBeardModule.IP;
+            __instance.m_config.connectPort = NetBeardModule.Port;
             __instance.UpdateInputs(__instance.m_config);
         }
     }

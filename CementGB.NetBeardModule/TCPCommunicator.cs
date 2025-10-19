@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.IO;
+﻿using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using CementGB.Utilities;
 using MelonLoader;
 using UnityEngine;
 
-namespace CementGB.Modules.NetBeard;
+namespace CementGB.Modules.NetBeardModule;
 
 public static class TCPCommunicator
 {
@@ -19,7 +16,7 @@ public static class TCPCommunicator
     private static readonly ConcurrentQueue<string> QueuedMessages = new();
 
     private static bool _firstInitCall = true;
-    private static int TCPPort => ServerManager.Port + 1;
+    private static int TCPPort => NetBeardModule.Port + 1;
 
     public static TcpListener? Server { get; set; }
     public static TcpClient? Client { get; set; }
@@ -46,7 +43,7 @@ public static class TCPCommunicator
             MelonEvents.OnUpdate.Subscribe(OnUpdate);
         }
 
-        if (!ServerManager.IsServer || Server != null) return;
+        if (!NetBeardModule.IsServer || Server != null) return;
 
         Server = new TcpListener(IPAddress.Loopback, TCPPort);
         Server.Start();
@@ -54,7 +51,7 @@ public static class TCPCommunicator
 
     private static void OnUpdate()
     {
-        _ = ServerManager.IsServer && Server != null ? Task.Run(ServerLoop) : Task.Run(ClientLoop);
+        _ = NetBeardModule.IsServer && Server != null ? Task.Run(ServerLoop) : Task.Run(ClientLoop);
     }
 
     private static async Task ClientLoop()
@@ -81,7 +78,7 @@ public static class TCPCommunicator
         }
         catch (SocketException e)
         {
-            ServerManager.Logger?.VerboseLog(ConsoleColor.DarkRed, $"TCP server connection error: {e}");
+            NetBeardModule.Logger?.VerboseLog(ConsoleColor.DarkRed, $"TCP server connection error: {e}");
         }
     }
 
@@ -109,7 +106,7 @@ public static class TCPCommunicator
 
         if (!string.IsNullOrWhiteSpace(messageContents[0]) && !string.IsNullOrWhiteSpace(messageContents[1]))
         {
-            if (ServerManager.IsServer && Server != null)
+            if (NetBeardModule.IsServer && Server != null)
                 OnServerReceivedMessage?.Invoke(messageContents[0], messageContents[1]);
             else OnClientReceivedMessage?.Invoke(messageContents[0], messageContents[1]);
         }

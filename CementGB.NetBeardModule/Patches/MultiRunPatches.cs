@@ -1,4 +1,3 @@
-using CementGB.Modules.NetBeard;
 using HarmonyLib;
 using Il2CppCoatsink.Platform;
 using Il2CppCoatsink.Platform.Systems.UI;
@@ -6,7 +5,7 @@ using Il2CppCS.CorePlatform;
 using Il2CppCS.CorePlatform.CSPlatform;
 using Il2CppGB.Core;
 
-namespace CementGB.Modules.NetBeard.Patches;
+namespace CementGB.Modules.NetBeardModule.Patches;
 
 internal static class MultiRunPatches
 {
@@ -15,7 +14,7 @@ internal static class MultiRunPatches
     {
         private static bool Prefix(CStoCorePlatform __instance)
         {
-            if (!ServerManager.IsServer)
+            if (!NetBeardModule.IsServer)
             {
                 return true;
             }

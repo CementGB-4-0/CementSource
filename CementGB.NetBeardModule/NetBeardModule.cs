@@ -13,11 +13,11 @@ using Il2CppGB.Platform.Lobby;
 using MelonLoader;
 using Open.Nat;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
-namespace CementGB.Modules.NetBeard;
+namespace CementGB.Modules.NetBeardModule;
 
-public class ServerManager : InstancedCementModule
+public class NetBeardModule : InstancedCementModule
 {
     /// <summary>
     ///     The default IP setting for the server.
@@ -81,7 +81,7 @@ public class ServerManager : InstancedCementModule
     /// </summary>
     public static bool LowGraphicsMode => Environment.GetCommandLineArgs().Contains("-lowgraphics");
 
-    internal new static MelonLogger.Instance? Logger => GetModule<ServerManager>()?.Logger;
+    internal new static MelonLogger.Instance? Logger => GetModule<NetBeardModule>()?.Logger;
 
     // public static int maxPlayers = 16;
 
@@ -100,9 +100,9 @@ public class ServerManager : InstancedCementModule
         if (!IsServer)
             return;
 
-        Logger.Msg($"{ServerLogPrefix} Setting up pre-boot dedicated server overrides. . .");
+        Logger?.Msg($"{ServerLogPrefix} Setting up pre-boot dedicated server overrides. . .");
         AudioListener.pause = true;
-        Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
+        Logger?.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
     }
 
     private void OnBoot()
@@ -122,9 +122,9 @@ public class ServerManager : InstancedCementModule
     }
 
     private async void ServerBoot()
-    { 
-        Logger.Msg($"{ServerLogPrefix} Setting up server boot...");
-        var bootstrapper = UnityEngine.Object.FindObjectOfType<NetworkBootstrapper>();
+    {
+        Logger?.Msg($"{ServerLogPrefix} Setting up server boot...");
+        var bootstrapper = Object.FindObjectOfType<NetworkBootstrapper>();
         bootstrapper.AutoRunServer = IsServer && !DontAutoStart;
         // UnityServicesManager.Instance.Initialise(UnityServicesManager.InitialiseFlags.DedicatedServer, null, "", "DGS");
         MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
@@ -141,7 +141,7 @@ public class ServerManager : InstancedCementModule
             (NetModelCollection<NetMember>.ItemHandler)OnNetMemberAdded,
             null,
             (NetModelCollection<NetMember>.ItemHandler)OnNetMemberRemoved);
-        
+
         if (PortForward)
         {
             var forwardExternalIP = await OpenPort(Port, Port, Protocol.Udp, "NetBeard: Modded Gang Beasts Server");
@@ -158,12 +158,12 @@ public class ServerManager : InstancedCementModule
 
     private static void RemoveRendering()
     {
-        foreach (var meshRenderer in UnityEngine.Object.FindObjectsOfType<Renderer>())
+        foreach (var meshRenderer in Object.FindObjectsOfType<Renderer>())
         {
             meshRenderer.forceRenderingOff = true;
         }
 
-        foreach (var ui in UnityEngine.Object.FindObjectsOfType<CanvasRenderer>())
+        foreach (var ui in Object.FindObjectsOfType<CanvasRenderer>())
         {
             ui.cull = true;
         }
@@ -189,11 +189,11 @@ public class ServerManager : InstancedCementModule
         }
         catch (NatDeviceNotFoundException ex)
         {
-            Logger.Error($"No UPnP-enabled NAT device found or discovery timed out. {ex}");
+            Logger?.Error($"No UPnP-enabled NAT device found or discovery timed out. {ex}");
         }
         catch (Exception ex)
         {
-            Logger.Error($"An error occurred attempting to port forward: {ex}");
+            Logger?.Error($"An error occurred attempting to port forward: {ex}");
         }
 
         return null;
@@ -202,30 +202,30 @@ public class ServerManager : InstancedCementModule
     private void OnServerReady(NetInt value)
     {
         if (value.Value == 1)
-            Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Ready for players!");
+            Logger?.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Ready for players!");
     }
 
     private void OnNetMemberAdded(NetMember member)
     {
-        Logger.Msg(
+        Logger?.Msg(
             $"{ServerLogPrefix} NetMember with connection ID {member.ConnectionId} ADDED to model. (key \"NET_MEMBERS\")");
     }
 
     private void OnNetMemberRemoved(NetMember member)
     {
-        Logger.Msg(
+        Logger?.Msg(
             $"{ServerLogPrefix} NetMember with connection ID {member.ConnectionId} REMOVED from model. (key \"NET_MEMBERS\")");
     }
 
     private void OnPlayerAdded(NetBeast beast)
     {
-        Logger.Msg(
+        Logger?.Msg(
             $"{ServerLogPrefix} {(beast.playerType == NetPlayer.PlayerType.AI ? $"AI Beast with gang ID {beast.GangId}" : $"Player Beast with connection ID {beast.ConnectionId}")} ADDED to model. (key \"NET_PLAYERS\")");
     }
 
     private void OnPlayerRemoved(NetBeast beast)
     {
-        Logger.Msg(
+        Logger?.Msg(
             $"{ServerLogPrefix} {(beast.playerType == NetPlayer.PlayerType.AI ? $"AI Beast with gang ID {beast.GangId}" : $"Player Beast with connection ID {beast.ConnectionId}")} removed from model. (key \"NET_PLAYERS\")");
     }
 
