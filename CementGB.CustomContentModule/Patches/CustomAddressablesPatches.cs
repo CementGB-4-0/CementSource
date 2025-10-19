@@ -55,7 +55,7 @@ internal static class CustomAddressablesPatches
     }
 
     [HarmonyPatch(typeof(Resources.LoadLoadedItem), nameof(Resources.LoadLoadedItem.Load))]
-    internal static class LoadLoadedItemPatch
+    private static class LoadLoadedItemPatch
     {
         private static bool Prefix(Resources.LoadLoadedItem __instance, ref AsyncOperationHandle __result)
         {
