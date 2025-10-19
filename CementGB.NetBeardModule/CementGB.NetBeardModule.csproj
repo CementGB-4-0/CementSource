@@ -11,5 +11,5 @@
         <ProjectReference Include="..\CementGB.Mod\CementGB.Mod.csproj"/>
     </ItemGroup>
 
-    <Import Project="$(SolutionDir)/ModulePipeline.props"/>
+    <Import Project="$(ProjectDir)../ModulePipeline.props"/>
 </Project>
