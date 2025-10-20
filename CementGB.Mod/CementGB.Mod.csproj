@@ -102,7 +102,7 @@
         <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetDir)\Open.Nat.dll" DestinationFolder="$(GameDir)\UserLibs"/>
 
         <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)../dist/Mods"/>
-        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetDir)\Open.Nat.dll" DestinationFolder="$(SolutionDir)/dist/UserLibs"/>
+        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetDir)\Open.Nat.dll" DestinationFolder="$(ProjectDir)../dist/UserLibs"/>
     </Target>
 
     <Target Name="AddGeneratedFiles" BeforeTargets="BeforeCompile;CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(IntermediateOutputPath)GeneratedFile.cs">
