@@ -15,7 +15,7 @@ public static class TCPCommunicator
 
     private static bool _firstInitCall = true;
 
-    private static IPAddress TCPServerIP => IPAddress.Parse(NetBeardModule.IP);
+    private static string TCPServerIP => NetBeardModule.IP;
     private static int TCPPort => NetBeardModule.Port;
 
     public static TcpListener? Server { get; private set; }
@@ -58,7 +58,7 @@ public static class TCPCommunicator
     {
         try
         {
-            Client ??= new TcpClient(TCPServerIP.ToString(), TCPPort);
+            Client ??= new TcpClient(TCPServerIP, TCPPort);
             await HandleStream(Client);
         }
         catch (SocketException)
