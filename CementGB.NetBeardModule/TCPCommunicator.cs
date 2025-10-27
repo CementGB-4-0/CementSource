@@ -94,8 +94,6 @@ public static class TCPCommunicator
         {
             await streamWriter.WriteLineAsync(msg);
         }
-
-        await Task.Delay(10);
     }
 
     private static async Task HandleReading(NetworkStream stream)
@@ -114,12 +112,13 @@ public static class TCPCommunicator
         }
     }
 
-    private static async Task HandleStream(TcpClient client)
+    private static Task HandleStream(TcpClient client)
     {
         var stream = client.GetStream();
 
-        await HandleWriting(stream);
-        await HandleReading(stream);
+        _ = HandleWriting(stream);
+        _ = HandleReading(stream);
+        return Task.CompletedTask;
     }
 
     private static string[] DataFromMessage(string message)
