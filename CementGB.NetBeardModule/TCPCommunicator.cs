@@ -63,6 +63,7 @@ public static class TCPCommunicator
         }
         catch (SocketException)
         {
+            Client = null;
         }
     }
 
@@ -79,6 +80,7 @@ public static class TCPCommunicator
         catch (SocketException e)
         {
             NetBeardModule.Logger?.VerboseLog(ConsoleColor.DarkRed, $"TCP server connection error: {e}");
+            Client = null;
         }
     }
 
@@ -112,13 +114,12 @@ public static class TCPCommunicator
         }
     }
 
-    private static Task HandleStream(TcpClient client)
+    private static async Task HandleStream(TcpClient client)
     {
         var stream = client.GetStream();
 
-        _ = HandleWriting(stream);
-        _ = HandleReading(stream);
-        return Task.CompletedTask;
+        await HandleWriting(stream);
+        await HandleReading(stream);
     }
 
     private static string[] DataFromMessage(string message)
