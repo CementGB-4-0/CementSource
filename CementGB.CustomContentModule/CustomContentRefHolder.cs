@@ -46,11 +46,11 @@ public abstract class CustomContentRefHolder
             Logger?.VerboseLog(ConsoleColor.DarkRed, $"Argument {nameof(key)} is null!");
             return null;
         }
-        var handle = Addressables.LoadAssetAsync<UnityEngine.Object>(key);
+        var handle = Addressables.LoadAssetAsync<Il2CppSystem.Object>(key);
         if (!handle.HandleSynchronousAddressableOperation())
             throw new Exception($"Failed to load asset of key: {key} (Is the object name different from the Addressable key?) | {nameof(assetType)} : {assetType}");
 
-        cachedAsset = handle.Result;
+        cachedAsset = handle.Result.Cast<UnityEngine.Object>();
         CacheLoadedAsset(cachedAsset);
 
         return cachedAsset;
