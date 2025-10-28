@@ -23,11 +23,11 @@ public abstract class CustomContentRefHolder
                            && AssetTypes.All(assetType => assetType.IsAssignableTo(RequiredBaseType));
 
     public event Action? AfterAllAssetsLoaded;
-    public event Action<Il2CppSystem.Object>? AfterAssetLoad;
+    public event Action<UnityEngine.Object>? AfterAssetLoad;
 
     protected readonly IResourceLocation?[] ResourceLocations;
 
-    private readonly HashSet<Il2CppSystem.Object> _cachedAssets = [];
+    private readonly HashSet<UnityEngine.Object> _cachedAssets = [];
 
     protected CustomContentRefHolder(params IResourceLocation?[] resourceLocations)
     {
@@ -35,7 +35,7 @@ public abstract class CustomContentRefHolder
         _ = LoadUncachedAssets();
     }
 
-    public Il2CppObjectBase? RetrieveAssetOfKey(string? key, Type? assetType = null)
+    public UnityEngine.Object? RetrieveAssetOfKey(string? key, Type? assetType = null)
     {
         assetType ??= RequiredBaseType;
         var cachedAsset = _cachedAssets.FirstOrDefault(asset => asset.GetType().IsCastableTo(assetType) && asset.Cast<UnityEngine.Object>().name == key);
@@ -46,7 +46,7 @@ public abstract class CustomContentRefHolder
             Logger?.VerboseLog(ConsoleColor.DarkRed, $"Argument {nameof(key)} is null!");
             return null;
         }
-        var handle = Addressables.LoadAssetAsync<Il2CppSystem.Object>(key);
+        var handle = Addressables.LoadAssetAsync<UnityEngine.Object>(key);
         if (!handle.HandleSynchronousAddressableOperation())
             throw new Exception($"Failed to load asset of key: {key} (Is the object name different from the Addressable key?) | {nameof(assetType)} : {assetType}");
 
@@ -56,9 +56,9 @@ public abstract class CustomContentRefHolder
         return cachedAsset;
     }
 
-    private Il2CppSystem.Object[] LoadUncachedAssets(bool cache = true)
+    private UnityEngine.Object[] LoadUncachedAssets(bool cache = true)
     {
-        var ret = new List<Il2CppSystem.Object>();
+        var ret = new List<UnityEngine.Object>();
         foreach (var location in ResourceLocations)
         {
             if (location == null) continue;
@@ -81,7 +81,7 @@ public abstract class CustomContentRefHolder
         return handle.HandleSynchronousAddressableOperation() ? handle.Result : throw new Exception($"Failed to load asset of key \"{location.PrimaryKey}\"!");
     }
 
-    private void CacheLoadedAsset(Il2CppSystem.Object obj)
+    private void CacheLoadedAsset(UnityEngine.Object obj)
     {
         obj.Cast<UnityEngine.Object>().MakePersistent();
         _ = _cachedAssets.Add(obj);
