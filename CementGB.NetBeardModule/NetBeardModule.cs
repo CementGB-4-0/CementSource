@@ -112,8 +112,8 @@ public class NetBeardModule : InstancedCementModule
         if (IsClientJoiner || IsServer)
         {
             NetworkBootstrapper.IsDedicatedServer = IsServer;
-            _ = LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
-            Mod.Logger.Msg(ConsoleColor.Green, "Added DevelopmentTestServer to lobby object.");
+            _ = LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>(); 
+            Logger?.Msg(ConsoleColor.Green, "Added DevelopmentTestServer to lobby object.");
         }
 
         if (IsServer)
