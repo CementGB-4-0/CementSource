@@ -19,14 +19,14 @@ There are two main ways to install CementGB:
 1. Install and set up [Gale](https://thunderstore.io/c/gang-beasts/p/Kesomannen/GaleModManager/) or [r2modman](https://thunderstore.io/c/gang-beasts/p/ebkr/r2modman/), whichever you prefer.
 2. Switch your mod manager's managed game to Gang Beasts, and make a new profile if needed. You can look to the respective managers' pages for how to do this.
 3. Click the blue Install with Mod Manager button just under the top info section of the [CementGB Thunderstore page](https://thunderstore.io/c/gang-beasts/p/CementGB/CementGB/). This should install both CementGB and all listed requirements.
-4. Start the modded game through your mod manager. You should be good. In order for anything to actually happen, however, you must install some content mods. Most can be found on [Thunderstore](https://thunderstore.io/c/gang-beasts/).
+4. Start the modded game through your mod manager. You should be good. In order for anything to actually happen, however, you must install some content mods or provide some launch options. Most mods can be found on [Thunderstore](https://thunderstore.io/c/gang-beasts/) and documentation on launch options can be found [here](https://cementgb-4-0.github.io/CementGB.github.io/docs/index.html) (page pending).
 
 ### Manual
 
 1. Install MelonLoader as per [the instructions on their wiki](https://melonwiki.xyz/#/?id=requirements). Run the game to the menu screen at least once afterwards.
-2. Download [the latest release of CementGB from GitHub](https://github.com/CementGB-4-0/CementSource/releases). *It is recommended to download the DLL file, NOT the ZIP file, if you are manually installing, however it makes little difference.*
-3. Move `CementGB.dll` to your Mods folder. If you play Gang Beasts on Steam, this will typically be in `C:\Program Files (x86)\Steam\steamapps\common\Gang Beasts`.
-4. Start the game again. You should be good. In order for anything to actually happen, however, you must install some content mods. Most can be found on [Thunderstore](https://thunderstore.io/c/gang-beasts/).
+2. Download [the latest release of CementGB from GitHub](https://github.com/CementGB-4-0/CementSource/releases). In most cases choose the ZIP file, since it contains all the modules separate from the core DLL.
+3. Move the `Mods` folder and `UserLibs` folder inside the ZIP to your game folder. If you play Gang Beasts on Steam, this will typically be at `C:\Program Files (x86)\Steam\steamapps\common\Gang Beasts`.
+4. Start the game again. You should be good. In order for anything to actually happen, however, you must install some content mods or provide some launch options. Most mods can be found on [Thunderstore](https://thunderstore.io/c/gang-beasts/) and documentation on launch options can be found [here](https://cementgb-4-0.github.io/CementGB.github.io/docs/index.html) (page pending).
 
 > [!NOTE]
 > CementGB's source code can now also be found (mirrored) on [Codeberg](https://codeberg.org/CementGB/CementSource), for
