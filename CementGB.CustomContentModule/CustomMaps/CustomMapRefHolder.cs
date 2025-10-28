@@ -18,7 +18,7 @@ public class CustomMapRefHolder(IResourceLocation sceneDataLoc, IResourceLocatio
     /// <summary>
     ///     Provides gamemode selection info for the map.
     /// </summary>
-    public CustomMapInfo SceneInfo => (CustomMapInfo?)RetrieveAssetOfKey(mapInfoLoc?.PrimaryKey, typeof(CustomMapInfo)) ?? CustomMapInfo.CreateDefault(SceneName);
+    public CustomMapInfo SceneInfo => RetrieveAssetOfKey(mapInfoLoc?.PrimaryKey, typeof(CustomMapInfo))?.Cast<CustomMapInfo>() ?? CustomMapInfo.CreateDefault(SceneName);
 
     public SceneData? SceneData => RetrieveAssetOfKey(sceneDataLoc.PrimaryKey, typeof(SceneData))?.Cast<SceneData>();
 
