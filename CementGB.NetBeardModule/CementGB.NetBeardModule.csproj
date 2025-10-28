@@ -4,11 +4,20 @@
         <LangVersion>12</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\CementGB.Mod\CementGB.Mod.csproj"/>
-    </ItemGroup>
 
+        <PackageReference Include="Facepunch.Steamworks" Version="2.3.3" />
+    </ItemGroup>
+    
     <Import Project="$(ProjectDir)../ModulePipeline.props"/>
+    
+    <Target Name="PostBuild2" AfterTargets="PostBuildEvent">
+        <Copy SourceFiles="$(TargetDir)/Facepunch.Steamworks.Win64.dll" DestinationFolder="$(GameDir)/UserLibs" />
+        <Copy Condition="'$(Configuraion)' == 'Release'" SourceFiles="$(TargetDir)/Facepunch.Steamworks.Win64.dll" DestinationFolder="$(ProjectDir)../dist/UserLibs" />
+    </Target>
 </Project>
