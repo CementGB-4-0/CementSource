@@ -11,7 +11,7 @@ namespace CementGB.Modules.CustomContent;
 public class CustomMapRefHolder(IResourceLocation sceneDataLoc, IResourceLocation? mapInfoLoc = null) : CustomContentRefHolder(sceneDataLoc, mapInfoLoc)
 {
     /// <summary>
-    ///     The name of the map, parsed from the loaded SceneData.
+    ///     The name of the map, parsed from the loaded SceneData's addressable key.
     /// </summary>
     public readonly string SceneName = sceneDataLoc.PrimaryKey.Split("-Data")[0];
 
