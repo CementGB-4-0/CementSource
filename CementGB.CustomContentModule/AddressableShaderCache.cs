@@ -102,7 +102,7 @@ public static class AddressableShaderCache
                 }
 
                 assetHandle.Result.MakePersistent();
-                CachedShaders.Add(location.PrimaryKey, assetHandle.Result);
+                CachedShaders[location.PrimaryKey] = assetHandle.Result;
 
                 assetHandle.Release();
             }
