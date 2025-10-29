@@ -60,7 +60,7 @@ public static class EmbeddedUtilities
     /// </param>
     /// <returns>The text the file contains.</returns>
     /// <exception cref="Exception"></exception>
-    public static string ReadEmbeddedText(Assembly assembly, string resourceName)
+    public static string ReadEmbeddedText(Assembly? assembly, string resourceName)
     {
         assembly ??= Assembly.GetCallingAssembly();
 

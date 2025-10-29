@@ -1,5 +1,6 @@
 using System.Net;
 using Il2Cpp;
+using Il2CppCoreNet;
 using Il2CppCoreNet.Contexts;
 using Il2CppCoreNet.Model;
 using Il2CppCoreNet.Objects;
@@ -45,6 +46,8 @@ public class NetBeardModule : InstancedCementModule
     ///     True if the -SERVER argument is passed to the Gang Beasts executable.
     /// </summary>
     public static bool IsServer => Environment.GetCommandLineArgs().Contains("-SERVER");
+
+    public static bool RollbackFlag => Environment.GetCommandLineArgs().Contains("-rollback");
 
     /// <summary>
     ///     True if <see cref="IsServer" /> is false, but the ip and port are provided. Unlocks the DevelopmentTestServerUI.
@@ -148,6 +151,12 @@ public class NetBeardModule : InstancedCementModule
         MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
         NetMemberContext.LocalHostedGame = true;
         GameManagerNew.add_OnGameManagerCreated((Action)SetConfigOnGameManager);
+        if (RollbackFlag)
+        {
+            NetworkManager.add_OnServerStarted((Action)(() => { }));
+            NetworkManager.add_OnClientStarted((Action)(() => { }));
+        }
+
         NetUtils.Model.Subscribe("SERVER_READY", (NetModelItem<NetInt>.ItemHandler)OnServerReady);
         NetUtils.Model.Subscribe(
             "NET_PLAYERS",
