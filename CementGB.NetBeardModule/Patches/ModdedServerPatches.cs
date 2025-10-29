@@ -16,7 +16,16 @@ using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI;
 using Il2CppGB.UnityServices.Matchmaking;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Il2CppSystem;
+using Newtonsoft.Json;
+using Steamworks;
+using Unity.Services.Authentication;
+using Unity.Services.Qos.Models;
+using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
+using Action = System.Action;
+using ConsoleColor = System.ConsoleColor;
 
 namespace CementGB.Modules.NetBeardModule.Patches;
 
@@ -43,20 +52,14 @@ internal static class ModdedServerPatches
             __instance.networkAddress = IP;
         }
 
-        Mod.Logger.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
+        NetBeardModule.Logger?.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
     }
-
+    
     [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic))]
     [HarmonyPrefix]
     private static bool StartGameLogicPatch(MenuHandlerGamemodes __instance)
     {
         if (__instance.type != MenuHandlerGamemodes.MenuType.Online || !__instance.PrivateGame)
-        {
-            return true;
-        }
-
-        var shouldJoinModded = TCPCommunicator.Client?.Connected ?? false;
-        if (!shouldJoinModded)
         {
             return true;
         }
@@ -73,50 +76,66 @@ internal static class ModdedServerPatches
                 : __instance.winsSetup.CurrentValue,
             isRandomSelected,
             stageTime);
-
-        var address = LobbyCommunicator.UserExternalIP ?? IPAddress.Loopback; // Offline safety net
-
+        
         MonoSingleton<Global>.Instance.buttonController.HideButton(InputMapActions.Accept);
         __instance.PopulateVisibleButtons(true);
         LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.Joinable |
                                                          LobbyState.State.Editable | LobbyState.State.Matching;
         LobbyManager.Instance.LobbyStates.UpdateLobbyState();
 
-        LobbyCommunicator.SendLobbyDataToServer(
-            new GBGameData
-            {
-                Gamemode = __instance.CurrentGamemode.GetGameModeID(),
-                MapName =
-                    __instance.selectedConfig.GameConfigs.Count == 1
-                        ? __instance.selectedConfig.GameConfigs[0].Map
-                        : "random",
-                NumberOfWins = __instance.selectedConfig.Wins,
-                PrivateGame = true,
-                StageTimeLimit = __instance.selectedConfig.StageTimeLimit,
-                TotalPlayerCountExclLocal = (uint)LobbyManager.Instance.Players.GetPlayerCount(),
-                TotalPlayerCountInclLocal = (uint)LobbyManager.Instance.Players.GetBeastCount()
-            });
+        var gameData = new GBGameData
+        {
+            Gamemode = __instance.CurrentGamemode.GetGameModeID(),
+            MapName =
+                __instance.selectedConfig.GameConfigs.Count == 1
+                    ? __instance.selectedConfig.GameConfigs[0].Map
+                    : "random",
+            NumberOfWins = __instance.selectedConfig.Wins,
+            PrivateGame = true,
+            StageTimeLimit = __instance.selectedConfig.StageTimeLimit,
+            TotalPlayerCountExclLocal = (uint)LobbyManager.Instance.Players.GetPlayerCount(),
+            TotalPlayerCountInclLocal = (uint)LobbyManager.Instance.Players.GetBeastCount()
+        };
+        LobbyCommunicator.SendLobbyDataToServer(gameData);
 
         __instance.onlineCountdown.StartCountdown(
             3f,
-            new Action(() =>
-            {
-                LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
-                LobbyManager.Instance.LobbyStates.IP = address.ToString();
-                LobbyManager.Instance.LobbyStates.Port = NetBeardModule.Port;
-                LobbyManager.Instance.LobbyStates.UpdateLobbyState();
-
-                var result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done")
-                {
-                    IpAddress = address.ToString(),
-                    Port = NetBeardModule.Port,
-                    State = MatchmakingState.Success
-                };
-
-                LobbyManager.Instance.LobbyStates.MatchmakingComplete(result);
-            }));
-
+            new Action(JoinClosestSteamServer));
+        
         return false;
+    }
+
+    private static async void JoinClosestSteamServer()
+    {
+        var list = new Steamworks.ServerList.Internet();
+        list.AddFilter("map", "random");
+        if (!await list.RunQueryAsync()) return;
+        
+        NetBeardModule.Logger?.Msg("Dumping found servers. . .");
+        for (var i = 0; i < list.Responsive.Count; i++)
+        {
+            var server = list.Responsive[i];
+            NetBeardModule.Logger?.Msg(server.Address);
+        }
+        
+        var address = list.Responsive[0].Address?.ToString() ??
+                      NetBeardModule.IpArg ?? LobbyCommunicator.UserExternalIP?.ToString();
+
+        NetBeardModule.Logger?.Msg(ConsoleColor.Green, "Done!");
+
+        LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
+        LobbyManager.Instance.LobbyStates.IP = address;
+        LobbyManager.Instance.LobbyStates.Port = NetBeardModule.Port;
+        LobbyManager.Instance.LobbyStates.UpdateLobbyState();
+
+        var result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done")
+        {
+            IpAddress = address,
+            Port = NetBeardModule.Port,
+            State = MatchmakingState.Success
+        };
+
+        LobbyManager.Instance.LobbyStates.MatchmakingComplete(result);
     }
 
     [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.OnStartGame))]

@@ -10,6 +10,13 @@ namespace CementGB.Utilities;
 /// </summary>
 public static class EmbeddedUtilities
 {
+    public static void WriteResourceToFile(string resourceName, string filePath)
+    {
+        using var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+        using var file = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+        resource?.CopyTo(file);
+    }
+
     /// <summary>
     ///     Loads an AssetBundle from an assembly that has it embedded.
     ///     Good for keeping mods small and single-filed.
@@ -55,8 +62,8 @@ public static class EmbeddedUtilities
     ///     <c>Assembly.GetExecutingAssembly</c> or <c>MelonMod.MelonAssembly.Assembly</c> to get the current assembly.
     /// </param>
     /// <param name="resourceName">
-    ///     The embedded path to the file. Usually you can just use the path pseudo-relative to the
-    ///     solution directory separated by dots, e.g. ExampleMod/Assets/text.txt ExampleMod.Assets.text.txt
+    ///     The embedded path to the file. Embedded paths usually start with the csproj name and
+    ///     progress by dots, e.g. ExampleMod/Assets/coag.bundle -> ExampleMod.Assets.coag.bundle
     /// </param>
     /// <returns>The text the file contains.</returns>
     /// <exception cref="Exception"></exception>

@@ -76,6 +76,7 @@ public class Mod : MelonMod
     public override void OnLateInitializeMelon()
     {
         base.OnLateInitializeMelon();
+        LogHijacker.HijackLogs();
         foreach (var file in Directory.GetFiles(ModulesPath, "*.dll", SearchOption.AllDirectories))
         {
             try

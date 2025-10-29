@@ -1,4 +1,6 @@
 using System.Net;
+using System.Reflection;
+using CementGB.Utilities;
 using Il2Cpp;
 using Il2CppCoreNet.Contexts;
 using Il2CppCoreNet.Model;
@@ -13,9 +15,12 @@ using Il2CppGB.Networking.Objects;
 using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI.Beasts;
 using MelonLoader;
+using MelonLoader.Utils;
 using Open.Nat;
+using Steamworks;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using SteamClient = Steamworks.SteamClient;
 
 namespace CementGB.Modules.NetBeardModule;
 
@@ -107,11 +112,41 @@ public class NetBeardModule : InstancedCementModule
         Logger?.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
     }
 
+    protected override void OnUpdate()
+    {
+        if (SteamClient.IsValid)
+        {
+            SteamClient.RunCallbacks();
+        }
+        else if (SteamServer.IsValid)
+        {
+            SteamServer.RunCallbacks();
+        }
+    }
+
+    private static void MoveUnstrippedSteamAPI()
+    {
+        var pluginsDirPath = Path.Combine(Application.dataPath, "Plugins", "x86_64");
+        if (!Directory.Exists(pluginsDirPath))
+        {
+            Logger?.Warning($"Failed to find path {pluginsDirPath} for API unstripping, some Steam API functions may not work correctly!");
+            return;
+        }
+
+        var dllFilePath = Path.Combine(pluginsDirPath, "steam_api64.dll");
+        if (!File.Exists($"{dllFilePath}.bak"))
+        {
+            Logger?.Msg($"Loading unstripped steam_api64.dll from assembly {Assembly.GetExecutingAssembly().FullName}. . .");
+            File.Move(dllFilePath, dllFilePath + ".bak");
+            EmbeddedUtilities.WriteResourceToFile("CementGB.NetBeardModule.Assets.steam_api64.dll", dllFilePath);
+            Logger?.Msg(ConsoleColor.Green, "Done!");
+        }
+    }
+
     private void OnBoot()
     {
         if (IsClientJoiner || IsServer)
         {
-            NetworkBootstrapper.IsDedicatedServer = IsServer;
             _ = LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>(); 
             Logger?.Msg(ConsoleColor.Green, "Added DevelopmentTestServer to lobby object.");
         }
@@ -119,7 +154,10 @@ public class NetBeardModule : InstancedCementModule
         if (IsServer)
             ServerBoot();
         else if (IsClientJoiner && !DontAutoStart)
+        {
+            ClientBoot();
             PlatformEvents.add_OnGameSetup((PlatformEvents.PlatformVoidEventDel)OnSetupComplete);
+        }
 
         if (Application.isBatchMode)
             MelonEvents.OnUpdate.Subscribe(RemoveRendering);
@@ -140,9 +178,43 @@ public class NetBeardModule : InstancedCementModule
         MonoSingleton<Global>.Instance.UNetManager.LaunchClient(IP, Port);
     }
 
+    private void ClientBoot()
+    {
+        Logger?.Msg("Setting up Steam matchmaking client-side. . .");
+        try
+        {
+            SteamClient.Init(285900, false);
+            MelonEvents.OnApplicationQuit.Subscribe(OnApplicationQuitClient);
+        }
+        catch (Exception ex)
+        {
+            Logger?.Error("Failed to init Facepunch.Steamworks client! ", ex);
+        }
+        Logger?.Msg(ConsoleColor.Green, "Done!");
+    }
+
+    private void OnApplicationQuitClient()
+    {
+        if (SteamClient.IsValid)
+        {
+            SteamClient.Shutdown();
+        }
+    }
+
+    private void OnApplicationQuitServer()
+    {
+        if (SteamServer.IsValid)
+        {
+            SteamServer.LogOff();
+            SteamServer.Shutdown();
+        }
+    }
+
     private async void ServerBoot()
     {
         Logger?.Msg($"{ServerLogPrefix} Setting up server boot...");
+        NetworkBootstrapper.IsDedicatedServer = true;
+        //NetworkBootstrapper.IsOfficialServer = true;
         var bootstrapper = Object.FindObjectOfType<NetworkBootstrapper>();
         bootstrapper.AutoRunServer = IsServer && !DontAutoStart;
         MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
@@ -170,7 +242,22 @@ public class NetBeardModule : InstancedCementModule
                 LobbyCommunicator.UserExternalIP = forwardExternalIP;
             }
         }
+        
+        var steamConfig = new SteamServerInit()
+        {
+            DedicatedServer = true,
+            GamePort = (ushort)Port,
+            GameDescription = "Gang Beasts: \"NetBeard\" Modded Server",
+            IpAddress = LobbyCommunicator.UserExternalIP,
+            ModDir = MelonEnvironment.GameRootDirectory,
+            Secure = true,
+            VersionString = MyPluginInfo.Version
+        }.WithRandomSteamPort();
 
+        SteamServer.Init(285900, steamConfig, false);
+        SteamServer.LogOnAnonymous();
+        MelonEvents.OnApplicationQuit.Subscribe(OnApplicationQuitServer);
+        
         Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
     }
 
@@ -220,7 +307,9 @@ public class NetBeardModule : InstancedCementModule
     private void OnServerReady(NetInt value)
     {
         if (value.Value == 1)
+        {
             Logger?.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Ready for players!");
+        }
     }
 
     private void OnNetMemberAdded(NetMember member)

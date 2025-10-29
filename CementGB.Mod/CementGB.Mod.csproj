@@ -113,7 +113,7 @@
             <GeneratedTextInfo><![CDATA[
 namespace $(RootNamespace)
 {
-    internal static class MyPluginInfo
+    public static class MyPluginInfo
     {
         public const string Author = "$(MelonLoaderModAuthor)"%3B
         public const string Name = "$(MelonLoaderModName)"%3B

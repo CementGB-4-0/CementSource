@@ -7,6 +7,7 @@ using Il2CppGB.Core;
 
 namespace CementGB.Modules.NetBeardModule.Patches;
 
+[HarmonyPatch]
 internal static class MultiRunPatches
 {
     [HarmonyPatch(typeof(CStoCorePlatform), nameof(CStoCorePlatform.OnInitializeComplete))]
