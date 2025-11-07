@@ -1,4 +1,3 @@
-using CementGB.Modules.CustomContent;
 using GBMDK;
 using Il2Cpp;
 using Il2CppCoreNet.Contexts;
@@ -10,22 +9,26 @@ using Il2CppGB.Networking.Delegates;
 using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI.Beasts;
 using Il2CppInterop.Runtime.Injection;
+using MelonLoader;
 using Action = System.Action;
 
 namespace CementGB.Modules.CustomContent;
 
 public class CustomContentModule : InstancedCementModule
 {
+    internal new static MelonLogger.Instance? Logger { get; private set; } = GetModule<CustomContentModule>()?.Logger;
+
     protected override void OnInitialize()
     {
         ClassInjector.RegisterTypeInIl2Cpp<CustomMapInfo>();
-        
-        PlatformEvents.add_OnPlatformInitializedEvent((PlatformEvents.PlatformVoidEventDel)CustomAddressableRegistration.Initialize);
+
+        PlatformEvents.add_OnPlatformInitializedEvent(
+            (PlatformEvents.PlatformVoidEventDel)CustomAddressableRegistration.Initialize);
         if (string.IsNullOrWhiteSpace(Mod.MapArg))
         {
             return;
         }
-        
+
         PlatformEvents.add_OnGameSetup((PlatformEvents.PlatformVoidEventDel)OnSetupComplete);
     }
 

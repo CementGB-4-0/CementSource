@@ -10,7 +10,7 @@ namespace CementGB.Modules.CustomContent.Utilities;
 public static class AssetUtilities
 {
     /// <summary>
-    ///     Checks if the provided AsyncOperationHandle succeeded. Checks if the handle is valid, status is succeeded, and
+    ///     Checks if the provided AsyncOperationHandle succeeded. Checks if the handle is valid, status is <see cref="AsyncOperationStatus.Succeeded"/>, and
     ///     result is not null.
     ///     Used in <see cref="HandleAsynchronousAddressableOperation{T}" /> and
     ///     <see cref="HandleSynchronousAddressableOperation{T}" />, plus several other Addressable loading methods in Cement.
@@ -42,7 +42,7 @@ public static class AssetUtilities
 
         if (!IsHandleSuccess(handle))
         {
-            LoggingUtilities.VerboseLog(
+            CustomContentModule.Logger?.VerboseLog(
                 ConsoleColor.DarkRed,
                 $"Failed to perform action in asynchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {!handle.IsValid() || handle.Result == null}");
             if (handle.IsValid())
@@ -75,7 +75,7 @@ public static class AssetUtilities
 
         if (!IsHandleSuccess(handle))
         {
-            LoggingUtilities.VerboseLog(
+            CustomContentModule.Logger?.VerboseLog(
                 ConsoleColor.DarkRed,
                 $"Failed to perform action in synchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {!handle.IsValid() || handle.Result == null}");
             if (handle.IsValid())
