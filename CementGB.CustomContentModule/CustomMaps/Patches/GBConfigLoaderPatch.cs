@@ -1,4 +1,3 @@
-using CementGB.Modules.CustomContent;
 using HarmonyLib;
 using Il2CppGB.Gamemodes;
 using Il2CppGB.UI;
@@ -12,10 +11,11 @@ internal static class GBConfigLoaderPatch
     [HarmonyPatch(typeof(MenuHandlerMaps), nameof(MenuHandlerMaps.GetCurrentSelectedLevels))]
     private static class GetCurrentSelectedLevelsPatch
     {
-        private static void Postfix(MenuHandlerMaps __instance, bool random, ref Il2CppSystem.Collections.Generic.List<string> __result)
+        private static void Postfix(MenuHandlerMaps __instance, bool random,
+            ref Il2CppSystem.Collections.Generic.List<string> __result)
         {
             if (__instance.mapList[__instance.currentMapIndex].ToLower() !=
-                "random" || !random)
+                "random")
             {
                 return; // map is not set to random; don't do patch
             }
