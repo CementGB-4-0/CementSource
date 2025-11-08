@@ -162,6 +162,7 @@ public static class CustomAddressableRegistration
         CacheBaseGameAddressableKeys();
         InitializeContentCatalogs();
         InitializeMapReferences();
+        AddressableShaderCache.Initialize();
     }
 
     private static void CacheBaseGameAddressableKeys()
