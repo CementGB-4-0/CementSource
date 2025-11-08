@@ -1,11 +1,9 @@
-﻿using CementGB.Utilities;
+﻿using System.Reflection;
 using CementGB.Modules;
+using CementGB.Utilities;
 using Il2Cpp;
-using Il2CppInterop.Runtime;
 using MelonLoader;
 using MelonLoader.Utils;
-using UnityEngine.Rendering.Universal;
-using Object = UnityEngine.Object;
 
 namespace CementGB;
 
@@ -19,6 +17,7 @@ public class Mod : MelonMod
     ///     Cement's UserData path ("Gang Beasts\UserData\CementGB"). Created in <see cref="OnInitializeMelon" />.
     /// </summary>
     public static readonly string UserDataPath = Path.Combine(MelonEnvironment.UserDataDirectory, "CementGB");
+
     public static readonly string ModulesPath = Path.Combine(MelonEnvironment.UserLibsDirectory, "CementGBModules");
 
     public static string?
@@ -80,7 +79,7 @@ public class Mod : MelonMod
         {
             try
             {
-                var assembly = System.Reflection.Assembly.LoadFrom(file);
+                var assembly = Assembly.LoadFrom(file);
                 InstancedCementModule.BootstrapAllCementModulesInAssembly(assembly);
             }
             catch
@@ -99,13 +98,5 @@ public class Mod : MelonMod
     public override void OnUpdate()
     {
         MainThreadDispatcher.DispatchActions();
-    }
-
-    public override void OnSceneWasLoaded(int buildIndex, string sceneName)
-    {
-        foreach (var amb in Object.FindObjectsOfTypeAll(Il2CppType.Of<ScreenSpaceAmbientOcclusion>()))
-        {
-            amb.Cast<ScreenSpaceAmbientOcclusion>().m_Settings.AfterOpaque = sceneName != "Menu";
-        }
     }
 }
