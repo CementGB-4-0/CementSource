@@ -19,20 +19,10 @@ public static class AddressableShaderCache
 {
     private static readonly Dictionary<string, Shader> CachedShaders = [];
 
-    static AddressableShaderCache()
-    {
-        SceneManager.add_sceneLoaded((Action<Scene, LoadSceneMode>)OnSceneWasLoaded);
-    }
-
-    private static void OnSceneWasLoaded(Scene scene, LoadSceneMode mode)
-    {
-        if (CustomAddressableRegistration.IsModdedKey(scene.name))
-            _ = MelonCoroutines.Start(ReloadAddressableShaders());
-    }
-
     private static IEnumerator ReloadAddressableShaders(GameObject? parent = null)
     {
         yield return new WaitForEndOfFrame();
+        yield return InitCacheShaders();
         CustomContentModule.Logger?.VerboseLog(ConsoleColor.DarkYellow, "Reloading Addressable shaders. . .");
         Il2CppArrayBase<MeshRenderer> renderers;
         if (!parent)
@@ -69,43 +59,31 @@ public static class AddressableShaderCache
         foreach (var locator in Addressables.ResourceLocators.ToArray())
         {
             var locatorKeys = locator.Keys.ToList();
-            var handle = Addressables.LoadResourceLocationsAsync(
-                locatorKeys.Cast<Il2CppSystem.Collections.Generic.IList<Il2CppSystem.Object>>(),
-                Addressables.MergeMode.Union,
-                Il2CppType.Of<Shader>());
-            yield return handle.HandleAsynchronousAddressableOperation();
-
-            if (!AssetUtilities.IsHandleSuccess(handle))
+            foreach (var locatorKey in locatorKeys)
             {
-                CustomContentModule.Logger?.VerboseLog(
-                    ConsoleColor.DarkYellow,
-                    $"Addressable resource locator of ID {locator.LocatorId} could not be loaded, not caching. . .");
-                continue;
-            }
+                var result = locator.Locate(locatorKey, Il2CppType.Of<Shader>(),
+                    out Il2CppSystem.Collections.Generic.IList<IResourceLocation> list);
+                if (!result) continue;
 
-            var result = handle.Result.Cast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
-            foreach (var location in result)
-            {
-                if (CachedShaders.ContainsKey(location.PrimaryKey)) continue;
-
-                var assetHandle = Addressables.LoadAssetAsync<Shader>(location);
-                yield return assetHandle.HandleAsynchronousAddressableOperation();
-
-                if (!AssetUtilities.IsHandleSuccess(assetHandle))
+                foreach (var location in list.Cast<Il2CppReferenceArray<IResourceLocation>>())
                 {
-                    CustomContentModule.Logger?.VerboseLog(
-                        ConsoleColor.DarkYellow,
-                        $"Addressable shader of key {location.PrimaryKey} could not be loaded, not caching. . .");
-                    continue;
+                    var assetHandle = Addressables.LoadAssetAsync<Shader>(location);
+                    yield return assetHandle.HandleAsynchronousAddressableOperation();
+
+                    if (!AssetUtilities.IsHandleSuccess(assetHandle))
+                    {
+                        CustomContentModule.Logger?.VerboseLog(
+                            ConsoleColor.DarkYellow,
+                            $"Addressable shader of key {location.PrimaryKey} could not be loaded, not caching. . .");
+                        continue;
+                    }
+
+                    assetHandle.Result.MakePersistent();
+                    CachedShaders[assetHandle.Result.name] = assetHandle.Result;
+
+                    assetHandle.Release();
                 }
-
-                assetHandle.Result.MakePersistent();
-                CachedShaders[location.PrimaryKey] = assetHandle.Result;
-
-                assetHandle.Release();
             }
-
-            handle.Release();
         }
 
         stopwatch.Stop();
@@ -116,7 +94,7 @@ public static class AddressableShaderCache
 
     private static void StartShaderReload(Scene scene, LoadSceneMode mode)
     {
-        _ = MelonCoroutines.Start(InitCacheShaders());
+        _ = MelonCoroutines.Start(ReloadAddressableShaders());
     }
 
     internal static void Initialize()
