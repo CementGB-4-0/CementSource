@@ -57,7 +57,7 @@
         <DefineConstants>$(DefineConstants);RELEASE;TRACE</DefineConstants>
 
         <WarningLevel>4</WarningLevel>
-        <DocumentationFile>$(ProjectDir)../dist/Mods/CementGB.xml</DocumentationFile>
+        <DocumentationFile>$(ProjectDir)../../dist/Mods/CementGB.xml</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -87,7 +87,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <GameDirFile Include="$(ProjectDir)..\game_dir.txt"/>
+        <GameDirFile Include="$(ProjectDir)../../game_dir.txt"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="..\ModulePipeline.props">
+            <Link>CementSource\src\ModulePipeline.props</Link>
+        </Content>
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'@(GameDirFile)' != ''">
@@ -101,8 +107,8 @@
         <!-- Copy any assemblies not provided by MelonLoader to UserLibs folder -->
         <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetDir)\Open.Nat.dll" DestinationFolder="$(GameDir)\UserLibs"/>
 
-        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)../dist/Mods"/>
-        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetDir)\Open.Nat.dll" DestinationFolder="$(ProjectDir)../dist/UserLibs"/>
+        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)../../dist/Mods"/>
+        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetDir)\Open.Nat.dll" DestinationFolder="$(ProjectDir)../../dist/UserLibs"/>
     </Target>
 
     <Target Name="AddGeneratedFiles" BeforeTargets="BeforeCompile;CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(IntermediateOutputPath)GeneratedFile.cs">
@@ -143,7 +149,7 @@ namespace $(RootNamespace)
 }
 ]]>
             </GeneratedTextManifestJson>
-            <GeneratedFile2Path>$(ProjectDir)../dist/manifest.json</GeneratedFile2Path>
+            <GeneratedFile2Path>$(ProjectDir)../../dist/manifest.json</GeneratedFile2Path>
         </PropertyGroup>
         <WriteLinesToFile Lines="$(GeneratedTextManifestJson)" File="$(GeneratedFile2Path)" WriteOnlyWhenDifferent="true" Overwrite="true"/>
     </Target>

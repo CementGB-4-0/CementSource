@@ -7,7 +7,8 @@ namespace CementGB.Modules.CustomContent;
 /// <summary>
 ///     Holds references to scene data loaded on mod init to hold onto and cache loading results.
 /// </summary>
-public class CustomMapRefHolder(IResourceLocation sceneDataLoc, IResourceLocation? mapInfoLoc = null) : CustomContentRefHolder(sceneDataLoc, mapInfoLoc)
+public class CustomMapRefHolder(IResourceLocation sceneDataLoc, IResourceLocation? mapInfoLoc = null)
+    : CustomContentRefHolder(sceneDataLoc, mapInfoLoc)
 {
     /// <summary>
     ///     The name of the map, parsed from the loaded SceneData's addressable key.
@@ -17,7 +18,9 @@ public class CustomMapRefHolder(IResourceLocation sceneDataLoc, IResourceLocatio
     /// <summary>
     ///     Provides gamemode selection info for the map.
     /// </summary>
-    public CustomMapInfo SceneInfo => RetrieveAssetOfKey(mapInfoLoc?.PrimaryKey, typeof(CustomMapInfo))?.Cast<CustomMapInfo>() ?? CustomMapInfo.CreateDefault(SceneName);
+    public CustomMapInfo SceneInfo =>
+        RetrieveAssetOfKey(mapInfoLoc?.PrimaryKey, typeof(CustomMapInfo))?.Cast<CustomMapInfo>() ??
+        CustomMapInfo.CreateDefault(SceneName);
 
     public SceneData? SceneData => RetrieveAssetOfKey(sceneDataLoc.PrimaryKey, typeof(SceneData))?.Cast<SceneData>();
 

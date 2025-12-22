@@ -1,6 +1,6 @@
 <Project>
     <ItemGroup>
-        <GameDirFile Include="$(ProjectDir)..\game_dir.txt"/>
+        <GameDirFile Include="$(ProjectDir)..\..\game_dir.txt"/>
     </ItemGroup>
     
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
@@ -11,6 +11,6 @@
 
         <!-- Copy the built module dll into game UserLibs/CementGBModules folder and dist Thunderstore staging folder -->
         <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\UserLibs\CementGBModules"/>
-        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)..\dist\UserLibs\CementGBModules"/>
+        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)..\..\dist\UserLibs\CementGBModules"/>
     </Target>
 </Project>

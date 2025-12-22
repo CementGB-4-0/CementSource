@@ -8,6 +8,19 @@ public abstract class InstancedCementModule
 {
     private static readonly List<InstancedCementModule> ModuleHolder = [];
 
+    protected readonly HarmonyLib.Harmony HarmonyInstance;
+
+    public readonly MelonLogger.Instance Logger;
+    protected readonly Assembly ModuleAssembly;
+
+    protected InstancedCementModule()
+    {
+        HarmonyInstance = new HarmonyLib.Harmony(GetType().FullName);
+        ModuleAssembly = Assembly.GetCallingAssembly();
+        Logger = new MelonLogger.Instance($"Module_{ModuleAssembly.GetName().Name}");
+        SubscribeInternalMethods();
+    }
+
     public static InstancedCementModule? GetModule<T>() where T : InstancedCementModule
     {
         return ModuleHolder.Find(instancedModule => instancedModule.GetType() == typeof(T)) ?? null;
@@ -51,20 +64,9 @@ public abstract class InstancedCementModule
         return instance;
     }
 
-    public readonly MelonLogger.Instance Logger;
-
-    protected readonly HarmonyLib.Harmony HarmonyInstance;
-    protected readonly Assembly ModuleAssembly;
-
-    protected InstancedCementModule()
+    protected virtual void OnInitialize()
     {
-        HarmonyInstance = new HarmonyLib.Harmony(GetType().FullName);
-        ModuleAssembly = Assembly.GetCallingAssembly();
-        Logger = new MelonLogger.Instance($"Module_{ModuleAssembly.GetName().Name}");
-        SubscribeInternalMethods();
     }
-
-    protected virtual void OnInitialize() { }
 
     protected virtual void DoManualPatches()
     {
@@ -73,7 +75,9 @@ public abstract class InstancedCementModule
         Mod.Logger.Msg(ConsoleColor.Green, "Done!");
     }
 
-    protected virtual void OnUpdate() { }
+    protected virtual void OnUpdate()
+    {
+    }
 
     private void SubscribeInternalMethods()
     {

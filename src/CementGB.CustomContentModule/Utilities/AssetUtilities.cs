@@ -10,7 +10,8 @@ namespace CementGB.Modules.CustomContent.Utilities;
 public static class AssetUtilities
 {
     /// <summary>
-    ///     Checks if the provided AsyncOperationHandle succeeded. Checks if the handle is valid, status is <see cref="AsyncOperationStatus.Succeeded"/>, and
+    ///     Checks if the provided AsyncOperationHandle succeeded. Checks if the handle is valid, status is
+    ///     <see cref="AsyncOperationStatus.Succeeded" />, and
     ///     result is not null.
     ///     Used in <see cref="HandleAsynchronousAddressableOperation{T}" /> and
     ///     <see cref="HandleSynchronousAddressableOperation{T}" />, plus several other Addressable loading methods in Cement.

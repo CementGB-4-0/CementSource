@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CementGB.Mod\CementGB.Mod.csproj" />
+        <ProjectReference Include="..\CementGB.Mod\CementGB.Mod.csproj"/>
     </ItemGroup>
 
     <Import Project="$(ProjectDir)../ModulePipeline.props"/>
