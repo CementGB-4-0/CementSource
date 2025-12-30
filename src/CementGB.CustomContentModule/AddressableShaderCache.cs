@@ -19,6 +19,12 @@ public static class AddressableShaderCache
 {
     private static readonly Dictionary<string, Shader> CachedShaders = [];
 
+    private static readonly string[] BlacklistedShaderNames =
+    [
+        "Universal Render Pipeline/Lit",
+        "Universal Render Pipeline/Unlit"
+    ]; // TEMPORARY until a better solution for standard Unity shaders is found
+
     private static IEnumerator ReloadAddressableShaders(GameObject? parent = null)
     {
         yield return new WaitForEndOfFrame();
@@ -40,9 +46,11 @@ public static class AddressableShaderCache
 
         foreach (var meshRenderer in renderers)
         {
-            foreach (var material in meshRenderer.materials)
+            foreach (var material in meshRenderer.sharedMaterials)
             {
-                if (CachedShaders.TryGetValue(material.shader.name, out var shader))
+                if (material is null) continue;
+                if (CachedShaders.TryGetValue(material.shader.name, out var shader) &&
+                    !BlacklistedShaderNames.Contains(material.shader.name))
                     material.shader = shader;
             }
         }
