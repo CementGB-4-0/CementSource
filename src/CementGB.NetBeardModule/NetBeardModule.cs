@@ -16,6 +16,7 @@ using MelonLoader;
 using Open.Nat;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using Resources = UnityEngine.Resources;
 
 namespace CementGB.Modules.NetBeardModule;
 
@@ -176,12 +177,12 @@ public class NetBeardModule : InstancedCementModule
 
     private static void RemoveRendering()
     {
-        foreach (var meshRenderer in Object.FindObjectsOfType<Renderer>())
+        foreach (var meshRenderer in Resources.FindObjectsOfTypeAll<Renderer>())
         {
             meshRenderer.forceRenderingOff = true;
         }
 
-        foreach (var ui in Object.FindObjectsOfType<CanvasRenderer>())
+        foreach (var ui in Resources.FindObjectsOfTypeAll<CanvasRenderer>())
         {
             ui.cull = true;
         }
