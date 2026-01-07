@@ -49,7 +49,7 @@ public static class LoggingUtilities
             }
         }
 
-        logger ??= Mod.Logger;
+        logger ??= Entrypoint.Logger;
         logger.Msg(color, callerName == null ? $"{message}" : $"[{fullCallerName}] {message} | Ln {lineNumber}");
     }
 

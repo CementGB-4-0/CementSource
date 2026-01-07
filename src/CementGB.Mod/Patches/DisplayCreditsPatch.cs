@@ -19,7 +19,7 @@ internal static class DisplayCreditsPatch
                 return;
 
             textAsset = new TextAsset(
-                $"{EmbeddedUtilities.ReadEmbeddedText(Melon<Mod>.Instance.MelonAssembly.Assembly, "CementGB.Mod.Assets.CreditsText.txt")}\n\n{__instance.textFile.text}");
+                $"{EmbeddedUtilities.ReadEmbeddedText(Melon<Entrypoint>.Instance.MelonAssembly.Assembly, "CementGB.Mod.Assets.CreditsText.txt")}\n\n{__instance.textFile.text}");
             __instance.textFile = textAsset;
         }
     }

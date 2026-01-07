@@ -1,3 +1,4 @@
+using System.Collections;
 using GBMDK;
 using Il2Cpp;
 using Il2CppCoreNet.Contexts;
@@ -7,10 +8,12 @@ using Il2CppGB.Core;
 using Il2CppGB.Game;
 using Il2CppGB.Networking.Delegates;
 using Il2CppGB.Platform.Lobby;
+using Il2CppGB.Platform.Utils;
 using Il2CppGB.UI.Beasts;
 using Il2CppInterop.Runtime.Injection;
 using MelonLoader;
 using Action = System.Action;
+using Object = UnityEngine.Object;
 
 namespace CementGB.Modules.CustomContent;
 
@@ -24,12 +27,33 @@ public class CustomContentModule : InstancedCementModule
 
         PlatformEvents.add_OnPlatformInitializedEvent(
             (PlatformEvents.PlatformVoidEventDel)CustomAddressableRegistration.Initialize);
-        if (string.IsNullOrWhiteSpace(Mod.MapArg))
+        if (string.IsNullOrWhiteSpace(Entrypoint.MapArg) && string.IsNullOrWhiteSpace(Entrypoint.ModeArg))
         {
             return;
         }
 
+        Entrypoint.SkipSplashScreens = true;
+
         PlatformEvents.add_OnGameSetup((PlatformEvents.PlatformVoidEventDel)OnSetupComplete);
+        PlatformEvents.add_OnPlatformInitializedEvent(
+            (PlatformEvents.PlatformVoidEventDel)StartWaitingToDisableStartScreen);
+    }
+
+    private static void StartWaitingToDisableStartScreen()
+    {
+        MelonCoroutines.Start(WaitToDisableStartScreen());
+    }
+
+    private static IEnumerator WaitToDisableStartScreen()
+    {
+        var startScreen = Object.FindObjectOfType<LoginEvent>();
+        while (startScreen == null)
+        {
+            startScreen = Object.FindObjectOfType<LoginEvent>();
+            yield return null;
+        }
+
+        startScreen.gameObject.GetComponent<LoginEvent>()?.TryLogin();
     }
 
     private void OnSetupComplete()
@@ -49,6 +73,7 @@ public class CustomContentModule : InstancedCementModule
     private void SetConfigOnGameManager()
     {
         GameManagerNew.Instance.ChangeRotationConfig(
-            GBConfigLoader.CreateRotationConfig(Mod.MapArg, Mod.ModeArg ?? "melee", 8, int.MaxValue));
+            GBConfigLoader.CreateRotationConfig(Entrypoint.MapArg ?? "random", Entrypoint.ModeArg ?? "melee", 8,
+                int.MaxValue));
     }
 }

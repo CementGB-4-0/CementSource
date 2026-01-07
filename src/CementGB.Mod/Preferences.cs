@@ -17,12 +17,12 @@ public static class CementPreferences
     ///     Enables extra log messages for debugging.
     ///     Controlled by a MelonPreference.
     /// </summary>
-    public static bool VerboseMode => _verboseModeEntry?.Value ?? Mod.DebugArg;
+    public static bool VerboseMode => _verboseModeEntry?.Value ?? Entrypoint.DebugArg;
 
     internal static void Initialize()
     {
         _cmtPrefCateg = MelonPreferences.CreateCategory("CementGBPrefs", "CementGB Preferences");
-        _cmtPrefCateg.SetFilePath(Path.Combine(Mod.UserDataPath, "CementPrefs.cfg"));
+        _cmtPrefCateg.SetFilePath(Path.Combine(Entrypoint.UserDataPath, "CementPrefs.cfg"));
         _verboseModeEntry = _cmtPrefCateg.CreateEntry(
             "verbose_mode",
             false,

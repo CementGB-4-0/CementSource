@@ -1,9 +1,5 @@
 using HarmonyLib;
 using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using Object = Il2CppSystem.Object;
-using Resources = Il2CppGB.Core.Resources;
-using String = Il2CppSystem.String;
 
 namespace CementGB.Modules.CustomContent.Patches;
 
@@ -28,11 +24,6 @@ internal static class CustomAddressablesPatches
     {
         private static bool Prefix(AssetReference __instance, ref bool __result)
         {
-            if (!CustomAddressableRegistration.IsModdedKey(__instance.RuntimeKey.ToString()))
-            {
-                return true;
-            }
-
             __result = true;
             return false;
         }
@@ -43,31 +34,7 @@ internal static class CustomAddressablesPatches
     {
         private static bool Prefix(AssetReference __instance, ref bool __result)
         {
-            if (!CustomAddressableRegistration.IsModdedKey(__instance.RuntimeKey.ToString()))
-            {
-                return true;
-            }
-
             __result = true;
-            return false;
-        }
-    }
-
-    [HarmonyPatch(typeof(Resources.LoadLoadedItem), nameof(Resources.LoadLoadedItem.Load))]
-    private static class LoadLoadedItemPatch
-    {
-        private static bool Prefix(Resources.LoadLoadedItem __instance, ref AsyncOperationHandle __result)
-        {
-            if (!CustomAddressableRegistration.IsModdedKey(__instance.Key) ||
-                string.IsNullOrWhiteSpace(__instance.Key))
-            {
-                return true;
-            }
-
-            __instance._finishedLoading = AsyncOperationStatus.None;
-            __instance._loadHandle = Addressables.LoadAssetAsync<Object>((String)__instance.Key);
-
-            __result = __instance._loadHandle;
             return false;
         }
     }

@@ -143,6 +143,7 @@ public class NetBeardModule : InstancedCementModule
     private async void ServerBoot()
     {
         Logger?.Msg($"{ServerLogPrefix} Setting up server boot...");
+        Entrypoint.SkipSplashScreens = true;
         var bootstrapper = Object.FindObjectOfType<NetworkBootstrapper>();
         bootstrapper.AutoRunServer = IsServer && !DontAutoStart;
         MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
@@ -162,16 +163,26 @@ public class NetBeardModule : InstancedCementModule
 
         if (PortForward)
         {
-            var forwardExternalIP = await OpenPort(Port, Port, Protocol.Udp, "NetBeard: Modded Gang Beasts Server");
+            var forwardExternalIPUdp =
+                await OpenPort(Port, Port, Protocol.Udp, "NetBeard: Modded Gang Beasts Server (UDP)");
+            if (forwardExternalIPUdp != null)
+            {
+                Entrypoint.Logger.Msg(ConsoleColor.Green,
+                    $"{ServerLogPrefix} Server successfully forwarded to address {forwardExternalIPUdp}:{Port} (UDP)");
+                LobbyCommunicator.UserExternalIP = forwardExternalIPUdp;
+            }
+
+            var forwardExternalIP =
+                await OpenPort(Port, Port, Protocol.Udp, "NetBeard: Modded Gang Beasts Server (TCP)");
             if (forwardExternalIP != null)
             {
-                Mod.Logger.Msg(ConsoleColor.Green,
+                Entrypoint.Logger.Msg(ConsoleColor.Green,
                     $"{ServerLogPrefix} Server successfully forwarded to address {forwardExternalIP}:{Port} (UDP)");
                 LobbyCommunicator.UserExternalIP = forwardExternalIP;
             }
         }
 
-        Mod.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
+        Entrypoint.Logger.Msg(ConsoleColor.Green, $"{ServerLogPrefix} Done!");
     }
 
     private static void RemoveRendering()
@@ -207,7 +218,12 @@ public class NetBeardModule : InstancedCementModule
         }
         catch (NatDeviceNotFoundException ex)
         {
-            Logger?.Error($"Failed to port forward: No UPnP-enabled NAT device found or discovery timed out. {ex}");
+            Logger?.Error(
+                $"Failed to port forward: No UPnP-enabled NAT device found. UPnP or PMP may not be supported or enabled on your router. {ex}");
+        }
+        catch (OperationCanceledException ex)
+        {
+            Logger?.Error($"Failed to port forward: NAT device discovery timed out. {ex}");
         }
         catch (Exception ex)
         {
@@ -249,12 +265,12 @@ public class NetBeardModule : InstancedCementModule
 
     private static void SetConfigOnGameManager()
     {
-        if (!string.IsNullOrWhiteSpace(Mod.MapArg))
+        if (!string.IsNullOrWhiteSpace(Entrypoint.MapArg))
         {
             GameManagerNew.Instance.ChangeRotationConfig(
                 GBConfigLoader.CreateRotationConfig(
-                    Mod.MapArg,
-                    string.IsNullOrWhiteSpace(Mod.ModeArg) ? "melee" : Mod.ModeArg,
+                    Entrypoint.MapArg,
+                    string.IsNullOrWhiteSpace(Entrypoint.ModeArg) ? "melee" : Entrypoint.ModeArg,
                     8,
                     int.MaxValue));
         }

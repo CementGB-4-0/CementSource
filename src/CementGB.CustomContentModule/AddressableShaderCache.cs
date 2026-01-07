@@ -31,7 +31,7 @@ public static class AddressableShaderCache
         yield return InitCacheShaders();
         CustomContentModule.Logger?.VerboseLog(ConsoleColor.DarkYellow, "Reloading Addressable shaders. . .");
         Il2CppArrayBase<MeshRenderer> renderers;
-        if (!parent)
+        if (!parent || parent == null)
         {
             renderers = Object.FindObjectsOfType<MeshRenderer>();
         }

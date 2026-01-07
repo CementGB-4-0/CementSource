@@ -1,8 +1,6 @@
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using CementGB.Modules.CustomContent.Utilities;
 using CementGB.Utilities;
-using Il2CppGB.Data.Loading;
 using Il2CppInterop.Runtime;
 using Il2CppSystem.Linq;
 using MelonLoader.Utils;
@@ -24,18 +22,23 @@ public static class CustomAddressableRegistration
     /// <remarks>See <see cref="AssetUtilities" /> for modded Addressable helpers.</remarks>
     public static readonly string CustomContentPath = MelonEnvironment.ModsDirectory;
 
+    private static readonly CustomContentRefLoader[] CustomContentLoaders =
+    [
+        new CustomMapLoader()
+    ];
+
     private static readonly Dictionary<string, Il2CppSystem.Collections.Generic.List<Object>>
         _catalogSortedAddressableKeys =
             [];
 
     private static readonly List<IResourceLocator> _moddedResourceLocators = [];
-    private static readonly List<CustomMapRefHolder> _customMaps = [];
+    private static readonly Dictionary<string, CustomContentRefHolder[]> _customContentMap = new();
     private static readonly List<string> _baseGameAddressableKeys = [];
 
     /// <summary>
     ///     Dictionary lookup for all modded Addressable keys (as strings), sorted by catalog path.
     /// </summary>
-    public static ReadOnlyDictionary<string, string[]> CatalogSortedAddressableKeys // { catalogPath: addressableKeys }
+    public static IReadOnlyDictionary<string, string[]> CatalogSortedAddressableKeys // { catalogPath: addressableKeys }
     {
         get
         {
@@ -55,16 +58,12 @@ public static class CustomAddressableRegistration
                 dict.Add(kvp.Key, addrKeys.ToArray());
             }
 
-            return new ReadOnlyDictionary<string, string[]>(dict);
+            return dict;
         }
     }
 
-    public static ReadOnlyCollection<IResourceLocator> ModdedResourceLocators => _moddedResourceLocators.AsReadOnly();
-
-    /// <summary>
-    ///     A collection of all valid maps loaded by Cement. Read-only.
-    /// </summary>
-    public static ReadOnlyCollection<CustomMapRefHolder> CustomMaps => _customMaps.AsReadOnly();
+    public static IReadOnlyCollection<IResourceLocator> ModdedResourceLocators => _moddedResourceLocators;
+    public static CustomMapRefHolder[] CustomMaps => _customContentMap["Stages"].Cast<CustomMapRefHolder>().ToArray();
 
     internal static string ResolveModdedInternalId(string bundleFile)
     {
@@ -92,77 +91,29 @@ public static class CustomAddressableRegistration
         return bundleFile;
     }
 
-    /// <summary>
-    ///     Gets all custom-loaded IResourceLocations of a certain result type. Used to iterate through and find custom content
-    ///     addressable locations depending on type.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <returns>
-    ///     An array containing IResourceLocations that, if loaded, will result in the passed type. Will return an array
-    ///     even if empty.
-    /// </returns>
-    public static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Object
-    {
-        List<IResourceLocation> ret = [];
-
-        CustomContentModule.Logger?.VerboseLog(
-            $"Searching for all modded resource locations of type {Il2CppType.Of<T>().ToString()}. . .");
-
-        foreach (var locator in ModdedResourceLocators)
-        {
-            var handle = Addressables.LoadResourceLocationsAsync(
-                locator.Keys.ToList().Cast<Il2CppSystem.Collections.Generic.IList<Object>>(),
-                Addressables.MergeMode.Union, Il2CppType.Of<T>());
-
-            if (!handle.HandleSynchronousAddressableOperation())
-                continue;
-
-            var locatorLocations = handle.Result;
-            var locatorLocationsCasted =
-                locatorLocations?.TryCast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
-            if (locatorLocationsCasted == null)
-                continue;
-
-            foreach (var location in locatorLocationsCasted.ToArray())
-            {
-                if (ret.All(resourceLocation => resourceLocation.PrimaryKey != location.PrimaryKey))
-                {
-                    //_ = ResolveModdedInternalId(location);
-                    ret.Add(location);
-                }
-            }
-        }
-
-        CustomContentModule.Logger?.VerboseLog(
-            $"Found {ret.Count} modded locations for resource type {Il2CppType.Of<T>().ToString()}.");
-
-        if (ret.Count == 0)
-        {
-            CustomContentModule.Logger?.VerboseLog(
-                ConsoleColor.DarkRed,
-                $"Returned empty array! Type {Il2CppType.Of<T>().ToString()} probably wasn't found in modded Addressables.");
-        }
-
-        return [.. ret];
-    }
-
     public static bool IsModdedKey(string key)
     {
         return CatalogSortedAddressableKeys.Any(kvp => kvp.Value.Contains(key));
     }
 
-    private static bool IsValidSceneDataName(string name)
-    {
-        return name.Split("-Data").Length >= 1;
-    }
-
     internal static void Initialize()
     {
         MixerFinder.AssignMainMixer();
-        CacheBaseGameAddressableKeys();
+        if (Entrypoint.DebugArg) CacheBaseGameAddressableKeys();
         InitializeContentCatalogs();
-        InitializeMapReferences();
+        ExecuteCustomContentLoaders();
         AddressableShaderCache.Initialize();
+    }
+
+    private static void ExecuteCustomContentLoaders()
+    {
+        CustomContentModule.Logger?.Msg("Triggering custom content loaders. . .");
+        foreach (var loader in CustomContentLoaders)
+        {
+            _customContentMap[loader.CustomContentTypeString] = loader.Load();
+        }
+
+        CustomContentModule.Logger?.Msg(ConsoleColor.Green, "Done!");
     }
 
     private static void CacheBaseGameAddressableKeys()
@@ -178,6 +129,9 @@ public static class CustomAddressableRegistration
         {
             _baseGameAddressableKeys.Add(key.ToString());
         }
+
+        stopwatch.Stop();
+        CustomContentModule.Logger?.Msg(ConsoleColor.Green, $"Done! Took {stopwatch.ElapsedMilliseconds}ms");
     }
 
     private static void InitializeContentCatalogs()
@@ -232,43 +186,60 @@ public static class CustomAddressableRegistration
 
         stopwatch.Stop();
         CustomContentModule.Logger?.Msg(ConsoleColor.Green,
-            $"Done custom content catalogs! Total time taken: {stopwatch.Elapsed}");
+            $"Done custom content catalogs! Took {stopwatch.ElapsedMilliseconds}ms");
     }
 
-    private static void InitializeMapReferences()
+    /// <summary>
+    ///     Gets all custom-loaded IResourceLocations of a certain result type. Used to iterate through and find custom content
+    ///     addressable locations depending on type.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns>
+    ///     An array containing IResourceLocations that, if loaded, will result in the passed type. Will return an array
+    ///     even if empty.
+    /// </returns>
+    public static IResourceLocation[] GetAllModdedResourceLocationsOfType<T>() where T : Object
     {
-        CustomContentModule.Logger?.Msg("Starting initialization of custom map references. . .");
-        var stopwatch = new Stopwatch();
-        stopwatch.Start();
-        foreach (var sceneDataLoc in GetAllModdedResourceLocationsOfType<SceneData>())
+        List<IResourceLocation> ret = [];
+
+        CustomContentModule.Logger?.VerboseLog(
+            $"Searching for all modded resource locations of type {Il2CppType.Of<T>().ToString()}. . .");
+
+        foreach (var locator in ModdedResourceLocators)
         {
-            if (!IsValidSceneDataName(sceneDataLoc.PrimaryKey))
-            {
-                CustomContentModule.Logger?.Error(
-                    $"Custom SceneData \"{sceneDataLoc.PrimaryKey}\" is not named correctly! The stage it belongs to will not be loaded.");
-                continue;
-            }
+            var handle = Addressables.LoadResourceLocationsAsync(
+                locator.Keys.ToList().Cast<Il2CppSystem.Collections.Generic.IList<Object>>(),
+                Addressables.MergeMode.Union, Il2CppType.Of<T>());
 
-            var parsedSceneName = sceneDataLoc.PrimaryKey.Split("-Data")[0];
-            var infoLoc = GetAllModdedResourceLocationsOfType<Object>()
-                .FirstOrDefault(loc => loc.PrimaryKey == $"{parsedSceneName}-Info");
-            var refHolder = new CustomMapRefHolder(sceneDataLoc, infoLoc);
-            if (!refHolder.IsValid)
-            {
-                CustomContentModule.Logger?.Error(
-                    $"Custom map reference holder is not valid! | Info: {(refHolder.SceneInfo ? refHolder.SceneInfo.name : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData?.name : "null")}");
+            if (!handle.HandleSynchronousAddressableOperation())
                 continue;
-            }
 
-            _customMaps.Add(refHolder);
-            CustomContentModule.Logger?.Msg(
-                ConsoleColor.DarkGreen,
-                $"Custom map reference constructed successfully. | SceneName: {refHolder.SceneName}");
+            var locatorLocations = handle.Result;
+            var locatorLocationsCasted =
+                locatorLocations?.TryCast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
+            if (locatorLocationsCasted == null)
+                continue;
+
+            foreach (var location in locatorLocationsCasted.ToArray())
+            {
+                if (ret.All(resourceLocation => resourceLocation.PrimaryKey != location.PrimaryKey))
+                {
+                    //_ = ResolveModdedInternalId(location);
+                    ret.Add(location);
+                }
+            }
         }
 
-        stopwatch.Stop();
-        CustomContentModule.Logger?.Msg(
-            ConsoleColor.Green,
-            $"Custom map reference initialization complete! {CustomMaps.Count} maps found in {stopwatch.ElapsedMilliseconds}ms");
+        CustomContentModule.Logger?.VerboseLog(
+            $"Found {ret.Count} modded locations for resource type {Il2CppType.Of<T>().ToString()}.");
+
+        if (ret.Count == 0)
+        {
+            CustomContentModule.Logger?.VerboseLog(
+                ConsoleColor.DarkRed,
+                $"Returned empty array! Type {Il2CppType.Of<T>().ToString()} probably wasn't found in modded Addressables.");
+        }
+
+        return [.. ret];
     }
 }

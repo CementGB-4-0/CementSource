@@ -1,11 +1,7 @@
-using CementGB.Modules.CustomContent.Utilities;
 using HarmonyLib;
-using Il2CppAudio;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
 using Il2CppTMPro;
-using UnityEngine;
-using UnityEngine.AddressableAssets;
 using ConsoleColor = System.ConsoleColor;
 using Resources = Il2CppGB.Core.Resources;
 
@@ -25,22 +21,10 @@ internal static class OnSceneListCompletePatch
 
         foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
         {
-            if (!mapRef.IsValid || mapRef.SceneData == null)
+            if (!mapRef.IsValid)
                 continue;
-
-            if (!mapRef.SceneData._audioConfig)
-            {
-                mapRef.SceneData._audioConfig = ScriptableObject.CreateInstance<SceneAudioConfig>();
-                mapRef.SceneData._audioConfig.MakePersistent();
-            }
-
-            mapRef.SceneData._audioConfig.audioMixer = MixerFinder.MainMixer;
-            if (Mathf.Approximately(mapRef.SceneData._audioConfig.musicData.maxVolume, 1f))
-                mapRef.SceneData._audioConfig.musicData.maxVolume = 0.15f;
-
-            var sceneDataRef = new AssetReference(mapRef.SceneData.name);
-
-            Resources._assetList.Add(new Resources.LoadLoadedItem(sceneDataRef) { Key = mapRef.SceneData.name });
+            var sceneDataRef = mapRef.RetrieveReferenceOfKey($"{mapRef.SceneName}-Data");
+            Resources._assetList.Add(new Resources.LoadObject<SceneData>(sceneDataRef));
             sceneList._assets.Add(new AddressableDataCache.AssetData { Asset = sceneDataRef, Key = mapRef.SceneName });
 
             CustomContentModule.Logger?.Msg(

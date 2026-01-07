@@ -8,18 +8,18 @@ public abstract class InstancedCementModule
 {
     private static readonly List<InstancedCementModule> ModuleHolder = [];
 
-    protected readonly HarmonyLib.Harmony HarmonyInstance;
-
-    public readonly MelonLogger.Instance Logger;
-    protected readonly Assembly ModuleAssembly;
-
     protected InstancedCementModule()
     {
         HarmonyInstance = new HarmonyLib.Harmony(GetType().FullName);
         ModuleAssembly = Assembly.GetCallingAssembly();
-        Logger = new MelonLogger.Instance($"Module_{ModuleAssembly.GetName().Name}");
+        Logger = new MelonLogger.Instance($"{ModuleAssembly.GetName().Name} ({nameof(InstancedCementModule)})");
         SubscribeInternalMethods();
     }
+
+    public MelonLogger.Instance Logger { get; }
+
+    protected HarmonyLib.Harmony HarmonyInstance { get; }
+    protected Assembly ModuleAssembly { get; }
 
     public static InstancedCementModule? GetModule<T>() where T : InstancedCementModule
     {
@@ -68,11 +68,11 @@ public abstract class InstancedCementModule
     {
     }
 
-    protected virtual void DoManualPatches()
+    protected virtual void ApplyPatches()
     {
-        Mod.Logger.Msg($"Cement Module {GetType().Name} applying patches. . .");
+        Entrypoint.Logger.Msg($"Cement Module {GetType().Name} applying patches. . .");
         HarmonyInstance.PatchAll(ModuleAssembly);
-        Mod.Logger.Msg(ConsoleColor.Green, "Done!");
+        Entrypoint.Logger.Msg(ConsoleColor.Green, "Done!");
     }
 
     protected virtual void OnUpdate()
@@ -86,7 +86,7 @@ public abstract class InstancedCementModule
 
     private void OnInitialize_Internal()
     {
-        DoManualPatches();
+        ApplyPatches();
         OnInitialize();
     }
 }

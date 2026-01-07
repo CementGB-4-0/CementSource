@@ -43,7 +43,7 @@ internal static class ModdedServerPatches
             __instance.networkAddress = IP;
         }
 
-        Mod.Logger.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
+        Entrypoint.Logger.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
     }
 
     [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic))]

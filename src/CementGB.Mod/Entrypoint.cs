@@ -11,14 +11,16 @@ namespace CementGB;
 ///     The main entrypoint for Cement. This is where everything initializes from. Public members include important paths
 ///     and MelonMod overrides.
 /// </summary>
-public class Mod : MelonMod
+public class Entrypoint : MelonMod
 {
     /// <summary>
     ///     Cement's UserData path ("Gang Beasts\UserData\CementGB"). Created in <see cref="OnInitializeMelon" />.
     /// </summary>
     public static readonly string UserDataPath = Path.Combine(MelonEnvironment.UserDataDirectory, "CementGB");
 
-    public static readonly string ModulesPath = Path.Combine(MelonEnvironment.UserLibsDirectory, "CementGBModules");
+    public static readonly string ModulesPath =
+        Path.GetFullPath(Path.Combine(Melon<Entrypoint>.Instance.MelonAssembly.Location, "..", "..", "UserLibs",
+            "CementGBModules"));
 
     public static string?
         MapArg => CommandLineParser.Instance.GetValueForKey("-map", false);
@@ -29,8 +31,10 @@ public class Mod : MelonMod
     public static bool
         DebugArg => Environment.GetCommandLineArgs().Contains("-debug");
 
+    public static bool SkipSplashScreens { get; set; } = DebugArg;
+
     public static MelonLogger.Instance Logger =>
-        Melon<Mod>.Logger; // For if you're tired of the singleton pattern I guess
+        Melon<Entrypoint>.Logger; // For if you're tired of the singleton pattern I guess
 
     /// <summary>
     ///     Fires when Cement loads. Since Cement's MelonPriority is set to a very low number, the mod should initialize before
@@ -82,9 +86,9 @@ public class Mod : MelonMod
                 var assembly = Assembly.LoadFrom(file);
                 InstancedCementModule.BootstrapAllCementModulesInAssembly(assembly);
             }
-            catch
+            catch (Exception e)
             {
-                Logger.Error($"Failed to auto-load CementGB modules from assembly file {Path.GetFileName(file)}!");
+                Logger.Error($"Failed to auto-load CementGB modules from assembly file {Path.GetFileName(file)}! {e}");
             }
         }
     }

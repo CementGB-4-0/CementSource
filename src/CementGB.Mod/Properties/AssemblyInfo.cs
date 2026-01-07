@@ -9,7 +9,7 @@ using MelonLoader;
 [assembly: AssemblyVersion(MyPluginInfo.Version)]
 [assembly: AssemblyFileVersion(MyPluginInfo.Version)]
 
-[assembly: MelonInfo(typeof(Mod), MyPluginInfo.Name, MyPluginInfo.Version, MyPluginInfo.Author)]
+[assembly: MelonInfo(typeof(Entrypoint), MyPluginInfo.Name, MyPluginInfo.Version, MyPluginInfo.Author)]
 [assembly: MelonColor(0, 99, 198, 255)]
 [assembly: MelonGame("Boneloaf", "Gang Beasts")]
 [assembly: MelonPriority(-1000)]

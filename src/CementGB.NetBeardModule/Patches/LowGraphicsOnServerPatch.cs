@@ -15,7 +15,7 @@ internal class LowGraphicsOnServerPatch
             return;
         }
 
-        Mod.Logger.Msg(ConsoleColor.Magenta, "Server asked for low graphics. Applying. . .");
+        Entrypoint.Logger.Msg(ConsoleColor.Magenta, "Server asked for low graphics. Applying. . .");
 
         // Unity doesn't play nice with 'new' constructors; use ScriptableObject.CreateInstance instead.
         var newGraphicsSettings = ScriptableObject.CreateInstance<GraphicsSettings>();

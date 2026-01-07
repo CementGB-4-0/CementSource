@@ -27,7 +27,7 @@ public static class HookModule
 
         var harmonyInstance = hook.callingMod is not null
             ? hook.callingMod.HarmonyInstance
-            : Melon<Mod>.Instance.HarmonyInstance;
+            : Melon<Entrypoint>.Instance.HarmonyInstance;
         _ = harmonyInstance.Patch(hook.original, prefix, postfix);
 
         if (canToggle)
@@ -39,7 +39,7 @@ public static class HookModule
             $"New {(hook.isPrefix ? "PREFIX" : "POSTFIX")} hook on {hook.original.DeclaringType?.Name}.{hook.original.Name} registered to {hook.hook.DeclaringType?.Name}.{hook.hook.Name} with {typeof(HarmonyLib.Harmony)} instance {harmonyInstance.Id}";
         var fromModString = $"{resultString} from mod assembly {hook.callingMod?.MelonAssembly.Assembly.FullName}";
 
-        Melon<Mod>.Logger.Msg(hook.callingMod is null ? resultString : fromModString);
+        Melon<Entrypoint>.Logger.Msg(hook.callingMod is null ? resultString : fromModString);
     }
 
     /// <summary>

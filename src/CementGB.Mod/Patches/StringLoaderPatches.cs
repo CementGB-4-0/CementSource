@@ -9,7 +9,7 @@ internal class LoadStringPatch
 {
     private static void Postfix(string key, ref string __result)
     {
-        if (__result != null && !__result.StartsWith("Couldn't find value"))
+        if (!string.IsNullOrWhiteSpace(__result))
         {
             return;
         }
@@ -29,7 +29,7 @@ internal class LoadRawStringPatch
 {
     private static void Postfix(string key, ref string __result)
     {
-        if (__result != null && !__result.StartsWith("Couldn't find value"))
+        if (!string.IsNullOrWhiteSpace(__result))
         {
             return;
         }
@@ -48,7 +48,7 @@ internal class TryLoadStringPatch
 {
     private static void Postfix(ref string pulledString, string key, ref bool __result)
     {
-        if (__result)
+        if (__result || !string.IsNullOrWhiteSpace(pulledString))
         {
             return;
         }

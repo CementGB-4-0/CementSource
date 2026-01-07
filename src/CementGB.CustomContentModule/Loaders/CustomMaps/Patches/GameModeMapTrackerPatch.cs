@@ -1,4 +1,6 @@
+using CementGB.Modules.CustomContent.Utilities;
 using CementGB.Utilities;
+using GBMDK;
 using HarmonyLib;
 using Il2CppGB.Gamemodes;
 using ConsoleColor = System.ConsoleColor;
@@ -27,7 +29,10 @@ internal static class GameModeMapTrackerPatch
     {
         private static ModeMapStatus LoadMapInfo(CustomMapRefHolder mapRef)
         {
-            var info = mapRef.SceneInfo;
+            var infoHandle = mapRef.SceneInfoHandle;
+            CustomMapInfo? info = null;
+            if (infoHandle != null && infoHandle.HandleSynchronousAddressableOperation())
+                info = infoHandle.Result.Cast<CustomMapInfo>();
             var modeMapStatus = new ModeMapStatus(mapRef.SceneName, true)
             {
                 AllowedModesLocal = info != null && info.allowedGamemodes != null
@@ -49,11 +54,9 @@ internal static class GameModeMapTrackerPatch
 
                 foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
                 {
-                    if (mapRef.SceneData == null || !mapRef.IsValid ||
+                    if (!mapRef.IsValid ||
                         SceneNameAlreadyExists(__instance, mapRef.SceneName))
                         continue;
-
-                    ExtendedStringLoader.Register($"STAGE_{mapRef.SceneName.ToUpper()}", mapRef.SceneName);
 
                     __instance.AvailableMaps.Add(LoadMapInfo(mapRef));
                     CustomContentModule.Logger?.VerboseLog(
