@@ -168,6 +168,7 @@ public static class CustomAddressableRegistration
                 }
 
                 var resourceLocator = resourceLocatorHandle.Result;
+                resourceLocatorHandle.Release();
                 Addressables.AddResourceLocator(resourceLocator);
 
                 _moddedResourceLocators.Add(resourceLocator);
@@ -215,6 +216,7 @@ public static class CustomAddressableRegistration
                 continue;
 
             var locatorLocations = handle.Result;
+            handle.Release();
             var locatorLocationsCasted =
                 locatorLocations?.TryCast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
             if (locatorLocationsCasted == null)
