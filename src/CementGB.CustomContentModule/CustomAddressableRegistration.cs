@@ -84,10 +84,12 @@ public static class CustomAddressableRegistration
             var result = catalogFile.Directory != null
                 ? Path.Combine(catalogFile.Directory.FullName, bundleFileInfo.Name)
                 : bundleFileInfo.FullName;
+            result = "file://" + result;
             CustomContentModule.Logger?.VerboseLog(ConsoleColor.DarkGreen, $"Resolved InternalId: {result}. . .");
             return result;
         }
 
+        bundleFile = "file://" + bundleFile;
         return bundleFile;
     }
 
@@ -168,6 +170,7 @@ public static class CustomAddressableRegistration
                 }
 
                 var resourceLocator = resourceLocatorHandle.Result;
+                resourceLocatorHandle.Release();
                 Addressables.AddResourceLocator(resourceLocator);
 
                 _moddedResourceLocators.Add(resourceLocator);
@@ -215,6 +218,7 @@ public static class CustomAddressableRegistration
                 continue;
 
             var locatorLocations = handle.Result;
+            handle.Release();
             var locatorLocationsCasted =
                 locatorLocations?.TryCast<Il2CppSystem.Collections.Generic.List<IResourceLocation>>();
             if (locatorLocationsCasted == null)
