@@ -1,4 +1,5 @@
 using System.Collections;
+using CementGB.Utilities;
 using Il2CppCostumes;
 using Il2CppInterop.Runtime.InteropTypes;
 using UnityEngine;
@@ -11,7 +12,9 @@ public static class AssetUtilities
 {
     public static ushort NewUID(this CostumeDatabase instance)
     {
-        var num = (ushort)(instance.searchSpeeder.Count == 0 ? 410 : instance.searchSpeeder.GetKey(instance.searchSpeeder.Count - 1) + 1);
+        var num = (ushort)(instance.searchSpeeder.Count == 0
+            ? 410
+            : instance.searchSpeeder.GetKey(instance.searchSpeeder.Count - 1) + 1);
         return num;
     }
 
@@ -133,7 +136,7 @@ public static class AssetUtilities
         var request = bundle.LoadAssetAsync<T>(name);
 
         request.add_completed(
-            (Il2CppSystem.Action<AsyncOperation>)(a =>
+            (Il2CppSystem.Action<AsyncOperation>)(_ =>
             {
                 if (!request.asset)
                 {
@@ -164,7 +167,7 @@ public static class AssetUtilities
         var request = bundle.LoadAllAssetsAsync<T>();
 
         request.add_completed(
-            new Action<AsyncOperation>(a =>
+            new Action<AsyncOperation>(_ =>
             {
                 if (!request.asset)
                 {

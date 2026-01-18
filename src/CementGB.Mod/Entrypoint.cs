@@ -57,6 +57,19 @@ public class Entrypoint : MelonMod
         }
 
         CommonHooks.Initialize();
+
+        foreach (var file in Directory.GetFiles(ModulesPath, "*.dll", SearchOption.AllDirectories))
+        {
+            try
+            {
+                var assembly = Assembly.LoadFrom(file);
+                InstancedCementModule.BootstrapAllCementModulesInAssembly(assembly);
+            }
+            catch (Exception e)
+            {
+                Logger.Error($"Failed to auto-load CementGB modules from assembly file {Path.GetFileName(file)}! {e}");
+            }
+        }
     }
 
     /// <summary>
@@ -70,27 +83,6 @@ public class Entrypoint : MelonMod
         base.OnDeinitializeMelon();
 
         CementPreferences.Deinitialize();
-    }
-
-    /// <summary>
-    ///     Fires after the first few Unity MonoBehaviour.Start() methods. Creates components that couldn't be loaded before
-    ///     Unity's runtime started.
-    /// </summary>
-    public override void OnLateInitializeMelon()
-    {
-        base.OnLateInitializeMelon();
-        foreach (var file in Directory.GetFiles(ModulesPath, "*.dll", SearchOption.AllDirectories))
-        {
-            try
-            {
-                var assembly = Assembly.LoadFrom(file);
-                InstancedCementModule.BootstrapAllCementModulesInAssembly(assembly);
-            }
-            catch (Exception e)
-            {
-                Logger.Error($"Failed to auto-load CementGB modules from assembly file {Path.GetFileName(file)}! {e}");
-            }
-        }
     }
 
     private static void FileStructure()
