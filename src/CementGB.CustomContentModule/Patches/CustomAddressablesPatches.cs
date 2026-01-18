@@ -1,4 +1,6 @@
 using HarmonyLib;
+using MelonLoader;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 
 namespace CementGB.Modules.CustomContent.Patches;
@@ -6,6 +8,16 @@ namespace CementGB.Modules.CustomContent.Patches;
 [HarmonyPatch]
 internal static class CustomAddressablesPatches
 {
+    [HarmonyPatch(typeof(GameObject), nameof(GameObject.SetActive))]
+    private static class GameObjectSetActivePatch
+    {
+        private static void Postfix(GameObject __instance, bool value)
+        {
+            if (value)
+                MelonCoroutines.Start(AddressableShaderCache.ReloadAddressableShaders(__instance, false));
+        }
+    }
+
     [HarmonyPatch(typeof(AddressablesImpl), nameof(AddressablesImpl.ResolveInternalId))]
     private static class ResolveInternalIdPatch
     {
