@@ -28,7 +28,7 @@ public static class AddressableShaderCache
     private static IEnumerator ReloadAddressableShaders(GameObject? parent = null)
     {
         yield return new WaitForEndOfFrame();
-        yield return InitCacheShaders();
+        //yield return InitCacheShaders();
         CustomContentModule.Logger?.VerboseLog(ConsoleColor.DarkYellow, "Reloading Addressable shaders. . .");
         Il2CppArrayBase<MeshRenderer> renderers;
         if (!parent || parent == null)
