@@ -410,5 +410,7 @@ CementGB.dll
 dist/manifest.json
 dist/
 !dist/icon.png
+docs/_site/
+docs/api/
 
 .idea
