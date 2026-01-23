@@ -25,13 +25,14 @@ public static class AddressableShaderCache
         "Universal Render Pipeline/Unlit"
     ]; // TEMPORARY until a better solution for standard Unity shaders is found
 
-    private static IEnumerator ReloadAddressableShaders(GameObject? parent = null)
+    public static IEnumerator ReloadAddressableShaders(GameObject? parent = null, bool logging = true)
     {
-        yield return new WaitForEndOfFrame();
-        yield return InitCacheShaders();
-        CustomContentModule.Logger?.VerboseLog(ConsoleColor.DarkYellow, "Reloading Addressable shaders. . .");
+        //yield return new WaitForEndOfFrame();
+        //yield return InitCacheShaders();
+        if (logging)
+            CustomContentModule.Logger?.VerboseLog(ConsoleColor.DarkYellow, "Reloading Addressable shaders. . .");
         Il2CppArrayBase<MeshRenderer> renderers;
-        if (!parent)
+        if (!parent || parent == null)
         {
             renderers = Object.FindObjectsOfType<MeshRenderer>();
         }
@@ -55,11 +56,14 @@ public static class AddressableShaderCache
             }
         }
 
-        CustomContentModule.Logger?.VerboseLog(ConsoleColor.DarkGreen, "Reloaded Addressable shaders!");
+        if (logging)
+            CustomContentModule.Logger?.VerboseLog(ConsoleColor.DarkGreen, "Reloaded Addressable shaders!");
+        yield break;
     }
 
     private static IEnumerator InitCacheShaders()
     {
+        CachedShaders.Clear();
         CustomContentModule.Logger?.Msg("Caching Addressable game shaders, please wait. . .");
         var stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -86,9 +90,13 @@ public static class AddressableShaderCache
                         continue;
                     }
 
+                    if (BlacklistedShaderNames.Contains(assetHandle.Result.name))
+                    {
+                        continue;
+                    }
+
                     assetHandle.Result.MakePersistent();
                     CachedShaders[assetHandle.Result.name] = assetHandle.Result;
-
                     assetHandle.Release();
                 }
             }
@@ -100,6 +108,12 @@ public static class AddressableShaderCache
             $"Caching Addressable game shaders done! Total time taken: {stopwatch.ElapsedMilliseconds}ms");
     }
 
+    private static IEnumerator InitShaderReload()
+    {
+        yield return InitCacheShaders();
+        yield return ReloadAddressableShaders();
+    }
+
     private static void StartShaderReload(Scene scene, LoadSceneMode mode)
     {
         _ = MelonCoroutines.Start(ReloadAddressableShaders());
@@ -107,7 +121,7 @@ public static class AddressableShaderCache
 
     internal static void Initialize()
     {
-        _ = MelonCoroutines.Start(InitCacheShaders());
+        MelonCoroutines.Start(InitShaderReload());
         SceneManager.add_sceneLoaded((UnityAction<Scene, LoadSceneMode>)StartShaderReload);
     }
 }
