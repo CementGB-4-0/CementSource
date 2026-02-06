@@ -131,6 +131,8 @@ public static class CustomAddressableRegistration
                     ret.Add(location);
                 }
             }
+
+            handle.Release();
         }
 
         CustomContentModule.Logger?.VerboseLog(
@@ -214,6 +216,7 @@ public static class CustomAddressableRegistration
                 }
 
                 var resourceLocator = resourceLocatorHandle.Result;
+                resourceLocatorHandle.Release();
                 Addressables.AddResourceLocator(resourceLocator);
 
                 _moddedResourceLocators.Add(resourceLocator);
