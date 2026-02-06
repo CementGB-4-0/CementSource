@@ -38,6 +38,6 @@ jobs:
             - uses: actions/upload-artifact@v4
               if: ${{ !env.ACT }}
               with: 
-                name: output-artifact
+                name: CementGB-CementGB-${{ steps.version_step }}-ci.${{ github.run_number }}
                 path: dist/*
                 overwrite: true
