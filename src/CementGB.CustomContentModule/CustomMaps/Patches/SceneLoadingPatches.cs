@@ -1,6 +1,8 @@
 using CementGB.Modules.CustomContent.Utilities;
 using HarmonyLib;
 using Il2CppAudio;
+using Il2CppCoreNet;
+using Il2CppGB.Core;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
 using Il2CppTMPro;
@@ -10,6 +12,23 @@ using ConsoleColor = System.ConsoleColor;
 using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Modules.CustomContent.Patches;
+
+[HarmonyPatch(typeof(SceneLoader.NetworkLoading), nameof(SceneLoader.NetworkLoading.ActivateScene))]
+internal static class SceneLoadTask_ActivateScene
+{
+    private static bool Prefix(SceneLoader.NetworkLoading __instance)
+    {
+        if (__instance._loadingLevel._sceneInstance?.m_Operation == null)
+        {
+            Global.Instance.SceneLoader._networkLoader.CompleteLoad();
+            NetworkManager.singleton.ServerChangeScene("Grind");
+            CustomContentModule.Logger?.BigError("UNCAUGHT BUNDLE LOAD ERROR OCCURRED HERE, FALLING BACK TO GRIND");
+            return false;
+        }
+
+        return true;
+    }
+}
 
 [HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneListComplete))]
 internal static class OnSceneListCompletePatch
