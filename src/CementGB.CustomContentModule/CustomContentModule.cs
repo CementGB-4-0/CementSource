@@ -22,8 +22,7 @@ public class CustomContentModule : InstancedCementModule
     {
         ClassInjector.RegisterTypeInIl2Cpp<CustomMapInfo>();
 
-        PlatformEvents.add_OnPlatformInitializedEvent(
-            (PlatformEvents.PlatformVoidEventDel)CustomAddressableRegistration.Initialize);
+        CustomAddressableRegistration.Initialize();
         if (string.IsNullOrWhiteSpace(Mod.MapArg))
         {
             return;
