@@ -17,9 +17,9 @@ public static class ExtendedStringLoader
     ///     replaced by <paramref name="value" /> upon load. MUST BE UNIQUE!
     /// </param>
     /// <param name="value">Can be any string in any format. Will replace appearances of <paramref name="key" />.</param>
-    public static void Register(string key, string value)
+    public static void Register(string key, string value, bool logging = true)
     {
-        if (!items.TryAdd(key, value))
+        if (!items.TryAdd(key, value) && logging)
         {
             LoggingUtilities.VerboseLog(
                 ConsoleColor.DarkRed,
