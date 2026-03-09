@@ -16,7 +16,7 @@ namespace CementGB.Modules.CustomContent;
 
 public class CustomContentModule : InstancedCementModule
 {
-    internal new static MelonLogger.Instance? Logger { get; private set; } = GetModule<CustomContentModule>()?.Logger;
+    internal new static MelonLogger.Instance? Logger => GetModule<CustomContentModule>()?.Logger;
 
     protected override void OnInitialize()
     {

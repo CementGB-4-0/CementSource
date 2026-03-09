@@ -9,20 +9,23 @@ using Il2CppTMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using ConsoleColor = System.ConsoleColor;
+using NetworkManager = UnityEngine.Networking.NetworkManager;
+using Object = Il2CppSystem.Object;
 using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Modules.CustomContent.Patches;
 
 [HarmonyPatch(typeof(SceneLoader.NetworkLoading), nameof(SceneLoader.NetworkLoading.ActivateScene))]
-internal static class SceneLoadTask_ActivateScene
+internal static class ActivateScenePatch
 {
     private static bool Prefix(SceneLoader.NetworkLoading __instance)
     {
         if (__instance._loadingLevel._sceneInstance?.m_Operation == null)
         {
             Global.Instance.SceneLoader._networkLoader.CompleteLoad();
-            NetworkManager.singleton.ServerChangeScene("Grind");
-            CustomContentModule.Logger?.BigError("UNCAUGHT BUNDLE LOAD ERROR OCCURRED HERE, FALLING BACK TO GRIND");
+            CustomContentModule.Logger?.BigError(
+                $"UNCAUGHT BUNDLE LOAD ERROR OCCURRED HERE, FALLING BACK TO: {CementPreferences.FallbackMap}");
+            NetworkManager.singleton.ServerChangeScene(CementPreferences.FallbackMap);
             return false;
         }
 
