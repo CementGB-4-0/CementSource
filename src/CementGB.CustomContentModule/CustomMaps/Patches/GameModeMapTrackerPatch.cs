@@ -1,6 +1,7 @@
 using CementGB.Utilities;
 using HarmonyLib;
 using Il2CppGB.Gamemodes;
+using Il2CppGB.UI;
 using ConsoleColor = System.ConsoleColor;
 
 namespace CementGB.Modules.CustomContent.Patches;
@@ -20,6 +21,19 @@ internal static class GameModeMapTrackerPatch
         }
 
         return false;
+    }
+
+    [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.GenerateUI))]
+    private static class MenuHandlerGamemodesGenerateUIPatch
+    {
+        private static void Postfix(MenuHandlerGamemodes __instance)
+        {
+            if (CustomAddressableRegistration.CustomMaps.Count == 0) return;
+
+            __instance.mapSetup.mapList.Insert(1, "Modded");
+            __instance.mapSetup.UpdateMapList(__instance.mapSetup.mapList);
+            ExtendedStringLoader.Register("STAGE_MODDED", "Modded", false);
+        }
     }
 
     [HarmonyPatch(typeof(GameModeMapTracker), nameof(GameModeMapTracker.GetMapsFor))]
