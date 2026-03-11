@@ -14,6 +14,7 @@ using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI.Beasts;
 using MelonLoader;
 using Open.Nat;
+using Tomlet;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -39,19 +40,23 @@ public class NetBeardModule : InstancedCementModule
     public static readonly string?
         PortArg = CommandLineParser.Instance.GetValueForKey("-port", false); // set to server via vanilla code
 
+    public static readonly string ConfigFilePath = Path.Combine(Mod.UserDataPath, "netbeard.toml");
+
     /// <summary>
     ///     True if the -SERVER argument is passed to the Gang Beasts executable.
     /// </summary>
     public static bool IsServer => Environment.GetCommandLineArgs().Contains("-SERVER");
 
+    public static bool IsFwd => !IsServer && Environment.GetCommandLineArgs().Contains("-FWD");
+
     /// <summary>
-    ///     True if <see cref="IsServer" /> is false, but the ip and port are provided. Unlocks the DevelopmentTestServerUI.
+    ///     True if <see cref="IsServer" /> and <see cref="IsFwd" /> is false, but the ip and port are provided. Unlocks the DevelopmentTestServerUI (Shift + L).
     /// </summary>
     public static bool IsClientJoiner =>
-        !IsServer &&
+        !IsServer && !IsFwd &&
         (!string.IsNullOrWhiteSpace(IpArg) ||
          !string.IsNullOrWhiteSpace(
-             PortArg)); // TODO: Auto start as client (similar to NetworkBootstrapper.AutoRunServer) if this is true
+             PortArg));
 
     /// <summary>
     ///     True if IsServer is true and the -pfwd argument is added. Attempts to automatically port-forward the server
@@ -92,6 +97,12 @@ public class NetBeardModule : InstancedCementModule
                     Global.NetworkMaxPlayers = (ushort)maxPlayers;
                     Users.MaxUsers = maxPlayers;
                 }));*/
+
+        if (!File.Exists(ConfigFilePath))
+        {
+            File.WriteAllText(ConfigFilePath,
+                TomletMain.TomlStringFrom(NetBeardConfig.Default, TomlSerializerOptions.Default));
+        }
 
         LobbyCommunicator.Awake();
         TCPCommunicator.Init();
@@ -160,12 +171,20 @@ public class NetBeardModule : InstancedCementModule
 
         if (PortForward)
         {
-            var forwardExternalIP = await OpenPort(Port, Port, Protocol.Udp, "NetBeard: Modded Gang Beasts Server");
-            if (forwardExternalIP != null)
+            var forwardExternalIPUdp = await OpenPort(Port, Port, Protocol.Udp, "NetBeard: Modded Gang Beasts Server");
+            if (forwardExternalIPUdp != null)
             {
                 Mod.Logger.Msg(ConsoleColor.Green,
-                    $"{ServerLogPrefix} Server successfully forwarded to address {forwardExternalIP}:{Port} (UDP)");
-                LobbyCommunicator.UserExternalIP = forwardExternalIP;
+                    $"{ServerLogPrefix} Server successfully forwarded to address {forwardExternalIPUdp}:{Port} (UDP)");
+                LobbyCommunicator.LocalExternalIP = forwardExternalIPUdp;
+            }
+
+            var forwardExternalIPTcp = await OpenPort(Port, Port, Protocol.Tcp, "NetBeard: Modded Gang Beasts Server");
+            if (forwardExternalIPTcp != null)
+            {
+                Mod.Logger.Msg(ConsoleColor.Green,
+                    $"{ServerLogPrefix} Server successfully forwarded to address {forwardExternalIPTcp}:{Port} (TCP)");
+                LobbyCommunicator.LocalExternalIP = forwardExternalIPTcp;
             }
         }
 

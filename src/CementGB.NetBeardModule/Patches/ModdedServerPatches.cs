@@ -37,7 +37,7 @@ internal static class ModdedServerPatches
         if (GameManagerNew.Instance && GameManagerNew.Instance.CurrentGameType != GameManagerNew.GameType.Matchmaker)
             return;
         _ = LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
-        if (LobbyCommunicator.UserExternalIP == null || LobbyCommunicator.UserExternalIP.ToString() == IP)
+        if (LobbyCommunicator.LocalExternalIP == null || LobbyCommunicator.LocalExternalIP.ToString() == IP)
         {
             IP = IPAddress.Loopback.ToString();
             __instance.networkAddress = IP;
@@ -74,7 +74,7 @@ internal static class ModdedServerPatches
             isRandomSelected,
             stageTime);
 
-        var address = LobbyCommunicator.UserExternalIP ?? IPAddress.Loopback; // Offline safety net
+        var address = LobbyCommunicator.LocalExternalIP ?? IPAddress.Loopback; // Offline safety net
 
         MonoSingleton<Global>.Instance.buttonController.HideButton(InputMapActions.Accept);
         __instance.PopulateVisibleButtons(true);
