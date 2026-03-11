@@ -39,8 +39,6 @@ public class NetBeardModule : InstancedCementModule
     public static readonly string?
         PortArg = CommandLineParser.Instance.GetValueForKey("-port", false); // set to server via vanilla code
 
-    private static bool _autoLaunchUpdateEnabled = IsClientJoiner && !DontAutoStart;
-
     /// <summary>
     ///     True if the -SERVER argument is passed to the Gang Beasts executable.
     /// </summary>
