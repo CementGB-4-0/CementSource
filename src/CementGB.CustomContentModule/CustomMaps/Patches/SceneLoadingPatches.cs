@@ -1,6 +1,7 @@
 using CementGB.Modules.CustomContent.Utilities;
 using HarmonyLib;
 using Il2CppAudio;
+using Il2CppCoreNet;
 using Il2CppGB.Core;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
@@ -35,9 +36,9 @@ internal static class ActivateScenePatch
 [HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneListComplete))]
 internal static class OnSceneListCompletePatch
 {
-    private static void Postfix(SceneLoader __instance, Object data)
+    private static void Postfix(SceneLoader __instance)
     {
-        var sceneList = data.TryCast<AddressableDataCache>();
+        var sceneList = __instance._sceneList.TryCast<AddressableDataCache>();
 
         if (!sceneList || sceneList == null)
         {
@@ -61,7 +62,7 @@ internal static class OnSceneListCompletePatch
 
             var sceneDataRef = new AssetReference(mapRef.SceneData.name);
 
-            Resources.Load<SceneData>(sceneDataRef, mapRef.SceneName, out _);
+            Resources._assetList.Add(new Resources.LoadLoadedItem(sceneDataRef) { Key = mapRef.SceneData.name });
             sceneList._assets.Add(new AddressableDataCache.AssetData { Asset = sceneDataRef, Key = mapRef.SceneName });
 
             CustomContentModule.Logger?.Msg(
