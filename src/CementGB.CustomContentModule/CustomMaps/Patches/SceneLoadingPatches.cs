@@ -1,8 +1,6 @@
 using CementGB.Modules.CustomContent.Utilities;
 using HarmonyLib;
 using Il2CppAudio;
-using Il2CppCoreNet;
-using Il2CppGB.Core;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
 using Il2CppTMPro;
@@ -10,7 +8,6 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using ConsoleColor = System.ConsoleColor;
 using NetworkManager = UnityEngine.Networking.NetworkManager;
-using Object = Il2CppSystem.Object;
 using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Modules.CustomContent.Patches;
@@ -22,10 +19,19 @@ internal static class ActivateScenePatch
     {
         if (__instance._loadingLevel._sceneInstance?.m_Operation == null)
         {
-            Global.Instance.SceneLoader._networkLoader.CompleteLoad();
-            CustomContentModule.Logger?.BigError(
+            __instance.CompleteLoad();
+            var bundles = UnityEngine.Resources.FindObjectsOfTypeAll<AssetBundle>();
+            foreach (var bundle in bundles)
+            {
+                if (bundle.name.Contains("unitybuiltinshaders")) bundle.Unload(true);
+            }
+
+            /*CustomContentModule.Logger?.BigError(
                 $"UNCAUGHT BUNDLE LOAD ERROR OCCURRED HERE, FALLING BACK TO: {CementPreferences.FallbackMap}");
-            NetworkManager.singleton.ServerChangeScene(CementPreferences.FallbackMap);
+            NetworkManager.singleton.ServerChangeScene(CementPreferences.FallbackMap);*/
+            CustomContentModule.Logger?.BigError(
+                $"UNCAUGHT BUNDLE LOAD ERROR OCCURRED HERE, RETRYING: {__instance._sceneLoader.CurrentKey}");
+            NetworkManager.singleton.ServerChangeScene(__instance._sceneLoader.CurrentKey);
             return false;
         }
 

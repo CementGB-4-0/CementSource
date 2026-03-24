@@ -5,12 +5,14 @@ using Il2CppCS.CorePlatform;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.Game;
+using Il2CppGB.Gamemodes;
 using Il2CppGB.Networking.Delegates;
 using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI.Beasts;
 using Il2CppInterop.Runtime.Injection;
 using MelonLoader;
 using Action = System.Action;
+using Resources = UnityEngine.Resources;
 
 namespace CementGB.Modules.CustomContent;
 
@@ -45,9 +47,39 @@ public class CustomContentModule : InstancedCementModule
         }));
     }
 
-    private void SetConfigOnGameManager()
+    private void SetConfigOnGameManager() // TODO: Move this to main mod API
     {
+        const int wins = 8;
+        const string fallbackMap = "Grind";
+
+        var mode = string.IsNullOrWhiteSpace(Mod.ModeArg) ? "melee" : Mod.ModeArg;
+        var map = Mod.MapArg;
+        var config = GBConfigLoader.CreateRotationConfig(map, mode, wins);
+        if (map?.ToLower() == "random")
+        {
+            var setupConfiguration = Resources.FindObjectsOfTypeAll<GameModeSetupConfiguration>().FirstOrDefault();
+            if (setupConfiguration == null) return;
+
+            var selectedMaps = setupConfiguration.Maps.GetMapsFor(GameModeHelpers.GamemodeIDToEnum(mode))
+                .ToArray().Select(x => x.MapName).ToArray();
+            config = GBConfigLoader.CreateRotationConfig(selectedMaps.Length > 0 ? selectedMaps : [fallbackMap]
+                , GameModeHelpers.GamemodeIDToEnum(mode), wins,
+                true, int.MaxValue);
+        }
+
+        ;
+        if (map?.ToLower() == "modded")
+        {
+            var selectedModdedMaps = CustomAddressableRegistration.CustomMaps
+                .Where(x => x.SceneInfo.allowedGamemodes?.Get().HasFlag(GameModeHelpers.GamemodeIDToEnum(mode)) ==
+                            true).Select(x => x.SceneName).ToArray();
+            config = GBConfigLoader.CreateRotationConfig(
+                selectedModdedMaps.Length > 0 ? selectedModdedMaps : [fallbackMap]
+                , GameModeHelpers.GamemodeIDToEnum(mode), wins,
+                true, int.MaxValue);
+        }
+
         GameManagerNew.Instance.ChangeRotationConfig(
-            GBConfigLoader.CreateRotationConfig(Mod.MapArg, Mod.ModeArg ?? "melee", 8, int.MaxValue));
+            config);
     }
 }
