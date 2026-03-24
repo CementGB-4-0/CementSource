@@ -28,14 +28,15 @@ internal static class GBConfigLoaderPatch
             {
                 foreach (var scene in CustomAddressableRegistration.CustomMaps)
                 {
-                    var result = scene.SceneInfo;
+                    var sceneInfo = scene.SceneInfo;
+                    var gamemode = masterMenuHandler.CurrentGamemode;
 
-                    if ((!result && !masterMenuHandler.CurrentGamemode.HasFlag(GameModeEnum.Melee)) || result == null ||
-                        result.allowedGamemodes == null ||
-                        !result.allowedGamemodes.Get().HasFlag(masterMenuHandler.CurrentGamemode))
-                    {
+                    var doesNotMatchSceneInfoCurrentGamemodeFlag =
+                        (!sceneInfo && !gamemode.HasFlag(GameModeEnum.Melee)) || sceneInfo == null ||
+                        sceneInfo.allowedGamemodes == null ||
+                        !sceneInfo.allowedGamemodes.Get().HasFlag(gamemode);
+                    if (doesNotMatchSceneInfoCurrentGamemodeFlag)
                         continue;
-                    }
 
                     __result.Add(scene.SceneName);
                 }
