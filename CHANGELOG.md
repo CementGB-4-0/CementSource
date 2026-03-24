@@ -10,7 +10,7 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 ### Added
 
 - Unload builtin shaders and retry when custom maps fail to load. This should solve most issues related to infinite loading.
-- "Modded" map selection in lobby menu. Plays all found modded maps in random succession (or the fallback map if one fails to load).
+- "Modded" map selection in lobby menu and launch args. Plays all found modded maps in random succession (or the fallback map if one fails to load).
 
 ### Changed
 
