@@ -35,10 +35,11 @@ public class NetBeardModule : InstancedCementModule
     public const string ServerLogPrefix = "[SERVER]";
 
     public static readonly string?
-        IpArg = CommandLineParser.Instance.GetValueForKey("-ip", false); // set to server via vanilla code
+        IpArg = CommandLineParser.Instance.GetValueForKey(ArgConstants.IPArg, false); // set to server via vanilla code
 
     public static readonly string?
-        PortArg = CommandLineParser.Instance.GetValueForKey("-port", false); // set to server via vanilla code
+        PortArg = CommandLineParser.Instance.GetValueForKey(ArgConstants.PortArg,
+            false); // set to server via vanilla code
 
     public static readonly string ConfigFilePath = Path.Combine(Mod.UserDataPath, "netbeard.toml");
     public static NetBeardConfig CurrentConfig { get; private set; } = NetBeardConfig.Default;
