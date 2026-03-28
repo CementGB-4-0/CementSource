@@ -79,15 +79,8 @@ public class Mod : MelonMod
         base.OnLateInitializeMelon();
         foreach (var file in Directory.GetFiles(ModulesPath, "*.dll", SearchOption.AllDirectories))
         {
-            try
-            {
-                var assembly = Assembly.LoadFrom(file);
-                InstancedCementModule.BootstrapAllCementModulesInAssembly(assembly);
-            }
-            catch
-            {
-                Logger.Error($"Failed to auto-load CementGB modules from assembly file {Path.GetFileName(file)}!");
-            }
+            var assembly = Assembly.LoadFrom(file);
+            InstancedCementModule.BootstrapAllCementModulesInAssembly(assembly);
         }
     }
 
