@@ -47,7 +47,7 @@ public class CustomContentModule : InstancedCementModule
         }));
     }
 
-    private void SetConfigOnGameManager() // TODO: Move this to main mod API
+    private static void SetConfigOnGameManager()
     {
         const int wins = 8;
         const string fallbackMap = "Grind";
@@ -67,7 +67,6 @@ public class CustomContentModule : InstancedCementModule
                 true, int.MaxValue);
         }
 
-        ;
         if (map?.ToLower() == "modded")
         {
             var selectedModdedMaps = CustomAddressableRegistration.CustomMaps
