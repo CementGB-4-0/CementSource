@@ -3,6 +3,7 @@ using HarmonyLib;
 using Il2CppAudio;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
+using Il2CppGB.Setup;
 using Il2CppTMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -11,6 +12,15 @@ using NetworkManager = UnityEngine.Networking.NetworkManager;
 using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Modules.CustomContent.Patches;
+
+[HarmonyPatch(typeof(GlobalSceneLoader), nameof(GlobalSceneLoader.DisplaySplashScreen))]
+internal static class GlobalSceneLoader_DisplaySplashScreen
+{
+    private static bool Prefix(GlobalSceneLoader __instance)
+    {
+        return !CementPreferences.SkipSplashes;
+    }
+}
 
 [HarmonyPatch(typeof(SceneLoader.NetworkLoading), nameof(SceneLoader.NetworkLoading.ActivateScene))]
 internal static class ActivateScenePatch
@@ -23,7 +33,7 @@ internal static class ActivateScenePatch
             var bundles = UnityEngine.Resources.FindObjectsOfTypeAll<AssetBundle>();
             foreach (var bundle in bundles)
             {
-                if (bundle.name.Contains("unitybuiltinshaders")) bundle.Unload(true);
+                if (bundle.name.Contains("unitybuiltinshaders")) bundle.Unload(false);
             }
 
             /*CustomContentModule.Logger?.BigError(
