@@ -1,7 +1,5 @@
-using CementGB.Modules.CustomContent.Utilities;
 using HarmonyLib;
 using Il2CppAudio;
-using Il2CppGB.Core;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
 using Il2CppGB.Setup;
@@ -20,7 +18,7 @@ internal static class GlobalSceneLoader_DisplaySplashScreen
 {
     private static bool Prefix(GlobalSceneLoader __instance)
     {
-        return !CementPreferences.SkipSplashes;
+        return CementPreferences.SkipSplashes;
     }
 }
 
