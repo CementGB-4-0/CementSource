@@ -29,6 +29,7 @@ internal static class GameModeMapTrackerPatch
         private static void Postfix(MenuHandlerGamemodes __instance)
         {
             if (CustomAddressableRegistration.CustomMaps.Count == 0) return;
+            if (__instance.mapSetup.mapList.Contains("Modded")) return; // Duplicate sanity check
 
             __instance.mapSetup.mapList.Insert(1, "Modded");
             __instance.mapSetup.UpdateMapList(__instance.mapSetup.mapList);
@@ -63,7 +64,7 @@ internal static class GameModeMapTrackerPatch
 
                 foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
                 {
-                    if (mapRef.SceneData == null || !mapRef.IsValid ||
+                    if (!mapRef.IsValid ||
                         SceneNameAlreadyExists(__instance, mapRef.SceneName))
                         continue;
 

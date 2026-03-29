@@ -1,4 +1,3 @@
-using CementGB.Modules.CustomContent.Utilities;
 using HarmonyLib;
 using Il2CppAudio;
 using Il2CppGB.Core;
@@ -6,7 +5,7 @@ using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
 using Il2CppTMPro;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
+using UnityEngine.Audio;
 using ConsoleColor = System.ConsoleColor;
 using NetworkManager = UnityEngine.Networking.NetworkManager;
 using Object = Il2CppSystem.Object;
@@ -32,6 +31,48 @@ internal static class ActivateScenePatch
     }
 }
 
+[HarmonyPatch(typeof(AudioMixerSnapshot), nameof(AudioMixerSnapshot.TransitionTo))]
+internal static class TransitionToPatch
+{
+    private static bool Prefix(AudioMixerSnapshot __instance)
+    {
+        if (__instance.audioMixer == null)
+        {
+            UnityEngine.Object.Destroy(__instance);
+            return false;
+        }
+
+        return __instance.audioMixer != null;
+    }
+}
+
+[HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneLoaded))]
+internal static class OnSceneLoadedPatch
+{
+    private static void Postfix(SceneLoader __instance)
+    {
+        var mixers = UnityEngine.Resources.FindObjectsOfTypeAll<AudioMixer>();
+        var mixerGroups = UnityEngine.Resources.FindObjectsOfTypeAll<AudioMixerGroup>();
+        var goodMixer = mixers.First();
+        if (__instance._sceneData._audioConfig == null)
+            __instance._sceneData._audioConfig = ScriptableObject.CreateInstance<SceneAudioConfig>();
+        var prevMixer = __instance._sceneData._audioConfig.audioMixer;
+        if (prevMixer == goodMixer) return;
+        __instance._sceneData._audioConfig.audioMixer = goodMixer;
+        foreach (var mixerGroup in mixerGroups)
+        {
+            if (mixerGroup.audioMixer == prevMixer)
+            {
+                UnityEngine.Object.Destroy(mixerGroup);
+            }
+        }
+
+        UnityEngine.Object.Destroy(prevMixer);
+        __instance._sceneData._audioConfig.musicData.bSide ??= __instance._sceneData._audioConfig.musicData.aSide;
+        __instance._sceneData._audioConfig.musicData.drums ??= __instance._sceneData._audioConfig.musicData.aSide;
+    }
+}
+
 [HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneListComplete))]
 internal static class OnSceneListCompletePatch
 {
@@ -46,23 +87,12 @@ internal static class OnSceneListCompletePatch
 
         foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
         {
-            if (!mapRef.IsValid || mapRef.SceneData == null)
+            if (!mapRef.IsValid)
                 continue;
 
-            if (!mapRef.SceneData._audioConfig)
-            {
-                mapRef.SceneData._audioConfig = ScriptableObject.CreateInstance<SceneAudioConfig>();
-                mapRef.SceneData._audioConfig.MakePersistent();
-            }
-
-            mapRef.SceneData._audioConfig.audioMixer = MixerFinder.MainMixer;
-            if (Mathf.Approximately(mapRef.SceneData._audioConfig.musicData.maxVolume, 1f))
-                mapRef.SceneData._audioConfig.musicData.maxVolume = 0.15f;
-
-            var sceneDataRef = new AssetReference(mapRef.SceneData.name);
-
-            Resources.Load<SceneData>(sceneDataRef, mapRef.SceneName, out _);
-            sceneList._assets.Add(new AddressableDataCache.AssetData { Asset = sceneDataRef, Key = mapRef.SceneName });
+            Resources._assetList.Add(new Resources.LoadLoadedItem(mapRef.SceneData));
+            sceneList._assets.Add(new AddressableDataCache.AssetData
+                { Asset = mapRef.SceneData, Key = mapRef.SceneName });
 
             CustomContentModule.Logger?.Msg(
                 ConsoleColor.Green,

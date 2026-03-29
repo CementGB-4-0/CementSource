@@ -1,5 +1,7 @@
+using CementGB.Modules.CustomContent.Utilities;
 using GBMDK;
 using Il2CppGB.Data.Loading;
+using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace CementGB.Modules.CustomContent;
@@ -10,6 +12,8 @@ namespace CementGB.Modules.CustomContent;
 public class CustomMapRefHolder(IResourceLocation sceneDataLoc, IResourceLocation? mapInfoLoc = null)
     : CustomContentRefHolder(sceneDataLoc, mapInfoLoc)
 {
+    public readonly AssetReferenceT<SceneData> SceneData = new(sceneDataLoc.PrimaryKey);
+
     /// <summary>
     ///     The name of the map, parsed from the loaded SceneData's addressable key.
     /// </summary>
@@ -19,10 +23,8 @@ public class CustomMapRefHolder(IResourceLocation sceneDataLoc, IResourceLocatio
     ///     Provides gamemode selection info for the map.
     /// </summary>
     public CustomMapInfo SceneInfo =>
-        RetrieveAssetOfKey(mapInfoLoc?.PrimaryKey, typeof(CustomMapInfo))?.Cast<CustomMapInfo>() ??
+        AssetUtilities.RetrieveAssetOfKey(mapInfoLoc?.PrimaryKey, typeof(CustomMapInfo))?.Cast<CustomMapInfo>() ??
         CustomMapInfo.CreateDefault(SceneName);
-
-    public SceneData? SceneData => RetrieveAssetOfKey(sceneDataLoc.PrimaryKey, typeof(SceneData))?.Cast<SceneData>();
 
     public override Type[] AssetTypes => [typeof(SceneData), typeof(CustomMapInfo)];
     public override string CustomContentTypeString => "CustomMaps";
