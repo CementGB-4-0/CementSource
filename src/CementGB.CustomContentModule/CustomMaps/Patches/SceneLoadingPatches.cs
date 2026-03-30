@@ -27,7 +27,7 @@ internal static class ActivateScenePatch
 {
     private static bool Prefix(SceneLoader.NetworkLoading __instance)
     {
-        if (__instance._loadingLevel._sceneInstance?.m_Operation == null)
+        if (__instance._loadingLevel?._sceneInstance?.m_Operation == null)
         {
             __instance.CompleteLoad();
             var bundles = UnityEngine.Resources.FindObjectsOfTypeAll<AssetBundle>();
