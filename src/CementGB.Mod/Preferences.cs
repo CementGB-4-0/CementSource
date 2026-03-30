@@ -12,12 +12,18 @@ public static class CementPreferences
         MelonPreferences.CreateCategory("CementGBPrefs", "CementGB Preferences");
 
     private static MelonPreferences_Entry<bool>? _verboseModeEntry;
+    //private static MelonPreferences_Entry<string>? _fallbackMapEntry;
 
     /// <summary>
     ///     Enables extra log messages for debugging.
     ///     Controlled by a MelonPreference.
     /// </summary>
     public static bool VerboseMode => _verboseModeEntry?.Value ?? Mod.DebugArg;
+
+    public static Func<bool>? ShouldSkipSplashes { get; set; }
+    public static bool SkipSplashes => ShouldSkipSplashes?.Invoke() ?? false;
+
+    //public static string FallbackMap => _fallbackMapEntry?.Value ?? "Grind";
 
     internal static void Initialize()
     {
@@ -28,6 +34,8 @@ public static class CementPreferences
             false,
             "Verbose Mode",
             "Enables extra log messages for developers.");
+        /*_fallbackMapEntry = _cmtPrefCateg.CreateEntry("fallback_map", "Grind", "Fallback Map",
+            "CASE-SENSITIVE name of the SCENE (not map) to fall back to when a custom map fails to load.");*/
         _cmtPrefCateg?.SaveToFile();
     }
 

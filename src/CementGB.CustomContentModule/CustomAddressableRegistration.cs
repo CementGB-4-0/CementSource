@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using CementGB.Modules.CustomContent.Utilities;
 using CementGB.Utilities;
+using Il2CppCS.CorePlatform;
 using Il2CppGB.Data.Loading;
 using Il2CppInterop.Runtime;
 using Il2CppSystem.Linq;
@@ -65,6 +66,8 @@ public static class CustomAddressableRegistration
     ///     A collection of all valid maps loaded by Cement. Read-only.
     /// </summary>
     public static ReadOnlyCollection<CustomMapRefHolder> CustomMaps => _customMaps.AsReadOnly();
+
+    public static bool IsInitialized { get; private set; }
 
     internal static string ResolveModdedInternalId(string bundleFile)
     {
@@ -160,11 +163,14 @@ public static class CustomAddressableRegistration
 
     internal static void Initialize()
     {
-        MixerFinder.AssignMainMixer();
-        CacheBaseGameAddressableKeys();
         InitializeContentCatalogs();
         InitializeMapReferences();
-        AddressableShaderCache.Initialize();
+        PlatformEvents.add_OnPlatformInitializedEvent((PlatformEvents.PlatformVoidEventDel)(() =>
+        {
+            CacheBaseGameAddressableKeys();
+            AddressableShaderCache.Initialize();
+        }));
+        IsInitialized = true;
     }
 
     private static void CacheBaseGameAddressableKeys()
@@ -259,7 +265,7 @@ public static class CustomAddressableRegistration
             if (!refHolder.IsValid)
             {
                 CustomContentModule.Logger?.Error(
-                    $"Custom map reference holder is not valid! | Info: {(refHolder.SceneInfo ? refHolder.SceneInfo.name : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData?.name : "null")}");
+                    $"Custom map reference holder is not valid! | Info: {(refHolder.SceneInfo ? refHolder.SceneInfo.name : "null")} | Data: {(string.IsNullOrWhiteSpace(refHolder.SceneData.AssetGUID) ? refHolder.SceneData.AssetGUID : "null")}");
                 continue;
             }
 

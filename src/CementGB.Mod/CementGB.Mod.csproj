@@ -8,7 +8,7 @@
         <AssemblyName>CementGB</AssemblyName>
         <RootNamespace>CementGB</RootNamespace>
         <Author>CementGB Team</Author>
-        <Version>4.4.0</Version>
+        <Version>4.5.0</Version>
 
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <LangVersion>12</LangVersion>
@@ -70,7 +70,7 @@
 
         <!-- CementGB Dependencies-->
         <PackageReference Include="GangBeasts.GameLibs" Version="1.27.0"/>
-        <PackageReference Include="LavaGang.MelonLoader" Version="0.7.1"/>
+        <PackageReference Include="LavaGang.MelonLoader" Version="0.7.2"/>
         <PackageReference Include="Il2CppInterop.Common" Version="1.4.6-ci.579"/>
         <PackageReference Include="Il2CppInterop.Runtime" Version="1.4.6-ci.579"/>
         <PackageReference Include="Il2CppInterop.HarmonySupport" Version="1.4.6-ci.579"/>
@@ -104,10 +104,10 @@
 
         <!-- Copy the built mod dll into game Mods folder/dist Thunderstore staging folder -->
         <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Mods"/>
+        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)../../dist/Mods"/>
+
         <!-- Copy any assemblies not provided by MelonLoader to UserLibs folder -->
         <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetDir)\Open.Nat.dll" DestinationFolder="$(GameDir)\UserLibs"/>
-
-        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)../../dist/Mods"/>
         <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetDir)\Open.Nat.dll" DestinationFolder="$(ProjectDir)../../dist/UserLibs"/>
     </Target>
 

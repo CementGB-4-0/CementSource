@@ -2,6 +2,7 @@ using System.Collections;
 using CementGB.Utilities;
 using Il2CppInterop.Runtime.InteropTypes;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Object = UnityEngine.Object;
 
@@ -9,6 +10,27 @@ namespace CementGB.Modules.CustomContent.Utilities;
 
 public static class AssetUtilities
 {
+    public static Object? RetrieveAssetOfKey(string? key, Type? assetType = null)
+    {
+        if (key == null)
+        {
+            CustomContentModule.Logger?.VerboseLog(ConsoleColor.DarkRed, $"Argument {nameof(key)} is null!");
+            return null;
+        }
+
+        var handle = Addressables.LoadAssetAsync<Il2CppSystem.Object>(key);
+        if (!handle.HandleSynchronousAddressableOperation())
+        {
+            CustomContentModule.Logger?.VerboseLog(
+                $"Failed to load asset of key: {key} | {nameof(assetType)} : {assetType}");
+            return null;
+        }
+
+        var cachedAsset = handle.Result.Cast<Object>();
+        handle.Release();
+        return cachedAsset;
+    }
+
     /// <summary>
     ///     Checks if the provided AsyncOperationHandle succeeded. Checks if the handle is valid, status is
     ///     <see cref="AsyncOperationStatus.Succeeded" />, and
@@ -67,18 +89,21 @@ public static class AssetUtilities
     ///     differently.
     /// </summary>
     /// <param name="handle">The operation to wait synchronously for, and then check success.</param>
+    /// <param name="logging">Whether to log failures or not.</param>
     /// <typeparam name="T">The result type of the handle.</typeparam>
     /// <returns>True if the handle succeeded, false if it didn't.</returns>
-    public static bool HandleSynchronousAddressableOperation<T>(this AsyncOperationHandle<T> handle)
+    public static bool HandleSynchronousAddressableOperation<T>(this AsyncOperationHandle<T> handle,
+        bool logging = true)
         where T : Il2CppObjectBase
     {
         var res = handle.WaitForCompletion();
 
         if (!IsHandleSuccess(handle))
         {
-            CustomContentModule.Logger?.VerboseLog(
-                ConsoleColor.DarkRed,
-                $"Failed to perform action in synchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {!handle.IsValid() || handle.Result == null}");
+            if (logging)
+                CustomContentModule.Logger?.VerboseLog(
+                    ConsoleColor.DarkRed,
+                    $"Failed to perform action in synchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {!handle.IsValid() || handle.Result == null}");
             if (handle.IsValid())
             {
                 handle.Release();
