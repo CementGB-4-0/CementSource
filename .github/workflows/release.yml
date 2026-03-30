@@ -27,43 +27,43 @@ jobs:
               echo Version: $VERSION
               echo "VERSION=$VERSION" >> $GITHUB_ENV
             
-            - uses: actions/checkout@v4
-              with:
-                fetch-depth: 0
+          - uses: actions/checkout@v4
+            with:
+              fetch-depth: 0
 
-            - uses: actions/setup-dotnet@v4
-              with:
-                dotnet-version: |
-                  6.x
-                  9.x
+          - uses: actions/setup-dotnet@v4
+            with:
+              dotnet-version: |
+                6.x
+                9.x
 
-            - name: Setup Thunderstore CLI
-              run:
-                dotnet tool install -g tcli
+          - name: Setup Thunderstore CLI
+            run:
+              dotnet tool install -g tcli
 
-            - run: |
-                cp README.md dist/README.md
-                cp CHANGELOG.md dist/CHANGELOG.md || true
-                dotnet build --configuration Release /p:Version=${VERSION}
+          - run: |
+              cp README.md dist/README.md
+              cp CHANGELOG.md dist/CHANGELOG.md || true
+              dotnet build --configuration Release /p:Version=${VERSION}
 
-            - uses: actions/upload-artifact@v4
-              if: ${{ !env.ACT }}
-              with: 
-                name: CementGB-CementGB-${VERSION}
-                path: dist/*
-                overwrite: true
-                
-            - run:
-                zip CementGB-CementGB-${VERSION}.zip dist/*
-
-            - name: Create Release
-              if: ${{ !env.ACT }}
-              uses: ncipollo/release-action@v1.21.0
-              with:
-                artifacts: "CementGB-CementGB-${VERSION}.zip"
-                
-            - name: Publish on Thunderstore
-              if: ${{ !env.ACT }}
-              run:
-                tcli publish --token ${{ env.TS_TOKEN }} --file CementGB-CementGB-${VERSION}.zip --package-namespace CementGB --package-name CementGB --package-version ${VERSION}
+          - uses: actions/upload-artifact@v4
+            if: ${{ !env.ACT }}
+            with: 
+              name: CementGB-CementGB-${VERSION}
+              path: dist/*
+              overwrite: true
               
+          - run:
+              zip CementGB-CementGB-${VERSION}.zip dist/*
+
+          - name: Create Release
+            if: ${{ !env.ACT }}
+            uses: ncipollo/release-action@v1.21.0
+            with:
+              artifacts: "CementGB-CementGB-${VERSION}.zip"
+              
+          - name: Publish on Thunderstore
+            if: ${{ !env.ACT }}
+            run:
+              tcli publish --token ${{ env.TS_TOKEN }} --file CementGB-CementGB-${VERSION}.zip --package-namespace CementGB --package-name CementGB --package-version ${VERSION}
+            
