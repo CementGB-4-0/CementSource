@@ -1,6 +1,11 @@
 <Project>
+    <PropertyGroup>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    </PropertyGroup>
+
     <ItemGroup>
         <GameDirFile Include="$(ProjectDir)..\..\game_dir.txt"/>
+        <EmbeddedResource Include="$(ProjectDir)Assets\**\*"/>
     </ItemGroup>
     
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">

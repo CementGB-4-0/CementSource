@@ -15,7 +15,7 @@ namespace CementGB.Modules.NetBeardModule;
 internal static class LobbyCommunicator
 {
     public static GBGameData? gameData;
-    public static IPAddress? UserExternalIP { get; set; }
+    public static IPAddress? LocalExternalIP { get; set; }
 
     private static MelonLogger.Instance? Logger => InstancedCementModule.GetModule<NetBeardModule>()?.Logger;
 
@@ -32,7 +32,7 @@ internal static class LobbyCommunicator
             };
         }
 
-        UserExternalIP ??= await GetExternalIpAddress();
+        LocalExternalIP ??= await GetExternalIpAddress();
     }
 
     private static IEnumerator HandleGBGameData(string payload)

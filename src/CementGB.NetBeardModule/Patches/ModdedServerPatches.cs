@@ -5,7 +5,9 @@ using Il2Cpp;
 using Il2CppCoatsink.UnityServices.Matchmaking;
 using Il2CppCoreNet.Components.Server;
 using Il2CppCoreNet.Config;
+using Il2CppCoreNet.Contexts;
 using Il2CppCoreNet.Utils;
+using Il2CppCS.CorePlatform;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.Game;
@@ -37,7 +39,7 @@ internal static class ModdedServerPatches
         if (GameManagerNew.Instance && GameManagerNew.Instance.CurrentGameType != GameManagerNew.GameType.Matchmaker)
             return;
         _ = LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
-        if (LobbyCommunicator.UserExternalIP == null || LobbyCommunicator.UserExternalIP.ToString() == IP)
+        if (LobbyCommunicator.LocalExternalIP == null || LobbyCommunicator.LocalExternalIP.ToString() == IP)
         {
             IP = IPAddress.Loopback.ToString();
             __instance.networkAddress = IP;
@@ -54,12 +56,16 @@ internal static class ModdedServerPatches
         {
             return true;
         }
+        
+        if (NetBeardModule.IsFwd)
+            LobbyManager.Instance.LobbyStates.SelfState = LobbyState.Game.Wireless;
 
         var shouldJoinModded = TCPCommunicator.Client?.Connected ?? false;
         if (!shouldJoinModded)
         {
             return true;
         }
+        // should only run for self-hosted server hosts
 
         var num2 = __instance.winsSetup.CurrentValue * 60;
         var stageTime = __instance.CurrentGamemode == GameModeEnum.Football ? num2 : 300;
@@ -74,7 +80,7 @@ internal static class ModdedServerPatches
             isRandomSelected,
             stageTime);
 
-        var address = LobbyCommunicator.UserExternalIP ?? IPAddress.Loopback; // Offline safety net
+        var address = LobbyCommunicator.LocalExternalIP ?? IPAddress.Loopback;
 
         MonoSingleton<Global>.Instance.buttonController.HideButton(InputMapActions.Accept);
         __instance.PopulateVisibleButtons(true);
@@ -117,6 +123,34 @@ internal static class ModdedServerPatches
             }));
 
         return false;
+    }
+
+    [HarmonyPatch(typeof(LobbyState), nameof(LobbyState.MatchmakingComplete))]
+    [HarmonyPrefix]
+    private static bool MatchmakingCompletePatch(LobbyState __instance, MatchmakingResult clientResult)
+    {
+        if (__instance.Private && (TCPCommunicator.Client?.Connected != true) && NetBeardModule.IsFwd)
+        {
+            // Private game, Fwd mode enabled and failed to pre-connect to self-hosted servers
+            
+            var playerEnumer = LobbyManager.Instance.Players.GetPlayerEnumer();
+            while (playerEnumer.MoveNext())
+            {
+                // For all players in the lobby
+                var keyValuePair = playerEnumer._current;
+                var key = keyValuePair.Key; // Get BaseUserInfo of player
+                __instance.SendLobbyGameEvent(key, (LobbyCommunicator.LocalExternalIP ?? IPAddress.Loopback).ToString(), clientResult.Port); // Send player message to connect to server properly
+            }
+            
+            MonoSingleton<Global>.Instance.LevelLoadSystem.ShowLoadingScreen(3f, (Il2CppSystem.Action)new Action(() =>
+            {
+                MonoSingleton<Global>.Instance.UNetManager.LaunchHost(); // Start local server
+            }));
+            
+            return false;
+        }
+
+        return true;
     }
 
     [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.OnStartGame))]

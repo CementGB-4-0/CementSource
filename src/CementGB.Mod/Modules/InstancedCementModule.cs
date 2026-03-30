@@ -8,10 +8,9 @@ public abstract class InstancedCementModule
 {
     private static readonly List<InstancedCementModule> ModuleHolder = [];
 
-    protected readonly HarmonyLib.Harmony HarmonyInstance;
-
+    public readonly HarmonyLib.Harmony HarmonyInstance;
     public readonly MelonLogger.Instance Logger;
-    protected readonly Assembly ModuleAssembly;
+    public readonly Assembly ModuleAssembly;
 
     protected InstancedCementModule()
     {

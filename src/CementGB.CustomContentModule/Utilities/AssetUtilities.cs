@@ -67,18 +67,21 @@ public static class AssetUtilities
     ///     differently.
     /// </summary>
     /// <param name="handle">The operation to wait synchronously for, and then check success.</param>
+    /// <param name="logging">Whether to log failures or not.</param>
     /// <typeparam name="T">The result type of the handle.</typeparam>
     /// <returns>True if the handle succeeded, false if it didn't.</returns>
-    public static bool HandleSynchronousAddressableOperation<T>(this AsyncOperationHandle<T> handle)
+    public static bool HandleSynchronousAddressableOperation<T>(this AsyncOperationHandle<T> handle,
+        bool logging = true)
         where T : Il2CppObjectBase
     {
         var res = handle.WaitForCompletion();
 
         if (!IsHandleSuccess(handle))
         {
-            CustomContentModule.Logger?.VerboseLog(
-                ConsoleColor.DarkRed,
-                $"Failed to perform action in synchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {!handle.IsValid() || handle.Result == null}");
+            if (logging)
+                CustomContentModule.Logger?.VerboseLog(
+                    ConsoleColor.DarkRed,
+                    $"Failed to perform action in synchronous Addressable handle! | OperationException: {(handle.IsValid() ? handle.OperationException.ToString() : "INVALID HANDLE!")} | Result == null: {!handle.IsValid() || handle.Result == null}");
             if (handle.IsValid())
             {
                 handle.Release();

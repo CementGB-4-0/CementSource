@@ -14,6 +14,7 @@ using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI.Beasts;
 using MelonLoader;
 using Open.Nat;
+using Tomlet;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using Resources = UnityEngine.Resources;
@@ -40,52 +41,22 @@ public class NetBeardModule : InstancedCementModule
     public static readonly string?
         PortArg = CommandLineParser.Instance.GetValueForKey("-port", false); // set to server via vanilla code
 
-    private static bool _autoLaunchUpdateEnabled = IsClientJoiner && !DontAutoStart;
-
-    /// <summary>
-    ///     True if the -SERVER argument is passed to the Gang Beasts executable.
-    /// </summary>
-    public static bool IsServer => Environment.GetCommandLineArgs().Contains("-SERVER");
-
-    /// <summary>
-    ///     True if <see cref="IsServer" /> is false, but the ip and port are provided. Unlocks the DevelopmentTestServerUI.
-    /// </summary>
+    public static readonly string ConfigFilePath = Path.Combine(Mod.UserDataPath, "netbeard.toml");
+    public static NetBeardConfig CurrentConfig { get; private set; } = NetBeardConfig.Default;
+    public static bool IsServer => CurrentConfig.Dedicated;
+    public static bool IsFwd => !IsServer && CurrentConfig.Fwd;
     public static bool IsClientJoiner =>
-        !IsServer &&
-        (!string.IsNullOrWhiteSpace(IpArg) ||
-         !string.IsNullOrWhiteSpace(
-             PortArg)); // TODO: Auto start as client (similar to NetworkBootstrapper.AutoRunServer) if this is true
+        !IsServer && !IsFwd && CurrentConfig.Joiner;
+    public static bool PortForward => (IsServer || IsFwd) && CurrentConfig.UpnpEnabled;
+    public static bool DontAutoStart => !CurrentConfig.AutoJoin;
 
-    /// <summary>
-    ///     True if IsServer is true and the -pfwd argument is added. Attempts to automatically port-forward the server
-    ///     instance using UPnP.
-    ///     This may be disabled on some networks, so it isn't for everybody.
-    /// </summary>
-    public static bool PortForward => IsServer && Environment.GetCommandLineArgs().Contains("-pfwd");
-
-    /// <summary>
-    ///     True if the -DONT-AUTOSTART argument is passed. Will prevent the server or client from automatically joining the
-    ///     server as soon as it can.
-    /// </summary>
-    public static bool DontAutoStart => Environment.GetCommandLineArgs().Contains("-DONT-AUTOSTART");
-
-    /// <summary>
-    ///     The IP provided in launch arguments, or <see cref="DefaultIP" /> if none is provided/game is server.
-    /// </summary>
-    public static string IP => string.IsNullOrWhiteSpace(IpArg) || IsServer ? DefaultIP : IpArg;
-
-    /// <summary>
-    ///     The Port provided in launch arguments, or <see cref="DefaultPort" /> if none is provided.
-    /// </summary>
-    public static int Port => string.IsNullOrWhiteSpace(PortArg) ? DefaultPort : int.Parse(PortArg);
-
-    /// <summary>
-    ///     Should the server load in low graphics mode? Will also cap the server to 60fps.
-    /// </summary>
-    public static bool LowGraphicsMode => Environment.GetCommandLineArgs().Contains("-lowgraphics");
+    public static string IP => CurrentConfig.IP;
+    public static int Port => CurrentConfig.Port;
+    
+    public static bool LowGraphicsMode => IsServer;
 
     internal new static MelonLogger.Instance? Logger => GetModule<NetBeardModule>()?.Logger;
-
+    
     // public static int maxPlayers = 16;
 
     protected override void OnInitialize()
@@ -96,6 +67,16 @@ public class NetBeardModule : InstancedCementModule
                     Users.MaxUsers = maxPlayers;
                 }));*/
 
+        if (!File.Exists(ConfigFilePath))
+        {
+            File.WriteAllText(ConfigFilePath,
+                TomletMain.TomlStringFrom(NetBeardConfig.Default));
+        }
+        else
+        {
+            CurrentConfig = TomletMain.To<NetBeardConfig>(File.ReadAllText(ConfigFilePath));
+        }
+        
         LobbyCommunicator.Awake();
         TCPCommunicator.Init();
         LobbyManager.add_onSetupComplete(new Action(OnBoot));
@@ -110,10 +91,10 @@ public class NetBeardModule : InstancedCementModule
 
     private void OnBoot()
     {
+        _ = LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
         if (IsClientJoiner || IsServer)
         {
             NetworkBootstrapper.IsDedicatedServer = IsServer;
-            _ = LobbyManager.Instance.LobbyObject.AddComponent<DevelopmentTestServer>();
             Logger?.Msg(ConsoleColor.Green, "Added DevelopmentTestServer to lobby object.");
         }
 
@@ -147,7 +128,7 @@ public class NetBeardModule : InstancedCementModule
         var bootstrapper = Object.FindObjectOfType<NetworkBootstrapper>();
         bootstrapper.AutoRunServer = IsServer && !DontAutoStart;
         MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
-        NetMemberContext.LocalHostedGame = true;
+        // NetMemberContext.LocalHostedGame = true;
         GameManagerNew.add_OnGameManagerCreated((Action)SetConfigOnGameManager);
         NetUtils.Model.Subscribe("SERVER_READY", (NetModelItem<NetInt>.ItemHandler)OnServerReady);
         NetUtils.Model.Subscribe(
@@ -163,12 +144,20 @@ public class NetBeardModule : InstancedCementModule
 
         if (PortForward)
         {
-            var forwardExternalIP = await OpenPort(Port, Port, Protocol.Udp, "NetBeard: Modded Gang Beasts Server");
-            if (forwardExternalIP != null)
+            var forwardExternalIPUdp = await OpenPort(Port, Port, Protocol.Udp, "NetBeard: Modded Gang Beasts Server");
+            if (forwardExternalIPUdp != null)
             {
                 Mod.Logger.Msg(ConsoleColor.Green,
-                    $"{ServerLogPrefix} Server successfully forwarded to address {forwardExternalIP}:{Port} (UDP)");
-                LobbyCommunicator.UserExternalIP = forwardExternalIP;
+                    $"{ServerLogPrefix} Server successfully forwarded to address {forwardExternalIPUdp}:{Port} (UDP)");
+                LobbyCommunicator.LocalExternalIP = forwardExternalIPUdp;
+            }
+
+            var forwardExternalIPTcp = await OpenPort(Port, Port, Protocol.Tcp, "NetBeard: Modded Gang Beasts Server");
+            if (forwardExternalIPTcp != null)
+            {
+                Mod.Logger.Msg(ConsoleColor.Green,
+                    $"{ServerLogPrefix} Server successfully forwarded to address {forwardExternalIPTcp}:{Port} (TCP)");
+                LobbyCommunicator.LocalExternalIP = forwardExternalIPTcp;
             }
         }
 

@@ -18,7 +18,9 @@ public class Mod : MelonMod
     /// </summary>
     public static readonly string UserDataPath = Path.Combine(MelonEnvironment.UserDataDirectory, "CementGB");
 
-    public static readonly string ModulesPath = Path.Combine(MelonEnvironment.UserLibsDirectory, "CementGBModules");
+    public static readonly string ModulesPath =
+        Path.GetFullPath(Path.Combine(Melon<Mod>.Instance.MelonAssembly.Location, "..", "..", "UserLibs",
+            "CementGBModules"));
 
     public static string?
         MapArg => CommandLineParser.Instance.GetValueForKey("-map", false);

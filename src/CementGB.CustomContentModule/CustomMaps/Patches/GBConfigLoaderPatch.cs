@@ -2,7 +2,6 @@ using HarmonyLib;
 using Il2CppGB.Gamemodes;
 using Il2CppGB.UI;
 using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 
 namespace CementGB.Modules.CustomContent.Patches;
 
@@ -11,14 +10,17 @@ internal static class GBConfigLoaderPatch
     [HarmonyPatch(typeof(MenuHandlerMaps), nameof(MenuHandlerMaps.GetCurrentSelectedLevels))]
     private static class GetCurrentSelectedLevelsPatch
     {
-        private static void Postfix(MenuHandlerMaps __instance, bool random,
+        private static void Postfix(MenuHandlerMaps __instance, ref bool random,
             ref Il2CppSystem.Collections.Generic.List<string> __result)
         {
             if (__instance.mapList[__instance.currentMapIndex].ToLower() !=
-                "random")
+                "modded")
             {
-                return; // map is not set to random; don't do patch
+                return; // map is not set to modded; don't do patch
             }
+
+            __result.Clear();
+            random = true;
 
             var masterMenuHandlers = Object.FindObjectsOfType<MenuHandlerGamemodes>();
 
@@ -36,7 +38,7 @@ internal static class GBConfigLoaderPatch
                         continue;
                     }
 
-                    __result.Insert(Random.Range(0, __result.Count - 1), scene.SceneName);
+                    __result.Add(scene.SceneName);
                 }
             }
         }

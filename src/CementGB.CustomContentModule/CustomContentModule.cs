@@ -16,14 +16,13 @@ namespace CementGB.Modules.CustomContent;
 
 public class CustomContentModule : InstancedCementModule
 {
-    internal new static MelonLogger.Instance? Logger { get; private set; } = GetModule<CustomContentModule>()?.Logger;
+    internal new static MelonLogger.Instance? Logger => GetModule<CustomContentModule>()?.Logger;
 
     protected override void OnInitialize()
     {
         ClassInjector.RegisterTypeInIl2Cpp<CustomMapInfo>();
 
-        PlatformEvents.add_OnPlatformInitializedEvent(
-            (PlatformEvents.PlatformVoidEventDel)CustomAddressableRegistration.Initialize);
+        CustomAddressableRegistration.Initialize();
         if (string.IsNullOrWhiteSpace(Mod.MapArg))
         {
             return;

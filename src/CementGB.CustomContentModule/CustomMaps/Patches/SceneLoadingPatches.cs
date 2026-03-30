@@ -1,15 +1,37 @@
 using CementGB.Modules.CustomContent.Utilities;
 using HarmonyLib;
 using Il2CppAudio;
+using Il2CppCoreNet;
+using Il2CppGB.Core;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
 using Il2CppTMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using ConsoleColor = System.ConsoleColor;
+using NetworkManager = UnityEngine.Networking.NetworkManager;
+using Object = Il2CppSystem.Object;
 using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Modules.CustomContent.Patches;
+
+[HarmonyPatch(typeof(SceneLoader.NetworkLoading), nameof(SceneLoader.NetworkLoading.ActivateScene))]
+internal static class ActivateScenePatch
+{
+    private static bool Prefix(SceneLoader.NetworkLoading __instance)
+    {
+        if (__instance._loadingLevel._sceneInstance?.m_Operation == null)
+        {
+            Global.Instance.SceneLoader._networkLoader.CompleteLoad();
+            CustomContentModule.Logger?.BigError(
+                $"UNCAUGHT BUNDLE LOAD ERROR OCCURRED HERE, FALLING BACK TO: {CementPreferences.FallbackMap}");
+            NetworkManager.singleton.ServerChangeScene(CementPreferences.FallbackMap);
+            return false;
+        }
+
+        return true;
+    }
+}
 
 [HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneListComplete))]
 internal static class OnSceneListCompletePatch
