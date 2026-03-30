@@ -12,6 +12,7 @@
 
     <ItemGroup>
         <!-- We use an older version of Steamworks.NET (20.2.0) instead of latest here because its the last version that was compatible with GB's Steamworks SDK version (1.57) -->
+        <PackageReference Include="Steamworks.NET" Version="20.2.0"/>
     </ItemGroup>
 
     <Import Project="$(ProjectDir)../ModulePipeline.props"/>
