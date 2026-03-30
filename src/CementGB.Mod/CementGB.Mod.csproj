@@ -104,10 +104,10 @@
 
         <!-- Copy the built mod dll into game Mods folder/dist Thunderstore staging folder -->
         <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Mods"/>
+        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)../../dist/Mods"/>
+
         <!-- Copy any assemblies not provided by MelonLoader to UserLibs folder -->
         <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetDir)\Open.Nat.dll" DestinationFolder="$(GameDir)\UserLibs"/>
-
-        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)../../dist/Mods"/>
         <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetDir)\Open.Nat.dll" DestinationFolder="$(ProjectDir)../../dist/UserLibs"/>
     </Target>
 

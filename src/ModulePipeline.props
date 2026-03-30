@@ -6,6 +6,7 @@
     <ItemGroup>
         <GameDirFile Include="$(ProjectDir)..\..\game_dir.txt"/>
         <EmbeddedResource Include="$(ProjectDir)Assets\**\*"/>
+        <Reference Include="$(ProjectDir)ref\**\*.dll"/>
     </ItemGroup>
     
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">

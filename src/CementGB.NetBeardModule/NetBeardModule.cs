@@ -1,6 +1,5 @@
 using System.Net;
 using Il2Cpp;
-using Il2CppCoreNet.Contexts;
 using Il2CppCoreNet.Model;
 using Il2CppCoreNet.Objects;
 using Il2CppCoreNet.Utils;
@@ -23,40 +22,33 @@ namespace CementGB.Modules.NetBeardModule;
 
 public class NetBeardModule : InstancedCementModule
 {
-    /// <summary>
-    ///     The default IP setting for the server.
-    /// </summary>
-    public const string DefaultIP = "127.0.0.1";
-
-    /// <summary>
-    ///     The default Port setting for the server.
-    /// </summary>
-    public const int DefaultPort = 5999;
-
     public const string ServerLogPrefix = "[SERVER]";
 
     public static readonly string?
-        IpArg = CommandLineParser.Instance.GetValueForKey("-ip", false); // set to server via vanilla code
+        IpArg = CommandLineParser.Instance.GetValueForKey(ArgConstants.IPArg, false); // set to server via vanilla code
 
     public static readonly string?
-        PortArg = CommandLineParser.Instance.GetValueForKey("-port", false); // set to server via vanilla code
+        PortArg = CommandLineParser.Instance.GetValueForKey(ArgConstants.PortArg,
+            false); // set to server via vanilla code
 
     public static readonly string ConfigFilePath = Path.Combine(Mod.UserDataPath, "netbeard.toml");
     public static NetBeardConfig CurrentConfig { get; private set; } = NetBeardConfig.Default;
     public static bool IsServer => CurrentConfig.Dedicated;
     public static bool IsFwd => !IsServer && CurrentConfig.Fwd;
+
     public static bool IsClientJoiner =>
         !IsServer && !IsFwd && CurrentConfig.Joiner;
+
     public static bool PortForward => (IsServer || IsFwd) && CurrentConfig.UpnpEnabled;
     public static bool DontAutoStart => !CurrentConfig.AutoJoin;
 
     public static string IP => CurrentConfig.IP;
     public static int Port => CurrentConfig.Port;
-    
+
     public static bool LowGraphicsMode => IsServer;
 
     internal new static MelonLogger.Instance? Logger => GetModule<NetBeardModule>()?.Logger;
-    
+
     // public static int maxPlayers = 16;
 
     protected override void OnInitialize()
@@ -76,7 +68,7 @@ public class NetBeardModule : InstancedCementModule
         {
             CurrentConfig = TomletMain.To<NetBeardConfig>(File.ReadAllText(ConfigFilePath));
         }
-        
+
         LobbyCommunicator.Awake();
         TCPCommunicator.Init();
         LobbyManager.add_onSetupComplete(new Action(OnBoot));
