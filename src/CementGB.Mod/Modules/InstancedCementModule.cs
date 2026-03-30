@@ -32,9 +32,6 @@ public abstract class InstancedCementModule
         {
             LoggingUtilities.VerboseLog($"Found module type: \"{moduleType.FullName}\" | Bootstrapping module. . .");
             var moduleInstance = BootstrapModule(moduleType);
-
-            if (moduleInstance != null)
-                ModuleHolder.Add(moduleInstance);
         }
     }
 
@@ -58,6 +55,7 @@ public abstract class InstancedCementModule
         if (!IsModuleType(moduleType)) return null;
 
         if (Activator.CreateInstance(moduleType) is not InstancedCementModule instance) return null;
+        ModuleHolder.Add(instance);
         instance.OnInitialize_Internal();
 
         return instance;

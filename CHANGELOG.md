@@ -9,12 +9,16 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 
 ### Added
 
-- Configuration for fallback scene when custom maps fail to load. The default is Grind, and it uses the Unity scene name. For example, Rooftop for Roof, or Chute for Chutes.
-- "Modded" map selection in lobby menu. Plays all found modded maps in random succession (or the fallback map if one fails to load).
+- Unload builtin shaders and retry when custom maps fail to load. This should solve most issues related to infinite loading.
+- "Modded" map selection in lobby menu and launch args. Plays all found modded maps in random succession.
 
 ### Changed
 
 - Update README to include corrected CementGB.github.io link
 - Recommended MelonLoader version is now v0.7.2
+
+### Fixed
+
+- Add newly created Cement modules to ModuleHolder earlier to prevent early logging issues
 
 [unreleased]: https://github.com/CementGB-4-0/CementSource/compare/v4.4.0...HEAD
