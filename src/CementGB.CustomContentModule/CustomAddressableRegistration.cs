@@ -163,7 +163,6 @@ public static class CustomAddressableRegistration
 
     internal static void Initialize()
     {
-        MixerFinder.AssignMainMixer();
         InitializeContentCatalogs();
         InitializeMapReferences();
         PlatformEvents.add_OnPlatformInitializedEvent((PlatformEvents.PlatformVoidEventDel)(() =>
@@ -266,7 +265,7 @@ public static class CustomAddressableRegistration
             if (!refHolder.IsValid)
             {
                 CustomContentModule.Logger?.Error(
-                    $"Custom map reference holder is not valid! | Info: {(refHolder.SceneInfo ? refHolder.SceneInfo.name : "null")} | Data: {(refHolder.SceneData ? refHolder.SceneData?.name : "null")}");
+                    $"Custom map reference holder is not valid! | Info: {(refHolder.SceneInfo ? refHolder.SceneInfo.name : "null")} | Data: {(string.IsNullOrWhiteSpace(refHolder.SceneData.AssetGUID) ? refHolder.SceneData.AssetGUID : "null")}");
                 continue;
             }
 

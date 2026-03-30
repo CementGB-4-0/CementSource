@@ -25,6 +25,7 @@ public class CustomContentModule : InstancedCementModule
         ClassInjector.RegisterTypeInIl2Cpp<CustomMapInfo>();
 
         CustomAddressableRegistration.Initialize();
+        CementPreferences.ShouldSkipSplashes += () => string.IsNullOrWhiteSpace(Mod.MapArg);
         if (string.IsNullOrWhiteSpace(Mod.MapArg))
         {
             return;
@@ -47,36 +48,39 @@ public class CustomContentModule : InstancedCementModule
         }));
     }
 
-    private void SetConfigOnGameManager() // TODO: Move this to main mod API
+    private static void SetConfigOnGameManager()
     {
-        const int wins = 8;
-        const string fallbackMap = "Grind";
+        const int wins = 8; // TODO: Make configurable from CementPreferences
+        const string fallbackMap = "Grind"; // TODO: Make configurable from CementPreferences
 
         var mode = string.IsNullOrWhiteSpace(Mod.ModeArg) ? "melee" : Mod.ModeArg;
         var map = Mod.MapArg;
         var config = GBConfigLoader.CreateRotationConfig(map, mode, wins);
-        if (map?.ToLower() == "random")
+        switch (map?.ToLower())
         {
-            var setupConfiguration = Resources.FindObjectsOfTypeAll<GameModeSetupConfiguration>().FirstOrDefault();
-            if (setupConfiguration == null) return;
+            case "random":
+            {
+                var setupConfiguration = Resources.FindObjectsOfTypeAll<GameModeSetupConfiguration>().FirstOrDefault();
+                if (setupConfiguration == null) return;
 
-            var selectedMaps = setupConfiguration.Maps.GetMapsFor(GameModeHelpers.GamemodeIDToEnum(mode))
-                .ToArray().Select(x => x.MapName).ToArray();
-            config = GBConfigLoader.CreateRotationConfig(selectedMaps.Length > 0 ? selectedMaps : [fallbackMap]
-                , GameModeHelpers.GamemodeIDToEnum(mode), wins,
-                true, int.MaxValue);
-        }
-
-        ;
-        if (map?.ToLower() == "modded")
-        {
-            var selectedModdedMaps = CustomAddressableRegistration.CustomMaps
-                .Where(x => x.SceneInfo.allowedGamemodes?.Get().HasFlag(GameModeHelpers.GamemodeIDToEnum(mode)) ==
-                            true).Select(x => x.SceneName).ToArray();
-            config = GBConfigLoader.CreateRotationConfig(
-                selectedModdedMaps.Length > 0 ? selectedModdedMaps : [fallbackMap]
-                , GameModeHelpers.GamemodeIDToEnum(mode), wins,
-                true, int.MaxValue);
+                var selectedMaps = setupConfiguration.Maps.GetMapsFor(GameModeHelpers.GamemodeIDToEnum(mode))
+                    .ToArray().Select(x => x.MapName).ToArray();
+                config = GBConfigLoader.CreateRotationConfig(selectedMaps.Length > 0 ? selectedMaps : [fallbackMap]
+                    , GameModeHelpers.GamemodeIDToEnum(mode), wins,
+                    true, int.MaxValue);
+                break;
+            }
+            case "modded":
+            {
+                var selectedModdedMaps = CustomAddressableRegistration.CustomMaps
+                    .Where(x => x.SceneInfo.allowedGamemodes?.Get().HasFlag(GameModeHelpers.GamemodeIDToEnum(mode)) ==
+                                true).Select(x => x.SceneName).ToArray();
+                config = GBConfigLoader.CreateRotationConfig(
+                    selectedModdedMaps.Length > 0 ? selectedModdedMaps : [fallbackMap]
+                    , GameModeHelpers.GamemodeIDToEnum(mode), wins,
+                    true, int.MaxValue);
+                break;
+            }
         }
 
         GameManagerNew.Instance.ChangeRotationConfig(

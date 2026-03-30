@@ -20,6 +20,9 @@ public static class CementPreferences
     /// </summary>
     public static bool VerboseMode => _verboseModeEntry?.Value ?? Mod.DebugArg;
 
+    public static Func<bool>? ShouldSkipSplashes { get; set; }
+    public static bool SkipSplashes => ShouldSkipSplashes?.Invoke() ?? false;
+
     //public static string FallbackMap => _fallbackMapEntry?.Value ?? "Grind";
 
     internal static void Initialize()
