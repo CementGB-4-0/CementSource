@@ -1,0 +1,69 @@
+﻿name: Release
+
+on:
+    workflow_dispatch:
+      inputs: 
+        tag_name:
+          description: 'Release version to use'
+          required: true
+          default: "v4.0.0"
+    push: 
+      tags: 
+        - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+          - if: ${{ inputs.tag_name != '' }}
+            run:
+              echo Tag name is ${{ inputs.tag_name }}
+              VERSION = ${{ inputs.tag_name }}
+              echo "VERSION=$VERSION" >> $GITHUB_ENV
+          
+          - name: Strip 'v' from release version
+            run: |
+              VERSION=${GITHUB_REF_NAME#v}
+              echo Version: $VERSION
+              echo "VERSION=$VERSION" >> $GITHUB_ENV
+            
+          - uses: actions/checkout@v4
+            with:
+              fetch-depth: 0
+
+          - uses: actions/setup-dotnet@v4
+            with:
+              dotnet-version: |
+                6.x
+                9.x
+
+          - name: Setup Thunderstore CLI
+            run:
+              dotnet tool install -g tcli
+
+          - run: |
+              cp README.md dist/README.md
+              cp CHANGELOG.md dist/CHANGELOG.md || true
+              dotnet build --configuration Release /p:Version=${VERSION}
+
+          - uses: actions/upload-artifact@v4
+            if: ${{ !env.ACT }}
+            with: 
+              name: CementGB-CementGB-${VERSION}
+              path: dist/*
+              overwrite: true
+              
+          - run:
+              zip CementGB-CementGB-${VERSION}.zip dist/*
+
+          - name: Create Release
+            if: ${{ !env.ACT }}
+            uses: ncipollo/release-action@v1.21.0
+            with:
+              artifacts: "CementGB-CementGB-${VERSION}.zip"
+              
+          - name: Publish on Thunderstore
+            if: ${{ !env.ACT }}
+            run:
+              tcli publish --token ${{ env.TS_TOKEN }} --file CementGB-CementGB-${VERSION}.zip --package-namespace CementGB --package-name CementGB --package-version ${VERSION}
+            

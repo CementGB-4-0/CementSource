@@ -1,5 +1,7 @@
 using HarmonyLib;
 using Il2CppAudio;
+using Il2CppCoreNet;
+using Il2CppGB.Core;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
 using Il2CppGB.Setup;
