@@ -9,7 +9,6 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 
 ### Added
 
-- Unload builtin shaders and retry when custom maps fail to load. This should solve most issues related to infinite loading.
 - "Modded" map selection in lobby menu and launch args. Plays all found modded maps in random succession.
 
 ### Changed
@@ -19,6 +18,7 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 
 ### Fixed
 
+- Unload builtin shaders and retry when custom maps fail to load. This should solve most issues related to infinite loading.
 - Add newly created Cement modules to ModuleHolder earlier to prevent early logging issues
 
 [4.5.0]: https://github.com/CementGB-4-0/CementSource/compare/v4.4.0...v4.5.0
