@@ -9,7 +9,7 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 
 ### Added
 
-- "Modded" map selection in lobby menu and launch args. Plays all found modded maps in random succession.
+- "Modded" map selection in lobby menu and `-map` launch option. Plays all found modded maps in random succession.
 
 ### Changed
 
