@@ -45,7 +45,7 @@ public class NetBeardModule : InstancedCementModule
     public static string IP => CurrentConfig.IP;
     public static int Port => CurrentConfig.Port;
 
-    public static bool LowGraphicsMode => IsServer;
+    public static bool LowGraphicsMode => Environment.GetCommandLineArgs().Contains(ArgConstants.LowGraphicsArg);
 
     internal new static MelonLogger.Instance? Logger => GetModule<NetBeardModule>()?.Logger;
 

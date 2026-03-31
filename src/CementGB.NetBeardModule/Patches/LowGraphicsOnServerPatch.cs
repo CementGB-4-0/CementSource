@@ -10,12 +10,12 @@ internal class LowGraphicsOnServerPatch
 {
     public static void Postfix(GraphicsManager __instance)
     {
-        if (!(NetBeardModule.IsServer && NetBeardModule.LowGraphicsMode))
+        if (!NetBeardModule.LowGraphicsMode)
         {
             return;
         }
 
-        Mod.Logger.Msg(ConsoleColor.Magenta, "Server asked for low graphics. Applying. . .");
+        NetBeardModule.Logger?.Msg("Asked for low graphics. Applying. . .");
 
         // Unity doesn't play nice with 'new' constructors; use ScriptableObject.CreateInstance instead.
         var newGraphicsSettings = ScriptableObject.CreateInstance<GraphicsSettings>();
