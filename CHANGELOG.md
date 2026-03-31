@@ -13,11 +13,11 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 
 ### Changed
 
-- Update README to include corrected CementGB.github.io link
 - Recommended MelonLoader version is now v0.7.2
 
 ### Fixed
 
+- Update README to include corrected CementGB.github.io link
 - Unload builtin shaders and retry when custom maps fail to load. This should solve most issues related to infinite loading.
 - Add newly created Cement modules to ModuleHolder earlier to prevent early logging issues
 
