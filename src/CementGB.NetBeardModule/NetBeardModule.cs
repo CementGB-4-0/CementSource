@@ -64,14 +64,16 @@ public class NetBeardModule : InstancedCementModule
             File.WriteAllText(ConfigFilePath,
                 TomletMain.TomlStringFrom(NetBeardConfig.Default));
         }
-        else
-        {
-            CurrentConfig = TomletMain.To<NetBeardConfig>(File.ReadAllText(ConfigFilePath));
-            if (Environment.CommandLine.Contains(ArgConstants.ServerArg))
-                CurrentConfig.Dedicated = true;
-            if (Environment.CommandLine.Contains(ArgConstants.UpnpArg))
-                CurrentConfig.UpnpEnabled = true;
-        }
+
+        CurrentConfig = TomletMain.To<NetBeardConfig>(File.ReadAllText(ConfigFilePath));
+        if (Environment.CommandLine.Contains(ArgConstants.ServerArg))
+            CurrentConfig.Dedicated = true;
+        if (Environment.CommandLine.Contains(ArgConstants.UpnpArg))
+            CurrentConfig.UpnpEnabled = true;
+        if (!string.IsNullOrWhiteSpace(IpArg))
+            CurrentConfig.IP = IpArg;
+        if (!string.IsNullOrWhiteSpace(PortArg))
+            CurrentConfig.Port = int.Parse(PortArg);
 
         //CementPreferences.ShouldSkipSplashes += () => IsServer;
         LobbyCommunicator.Awake();
