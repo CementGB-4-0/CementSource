@@ -2,12 +2,11 @@
 using CementGB.Utilities;
 using HarmonyLib;
 using Il2Cpp;
+using Il2CppCoatsink.Platform.Steam;
 using Il2CppCoatsink.UnityServices.Matchmaking;
 using Il2CppCoreNet.Components.Server;
 using Il2CppCoreNet.Config;
-using Il2CppCoreNet.Contexts;
 using Il2CppCoreNet.Utils;
-using Il2CppCS.CorePlatform;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
 using Il2CppGB.Game;
@@ -18,6 +17,7 @@ using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI;
 using Il2CppGB.UnityServices.Matchmaking;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Il2CppSteamworks;
 using UnityEngine.Networking;
 
 namespace CementGB.Modules.NetBeardModule.Patches;
@@ -25,6 +25,30 @@ namespace CementGB.Modules.NetBeardModule.Patches;
 [HarmonyPatch]
 internal static class ModdedServerPatches
 {
+    [HarmonyPatch(typeof(SteamAPI), nameof(SteamAPI.RestartAppIfNecessary))]
+    [HarmonyPrefix]
+    private static bool DoRestart()
+    {
+        return !NetBeardModule.IsServer;
+    }
+
+    [HarmonyPatch(typeof(Core), nameof(Core.Initialize))]
+    [HarmonyPrefix]
+    private static void CoreInitializePrefix(Core __instance)
+    {
+        if (NetBeardModule.IsServer) __instance._gameID = 497110;
+    }
+
+    [HarmonyPatch(typeof(SteamUtils), nameof(SteamUtils.GetAppID))]
+    [HarmonyPostfix]
+    private static void ServerAppIdOverridePostfix(ref AppId_t __result)
+    {
+        if (NetBeardModule.IsServer)
+        {
+            __result = new AppId_t(497110);
+        }
+    }
+
     [HarmonyPatch(typeof(GBClientPlatformManager), nameof(GBClientPlatformManager.Awake))]
     [HarmonyPostfix]
     private static void ClientPlatformAwakePostfix(GBClientPlatformManager __instance)
@@ -56,7 +80,7 @@ internal static class ModdedServerPatches
         {
             return true;
         }
-        
+
         if (NetBeardModule.IsFwd)
             LobbyManager.Instance.LobbyStates.SelfState = LobbyState.Game.Wireless;
 
@@ -132,21 +156,22 @@ internal static class ModdedServerPatches
         if (__instance.Private && (TCPCommunicator.Client?.Connected != true) && NetBeardModule.IsFwd)
         {
             // Private game, Fwd mode enabled and failed to pre-connect to self-hosted servers
-            
+
             var playerEnumer = LobbyManager.Instance.Players.GetPlayerEnumer();
             while (playerEnumer.MoveNext())
             {
                 // For all players in the lobby
                 var keyValuePair = playerEnumer._current;
                 var key = keyValuePair.Key; // Get BaseUserInfo of player
-                __instance.SendLobbyGameEvent(key, (LobbyCommunicator.LocalExternalIP ?? IPAddress.Loopback).ToString(), clientResult.Port); // Send player message to connect to server properly
+                __instance.SendLobbyGameEvent(key, (LobbyCommunicator.LocalExternalIP ?? IPAddress.Loopback).ToString(),
+                    clientResult.Port); // Send player message to connect to server properly
             }
-            
+
             MonoSingleton<Global>.Instance.LevelLoadSystem.ShowLoadingScreen(3f, (Il2CppSystem.Action)new Action(() =>
             {
                 MonoSingleton<Global>.Instance.UNetManager.LaunchHost(); // Start local server
             }));
-            
+
             return false;
         }
 
