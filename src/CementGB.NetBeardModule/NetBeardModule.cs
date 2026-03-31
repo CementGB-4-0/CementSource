@@ -66,9 +66,9 @@ public class NetBeardModule : InstancedCementModule
         }
 
         CurrentConfig = TomletMain.To<NetBeardConfig>(File.ReadAllText(ConfigFilePath));
-        if (Environment.CommandLine.Contains(ArgConstants.ServerArg))
+        if (Environment.GetCommandLineArgs().Contains(ArgConstants.ServerArg))
             CurrentConfig.Dedicated = true;
-        if (Environment.CommandLine.Contains(ArgConstants.UpnpArg))
+        if (Environment.GetCommandLineArgs().Contains(ArgConstants.UpnpArg))
             CurrentConfig.UpnpEnabled = true;
         if (!string.IsNullOrWhiteSpace(IpArg))
             CurrentConfig.IP = IpArg;
