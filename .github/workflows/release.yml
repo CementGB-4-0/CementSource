@@ -15,18 +15,13 @@ jobs:
     build:
         runs-on: ubuntu-latest
         steps:
-          - if: ${{ inputs.tag_name != '' }}
-            run:
-              echo Tag name is ${{ inputs.tag_name }}
-              VERSION = ${{ inputs.tag_name }}
-              echo "VERSION=$VERSION" >> $GITHUB_ENV
-          
           - name: Strip 'v' from release version
             run: |
-              VERSION=${VERSION#v}
-              echo Version: $VERSION
-              echo "VERSION=$VERSION" >> $GITHUB_ENV
-            
+              TAG = ${{ inputs.tag_name }} || ${{ github.ref_name }}
+              echo Tag name is $TAG
+              echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+              
+          
           - uses: actions/checkout@v4
             with:
               fetch-depth: 0
@@ -60,6 +55,7 @@ jobs:
             if: ${{ !env.ACT }}
             uses: ncipollo/release-action@v1.21.0
             with:
+              tag: 'v${VERSION}'
               artifacts: "CementGB-CementGB-${VERSION}.zip"
               
           - name: Publish on Thunderstore
