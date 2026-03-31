@@ -1,7 +1,5 @@
 using HarmonyLib;
 using Il2CppAudio;
-using Il2CppCoreNet;
-using Il2CppGB.Core;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
 using Il2CppGB.Setup;
@@ -20,7 +18,7 @@ internal static class GlobalSceneLoader_DisplaySplashScreen
 {
     private static bool Prefix(GlobalSceneLoader __instance)
     {
-        return CementPreferences.SkipSplashes;
+        return !CementPreferences.SkipSplashes;
     }
 }
 
@@ -32,10 +30,14 @@ internal static class ActivateScenePatch
         if (__instance._loadingLevel?._sceneInstance?.m_Operation == null)
         {
             __instance.CompleteLoad();
-            var bundles = UnityEngine.Resources.FindObjectsOfTypeAll<AssetBundle>();
-            foreach (var bundle in bundles)
+            var bundles = UnityEngine.Resources.FindObjectsOfTypeAll<AssetBundle>()
+                .Where(b => b.name.Contains("unitybuiltinshaders")).ToArray();
+            if (bundles.Length > 1)
             {
-                if (bundle.name.Contains("unitybuiltinshaders")) bundle.Unload(false);
+                foreach (var b in bundles[1..])
+                {
+                    b.Unload(false);
+                }
             }
 
             /*CustomContentModule.Logger?.BigError(
