@@ -1,6 +1,7 @@
 <Project>
     <ItemGroup>
         <GameDirFile Include="$(ProjectDir)..\..\game_dir.txt"/>
+        <Reference Include="$(ProjectDir)ref\**\*.dll"/>
     </ItemGroup>
     
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
