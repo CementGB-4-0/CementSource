@@ -16,6 +16,7 @@ using Open.Nat;
 using Tomlet;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using Resources = UnityEngine.Resources;
 
 namespace CementGB.Modules.NetBeardModule;
 
@@ -66,8 +67,13 @@ public class NetBeardModule : InstancedCementModule
         else
         {
             CurrentConfig = TomletMain.To<NetBeardConfig>(File.ReadAllText(ConfigFilePath));
+            if (Environment.CommandLine.Contains(ArgConstants.ServerArg))
+                CurrentConfig.Dedicated = true;
+            if (Environment.CommandLine.Contains(ArgConstants.UpnpArg))
+                CurrentConfig.UpnpEnabled = true;
         }
 
+        //CementPreferences.ShouldSkipSplashes += () => IsServer;
         LobbyCommunicator.Awake();
         TCPCommunicator.Init();
         LobbyManager.add_onSetupComplete(new Action(OnBoot));
@@ -118,7 +124,7 @@ public class NetBeardModule : InstancedCementModule
         Logger?.Msg($"{ServerLogPrefix} Setting up server boot...");
         var bootstrapper = Object.FindObjectOfType<NetworkBootstrapper>();
         bootstrapper.AutoRunServer = IsServer && !DontAutoStart;
-        MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
+        //MonoSingleton<Global>.Instance.LevelLoadSystem.gameObject.SetActive(false);
         // NetMemberContext.LocalHostedGame = true;
         GameManagerNew.add_OnGameManagerCreated((Action)SetConfigOnGameManager);
         NetUtils.Model.Subscribe("SERVER_READY", (NetModelItem<NetInt>.ItemHandler)OnServerReady);
@@ -157,12 +163,12 @@ public class NetBeardModule : InstancedCementModule
 
     private static void RemoveRendering()
     {
-        foreach (var meshRenderer in Object.FindObjectsOfType<Renderer>())
+        foreach (var meshRenderer in Resources.FindObjectsOfTypeAll<Renderer>())
         {
             meshRenderer.forceRenderingOff = true;
         }
 
-        foreach (var ui in Object.FindObjectsOfType<CanvasRenderer>())
+        foreach (var ui in Resources.FindObjectsOfTypeAll<CanvasRenderer>())
         {
             ui.cull = true;
         }
