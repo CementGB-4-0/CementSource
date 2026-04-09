@@ -11,7 +11,7 @@ internal static class GameModeInitBeastPatch
 {
     private static void Postfix(GameMode __instance)
     {
-        if (!NetBeardModule.IsServer)
+        if (!NetBeardProps.IsServer)
         {
             return;
         }
@@ -53,7 +53,7 @@ internal static class GameModeValidPatch
 {
     private static void Postfix(ref bool __result)
     {
-        if (NetBeardModule.IsServer)
+        if (NetBeardProps.IsServer)
         {
             __result = true;
         }

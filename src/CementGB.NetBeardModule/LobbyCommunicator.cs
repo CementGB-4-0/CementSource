@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Net;
 using Il2Cpp;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
@@ -15,13 +14,12 @@ namespace CementGB.Modules.NetBeardModule;
 internal static class LobbyCommunicator
 {
     public static GBGameData? gameData;
-    public static IPAddress? UserExternalIP { get; set; }
 
     private static MelonLogger.Instance? Logger => InstancedCementModule.GetModule<NetBeardModule>()?.Logger;
 
     public static async void Awake()
     {
-        if (NetBeardModule.IsServer)
+        if (NetBeardProps.IsServer)
         {
             TCPCommunicator.OnServerReceivedMessage += (prefix, payload) =>
             {
@@ -31,8 +29,6 @@ internal static class LobbyCommunicator
                 }
             };
         }
-
-        UserExternalIP ??= await GetExternalIpAddress();
     }
 
     private static IEnumerator HandleGBGameData(string payload)
@@ -91,12 +87,5 @@ internal static class LobbyCommunicator
     {
         var serializedData = JsonConvert.SerializeObject(data);
         TCPCommunicator.QueueMessage("gamedata", serializedData);
-    }
-
-    private static async Task<IPAddress?> GetExternalIpAddress()
-    {
-        var externalIpString = (await new HttpClient().GetStringAsync("https://ipv4.icanhazip.com"))
-            .Replace(@"\r\n", "").Replace("\\n", "").Trim();
-        return !IPAddress.TryParse(externalIpString, out var ipAddress) ? null : ipAddress;
     }
 }

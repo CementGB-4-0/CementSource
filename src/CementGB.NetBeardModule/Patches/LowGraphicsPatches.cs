@@ -6,17 +6,23 @@ using UnityEngine;
 namespace CementGB.Modules.NetBeardModule.Patches;
 
 [HarmonyPatch(typeof(GraphicsManager), nameof(GraphicsManager.LoadSettings))]
-internal class LowGraphicsOnServerPatch
+internal class LowGraphicsPatches
 {
     public static void Postfix(GraphicsManager __instance)
     {
-        if (!(NetBeardModule.IsServer && NetBeardModule.LowGraphicsMode))
+        if (!NetBeardProps.LowGraphicsMode)
         {
             return;
         }
 
-        Mod.Logger.Msg(ConsoleColor.Magenta, "Server asked for low graphics. Applying. . .");
+        NetBeardModule.Logger?.Msg("Asked for low graphics. Applying. . .");
 
+        var newGraphicsSettings = ConstructLowGraphicsSettings();
+        __instance.settings.Graphics = newGraphicsSettings;
+    }
+
+    private static GraphicsSettings ConstructLowGraphicsSettings()
+    {
         // Unity doesn't play nice with 'new' constructors; use ScriptableObject.CreateInstance instead.
         var newGraphicsSettings = ScriptableObject.CreateInstance<GraphicsSettings>();
         newGraphicsSettings.AmbientOcclusion = false;
@@ -32,7 +38,6 @@ internal class LowGraphicsOnServerPatch
         newGraphicsSettings.TextureQuality = GraphicsSettings.TextureQualitySetting.Low;
         newGraphicsSettings.Vignette = false;
         newGraphicsSettings.VSync = false;
-
-        __instance.settings.Graphics = newGraphicsSettings;
+        return newGraphicsSettings;
     }
 }

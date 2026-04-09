@@ -15,8 +15,8 @@ public static class TCPCommunicator
 
     private static bool _firstInitCall = true;
 
-    private static string TCPServerIP => NetBeardModule.IP;
-    private static int TCPPort => NetBeardModule.Port;
+    private static string TCPServerIP => "127.0.0.1";
+    private static int TCPPort => NetBeardProps.Port;
 
     public static TcpListener? Server { get; private set; }
     public static TcpClient? Client { get; private set; }
@@ -43,7 +43,7 @@ public static class TCPCommunicator
             MelonEvents.OnUpdate.Subscribe(OnUpdate);
         }
 
-        if (!NetBeardModule.IsServer || Server != null) return;
+        if (!NetBeardProps.IsServer || Server != null) return;
 
         Server = new TcpListener(IPAddress.Loopback, TCPPort);
         Server.Start();
@@ -51,7 +51,7 @@ public static class TCPCommunicator
 
     private static void OnUpdate()
     {
-        _ = NetBeardModule.IsServer && Server != null ? Task.Run(ServerLoop) : Task.Run(ClientLoop);
+        _ = NetBeardProps.IsServer && Server != null ? Task.Run(ServerLoop) : Task.Run(ClientLoop);
     }
 
     private static async Task ClientLoop()
@@ -106,7 +106,7 @@ public static class TCPCommunicator
 
         if (!string.IsNullOrWhiteSpace(messageContents[0]) && !string.IsNullOrWhiteSpace(messageContents[1]))
         {
-            if (NetBeardModule.IsServer && Server != null)
+            if (NetBeardProps.IsServer && Server != null)
                 OnServerReceivedMessage?.Invoke(messageContents[0], messageContents[1]);
             else OnClientReceivedMessage?.Invoke(messageContents[0], messageContents[1]);
         }
