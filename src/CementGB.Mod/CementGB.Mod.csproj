@@ -90,12 +90,6 @@
         <GameDirFile Include="$(ProjectDir)../../game_dir.txt"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <Content Include="..\ModulePipeline.props">
-            <Link>CementSource\src\ModulePipeline.props</Link>
-        </Content>
-    </ItemGroup>
-
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'@(GameDirFile)' != ''">
         <!-- Read game_dir.txt into property -->
         <ReadLinesFromFile File="@(GameDirFile)">
