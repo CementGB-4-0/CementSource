@@ -36,12 +36,14 @@ internal static class ModdedServerPatches
     {
         if (GameManagerNew.Instance && GameManagerNew.Instance.CurrentGameType != GameManagerNew.GameType.Matchmaker)
             return;
-        _ = LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
+        //_ = LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
+        /*
         if (NetBeardProps.LocalExternalIP == null || NetBeardProps.LocalExternalIP.ToString() == IP)
         {
             IP = IPAddress.Loopback.ToString();
             __instance.networkAddress = IP;
         }
+        */
 
         Mod.Logger.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
     }
