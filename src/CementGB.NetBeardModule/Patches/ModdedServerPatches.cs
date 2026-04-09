@@ -34,7 +34,15 @@ internal static class ModdedServerPatches
     [HarmonyPrefix]
     private static void LaunchClientPrefix(NetworkManager __instance, ref string IP)
     {
-        NetBeardModule.Logger?.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
+        if (GameManagerNew.Instance && GameManagerNew.Instance.CurrentGameType != GameManagerNew.GameType.Matchmaker)
+            return;
+        if (NetBeardProps.LocalExternalIP == null || NetBeardProps.LocalExternalIP.ToString() == IP)
+        {
+            IP = "127.0.0.1";
+            __instance.networkAddress = IP;
+        }
+
+        Mod.Logger.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
     }
 
     [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic))]
@@ -94,7 +102,7 @@ internal static class ModdedServerPatches
             new Action(() =>
             {
                 LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
-                LobbyManager.Instance.LobbyStates.IP = address.ToString();
+                LobbyManager.Instance.LobbyStates.IP = address;
                 LobbyManager.Instance.LobbyStates.Port = NetBeardProps.Port;
                 LobbyManager.Instance.LobbyStates.UpdateLobbyState();
 

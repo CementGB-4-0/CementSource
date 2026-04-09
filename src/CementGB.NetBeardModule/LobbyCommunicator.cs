@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Net;
 using Il2Cpp;
 using Il2CppGB.Config;
 using Il2CppGB.Core;
@@ -88,12 +87,5 @@ internal static class LobbyCommunicator
     {
         var serializedData = JsonConvert.SerializeObject(data);
         TCPCommunicator.QueueMessage("gamedata", serializedData);
-    }
-
-    private static async Task<IPAddress?> GetExternalIpAddress()
-    {
-        var externalIpString = (await new HttpClient().GetStringAsync("https://ipv4.icanhazip.com"))
-            .Replace(@"\r\n", "").Replace("\\n", "").Trim();
-        return !IPAddress.TryParse(externalIpString, out var ipAddress) ? null : ipAddress;
     }
 }

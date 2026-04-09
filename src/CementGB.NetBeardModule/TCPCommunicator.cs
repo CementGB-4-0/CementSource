@@ -15,7 +15,7 @@ public static class TCPCommunicator
 
     private static bool _firstInitCall = true;
 
-    private static string TCPServerIP => NetBeardProps.IP;
+    private static string TCPServerIP => "127.0.0.1";
     private static int TCPPort => NetBeardProps.Port;
 
     public static TcpListener? Server { get; private set; }
