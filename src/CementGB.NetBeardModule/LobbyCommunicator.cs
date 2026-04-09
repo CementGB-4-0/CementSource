@@ -15,13 +15,12 @@ namespace CementGB.Modules.NetBeardModule;
 internal static class LobbyCommunicator
 {
     public static GBGameData? gameData;
-    public static IPAddress? LocalExternalIP { get; set; }
 
     private static MelonLogger.Instance? Logger => InstancedCementModule.GetModule<NetBeardModule>()?.Logger;
 
     public static async void Awake()
     {
-        if (NetBeardModule.IsServer)
+        if (NetBeardProps.IsServer)
         {
             TCPCommunicator.OnServerReceivedMessage += (prefix, payload) =>
             {
@@ -31,8 +30,6 @@ internal static class LobbyCommunicator
                 }
             };
         }
-
-        LocalExternalIP ??= await GetExternalIpAddress();
     }
 
     private static IEnumerator HandleGBGameData(string payload)

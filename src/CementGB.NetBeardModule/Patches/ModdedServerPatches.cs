@@ -2,7 +2,6 @@
 using CementGB.Utilities;
 using HarmonyLib;
 using Il2Cpp;
-using Il2CppCoatsink.Platform.Steam;
 using Il2CppCoatsink.UnityServices.Matchmaking;
 using Il2CppCoreNet.Components.Server;
 using Il2CppCoreNet.Config;
@@ -17,7 +16,6 @@ using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI;
 using Il2CppGB.UnityServices.Matchmaking;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using Il2CppSteamworks;
 using UnityEngine.Networking;
 
 namespace CementGB.Modules.NetBeardModule.Patches;
@@ -25,30 +23,6 @@ namespace CementGB.Modules.NetBeardModule.Patches;
 [HarmonyPatch]
 internal static class ModdedServerPatches
 {
-    [HarmonyPatch(typeof(SteamAPI), nameof(SteamAPI.RestartAppIfNecessary))]
-    [HarmonyPrefix]
-    private static bool DoRestart()
-    {
-        return !NetBeardModule.IsServer;
-    }
-
-    [HarmonyPatch(typeof(Core), nameof(Core.Initialize))]
-    [HarmonyPrefix]
-    private static void CoreInitializePrefix(Core __instance)
-    {
-        if (NetBeardModule.IsServer) __instance._gameID = 497110;
-    }
-
-    [HarmonyPatch(typeof(SteamUtils), nameof(SteamUtils.GetAppID))]
-    [HarmonyPostfix]
-    private static void ServerAppIdOverridePostfix(ref AppId_t __result)
-    {
-        if (NetBeardModule.IsServer)
-        {
-            __result = new AppId_t(497110);
-        }
-    }
-
     [HarmonyPatch(typeof(GBClientPlatformManager), nameof(GBClientPlatformManager.Awake))]
     [HarmonyPostfix]
     private static void ClientPlatformAwakePostfix(GBClientPlatformManager __instance)
@@ -63,7 +37,7 @@ internal static class ModdedServerPatches
         if (GameManagerNew.Instance && GameManagerNew.Instance.CurrentGameType != GameManagerNew.GameType.Matchmaker)
             return;
         _ = LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
-        if (LobbyCommunicator.LocalExternalIP == null || LobbyCommunicator.LocalExternalIP.ToString() == IP)
+        if (NetBeardProps.LocalExternalIP == null || NetBeardProps.LocalExternalIP.ToString() == IP)
         {
             IP = IPAddress.Loopback.ToString();
             __instance.networkAddress = IP;
@@ -80,9 +54,6 @@ internal static class ModdedServerPatches
         {
             return true;
         }
-
-        if (NetBeardModule.IsFwd)
-            LobbyManager.Instance.LobbyStates.SelfState = LobbyState.Game.Wireless;
 
         var shouldJoinModded = TCPCommunicator.Client?.Connected ?? false;
         if (!shouldJoinModded)
@@ -104,7 +75,7 @@ internal static class ModdedServerPatches
             isRandomSelected,
             stageTime);
 
-        var address = LobbyCommunicator.LocalExternalIP ?? IPAddress.Loopback;
+        var address = NetBeardProps.LocalExternalIP ?? IPAddress.Loopback;
 
         MonoSingleton<Global>.Instance.buttonController.HideButton(InputMapActions.Accept);
         __instance.PopulateVisibleButtons(true);
@@ -133,13 +104,13 @@ internal static class ModdedServerPatches
             {
                 LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
                 LobbyManager.Instance.LobbyStates.IP = address.ToString();
-                LobbyManager.Instance.LobbyStates.Port = NetBeardModule.Port;
+                LobbyManager.Instance.LobbyStates.Port = NetBeardProps.Port;
                 LobbyManager.Instance.LobbyStates.UpdateLobbyState();
 
                 var result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done")
                 {
                     IpAddress = address.ToString(),
-                    Port = NetBeardModule.Port,
+                    Port = NetBeardProps.Port,
                     State = MatchmakingState.Success
                 };
 
@@ -153,9 +124,11 @@ internal static class ModdedServerPatches
     [HarmonyPrefix]
     private static bool MatchmakingCompletePatch(LobbyState __instance, MatchmakingResult clientResult)
     {
-        if (__instance.Private && (TCPCommunicator.Client?.Connected != true) && NetBeardModule.IsFwd)
+        if (__instance.Private && TCPCommunicator.Client?.Connected != true && NetBeardProps.IsFwd)
         {
             // Private game, Fwd mode enabled and failed to pre-connect to self-hosted servers
+
+            LobbyManager.Instance.LobbyStates.SelfState = LobbyState.Game.Wireless;
 
             var playerEnumer = LobbyManager.Instance.Players.GetPlayerEnumer();
             while (playerEnumer.MoveNext())
@@ -163,14 +136,13 @@ internal static class ModdedServerPatches
                 // For all players in the lobby
                 var keyValuePair = playerEnumer._current;
                 var key = keyValuePair.Key; // Get BaseUserInfo of player
-                __instance.SendLobbyGameEvent(key, (LobbyCommunicator.LocalExternalIP ?? IPAddress.Loopback).ToString(),
+                if (key == LobbyManager.Instance.MeCache) continue;
+                __instance.SendLobbyGameEvent(key, (NetBeardProps.LocalExternalIP ?? IPAddress.Loopback).ToString(),
                     clientResult.Port); // Send player message to connect to server properly
             }
 
-            MonoSingleton<Global>.Instance.LevelLoadSystem.ShowLoadingScreen(3f, (Il2CppSystem.Action)new Action(() =>
-            {
-                MonoSingleton<Global>.Instance.UNetManager.LaunchHost(); // Start local server
-            }));
+            LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
+            MonoSingleton<Global>.Instance.UNetManager.LaunchHost();
 
             return false;
         }
@@ -180,11 +152,9 @@ internal static class ModdedServerPatches
 
     [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.OnStartGame))]
     [HarmonyPrefix]
-    private static bool SingleplayerOnlineBypass(MenuHandlerGamemodes __instance)
+    private static bool SingleplayerOnlineBypassPrefix(MenuHandlerGamemodes __instance)
     {
-        var shouldJoinModded = TCPCommunicator.Client?.Connected ?? false;
-
-        if (!shouldJoinModded || !__instance.PrivateGame)
+        if (!__instance.PrivateGame)
         {
             return true;
         }
@@ -196,9 +166,9 @@ internal static class ModdedServerPatches
 
     [HarmonyPatch(typeof(NetUtils), nameof(NetUtils.DisconnectPlayer))]
     [HarmonyPrefix]
-    private static bool AntiTimeoutDisconnect(NetworkConnection conn, string reason)
+    private static bool AntiTimeoutDisconnectPrefix(NetworkConnection conn, string reason)
     {
-        if (!NetBeardModule.IsServer || reason != "DISCONNECT_PLAYER_LOADING_TIMEOUT")
+        if (!NetBeardProps.IsServer || reason != "DISCONNECT_PLAYER_LOADING_TIMEOUT")
         {
             return true;
         }
@@ -212,7 +182,7 @@ internal static class ModdedServerPatches
     [HarmonyPrefix]
     private static bool ShutdownFix(GameManagerNew __instance, string disconnectMessage)
     {
-        if (!NetBeardModule.IsServer)
+        if (!NetBeardProps.IsServer)
         {
             return true;
         }
@@ -239,7 +209,7 @@ internal static class ModdedServerPatches
     [HarmonyPrefix]
     private static bool JoinTimerFix(NetServerSceneManager __instance)
     {
-        if (!NetBeardModule.IsServer)
+        if (!NetBeardProps.IsServer)
         {
             return true;
         }
@@ -258,46 +228,12 @@ internal static class ModdedServerPatches
 
     [HarmonyPatch(typeof(NetConfigLoader), nameof(NetConfigLoader.LoadServerConfig), [])]
     [HarmonyPostfix]
-    private static void ModdedPortApplicator(ref ServerConfig __result)
+    private static void ServerConfigLoadPostfix(ref ServerConfig __result)
     {
-        if (NetBeardModule.IsServer)
+        if (NetBeardProps.IsServer)
         {
-            __result.Ip = NetBeardModule.IP;
-            __result.ServerPort = NetBeardModule.Port;
+            __result.Ip = NetBeardProps.IP;
+            __result.ServerPort = NetBeardProps.Port;
         }
     }
-
-    /*    [HarmonyPatch(typeof(Il2CppCoatsink.Platform.Users), nameof(Il2CppCoatsink.Platform.Users.MaxUsers), MethodType.Getter), HarmonyPostfix]
-        public static void MaxUserSetter(ref int __result) => __result = NetBeardModule.maxPlayers;
-
-        [HarmonyPatch(typeof(Il2CppGB.UI.Beasts.BeastMenuSpawner), nameof(Il2CppGB.UI.Beasts.BeastMenuSpawner.Awake)), HarmonyPrefix]
-        public static void SpawnPointAdjuster(Il2CppGB.UI.Beasts.BeastMenuSpawner __instance)
-        {
-            if (NetBeardModule.maxPlayers % 8 == 0) // New max players fits into 8.
-            {
-                List<Transform> toDuplicate = __instance._spawnPoint.ToList<Transform>();
-                int extraRows = (NetBeardModule.maxPlayers / 8) - 1;
-
-                if (extraRows > 0) // More spawns are needed
-                {
-                    for (int i = 0; i < extraRows; i++)
-                    {
-                        foreach (Transform spawn in __instance._spawnPoint)
-                        {
-                            Transform newSpawn = null;
-                            newSpawn = GameObject.Instantiate(spawn, spawn.parent, true);
-                            newSpawn.GetComponentInChildren<NamebarHandler>()._pointID += 8 * (i + 1); // Add onto the point ID for each row
-
-                            newSpawn.name = "Spawn";
-                            newSpawn.position -= Vector3.right * 2f * (i + 1); // Initial offset from prior rows
-                            newSpawn.position -= Vector3.right * 2f; // This is the amount of spacing that happens on real Gang Beasts spawnpoints
-                            toDuplicate.Add(newSpawn);
-                        }
-                    }
-                }
-
-                __instance._spawnPoint = toDuplicate.ToArray();
-                Mod.Logger.Msg(System.Drawing.Color.Beige, $"Finished setting up spawns. New count is {toDuplicate.Count} with an extra row amount of {extraRows}");
-            }
-        }*/
 }
