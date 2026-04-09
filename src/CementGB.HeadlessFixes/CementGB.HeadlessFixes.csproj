@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <RestoreAdditionalProjectSources>
+            https://api.nuget.org/v3/index.json;
+            https://nuget.bepinex.dev/v3/index.json;
+            https://nuget.samboy.dev/v3/index.json
+        </RestoreAdditionalProjectSources>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <GameDirFile Include="$(ProjectDir)../../game_dir.txt"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="LavaGang.MelonLoader" Version="0.7.2"/>
+    </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'@(GameDirFile)' != ''">
+        <!-- Read game_dir.txt into property -->
+        <ReadLinesFromFile File="@(GameDirFile)">
+            <Output TaskParameter="Lines" PropertyName="GameDir"/>
+        </ReadLinesFromFile>
+
+        <!-- Copy the built mod dll into game Mods folder/dist Thunderstore staging folder -->
+        <Copy Condition="'$(GameDir)' != ''" SourceFiles="$(TargetPath)" DestinationFolder="$(GameDir)\Plugins"/>
+        <Copy Condition=" '$(Configuration)' == 'Release' " SourceFiles="$(TargetPath)" DestinationFolder="$(ProjectDir)../../dist/Plugins"/>
+    </Target>
+
+</Project>
