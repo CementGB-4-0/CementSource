@@ -34,18 +34,7 @@ internal static class ModdedServerPatches
     [HarmonyPrefix]
     private static void LaunchClientPrefix(NetworkManager __instance, ref string IP)
     {
-        if (GameManagerNew.Instance && GameManagerNew.Instance.CurrentGameType != GameManagerNew.GameType.Matchmaker)
-            return;
-        //_ = LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
-        /*
-        if (NetBeardProps.LocalExternalIP == null || NetBeardProps.LocalExternalIP.ToString() == IP)
-        {
-            IP = IPAddress.Loopback.ToString();
-            __instance.networkAddress = IP;
-        }
-        */
-
-        Mod.Logger.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
+        NetBeardModule.Logger?.Msg(ConsoleColor.Blue, $"Connecting to server IP: {IP}");
     }
 
     [HarmonyPatch(typeof(MenuHandlerGamemodes), nameof(MenuHandlerGamemodes.StartGameLogic))]
@@ -77,7 +66,7 @@ internal static class ModdedServerPatches
             isRandomSelected,
             stageTime);
 
-        var address = NetBeardProps.LocalExternalIP ?? IPAddress.Loopback;
+        var address = NetBeardProps.IP;
 
         MonoSingleton<Global>.Instance.buttonController.HideButton(InputMapActions.Accept);
         __instance.PopulateVisibleButtons(true);
@@ -111,7 +100,7 @@ internal static class ModdedServerPatches
 
                 var result = new MatchmakingResult(MatchmakingState.Success, "Modded lobby done")
                 {
-                    IpAddress = address.ToString(),
+                    IpAddress = address,
                     Port = NetBeardProps.Port,
                     State = MatchmakingState.Success
                 };
