@@ -25,7 +25,7 @@ public class CustomContentModule : InstancedCementModule
         ClassInjector.RegisterTypeInIl2Cpp<CustomMapInfo>();
 
         CustomAddressableRegistration.Initialize();
-        CementPreferences.ShouldSkipSplashes += () => string.IsNullOrWhiteSpace(Mod.MapArg);
+        CementPreferences.ShouldSkipSplashes += () => !string.IsNullOrWhiteSpace(Mod.MapArg);
         if (string.IsNullOrWhiteSpace(Mod.MapArg))
         {
             return;
