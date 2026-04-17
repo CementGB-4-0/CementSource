@@ -1,10 +1,7 @@
 using HarmonyLib;
 using Il2CppAudio;
-using Il2CppCoreNet;
-using Il2CppGB.Core;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
-using Il2CppGB.Setup;
 using Il2CppTMPro;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -15,15 +12,6 @@ using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Modules.CustomContent.Patches;
 
-[HarmonyPatch(typeof(GlobalSceneLoader), nameof(GlobalSceneLoader.DisplaySplashScreen))]
-internal static class GlobalSceneLoader_DisplaySplashScreen
-{
-    private static bool Prefix(GlobalSceneLoader __instance)
-    {
-        return CementPreferences.SkipSplashes;
-    }
-}
-
 [HarmonyPatch(typeof(SceneLoader.NetworkLoading), nameof(SceneLoader.NetworkLoading.ActivateScene))]
 internal static class ActivateScenePatch
 {
@@ -32,10 +20,14 @@ internal static class ActivateScenePatch
         if (__instance._loadingLevel?._sceneInstance?.m_Operation == null)
         {
             __instance.CompleteLoad();
-            var bundles = UnityEngine.Resources.FindObjectsOfTypeAll<AssetBundle>();
-            foreach (var bundle in bundles)
+            var bundles = UnityEngine.Resources.FindObjectsOfTypeAll<AssetBundle>()
+                .Where(b => b.name.Contains("unitybuiltinshaders")).ToArray();
+            if (bundles.Length > 1)
             {
-                if (bundle.name.Contains("unitybuiltinshaders")) bundle.Unload(false);
+                foreach (var b in bundles[1..])
+                {
+                    b.Unload(false);
+                }
             }
 
             /*CustomContentModule.Logger?.BigError(

@@ -28,7 +28,9 @@ internal static class GameModeMapTrackerPatch
     {
         private static void Postfix(MenuHandlerGamemodes __instance)
         {
-            if (CustomAddressableRegistration.CustomMaps.Count == 0) return;
+            if (CustomAddressableRegistration.CustomMaps.Count == 0 ||
+                CustomAddressableRegistration.CustomMaps.All(map =>
+                    map.SceneInfo.allowedGamemodes?.Get().HasFlag(__instance.CurrentGamemode) != true)) return;
             if (__instance.mapSetup.mapList.Contains("Modded")) return; // Duplicate sanity check
 
             __instance.mapSetup.mapList.Insert(1, "Modded");
