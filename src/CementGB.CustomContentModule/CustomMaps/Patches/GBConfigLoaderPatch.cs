@@ -1,10 +1,10 @@
 using HarmonyLib;
-using Il2CppGB.Gamemodes;
 using Il2CppGB.UI;
-using Object = UnityEngine.Object;
+using UnityEngine;
 
 namespace CementGB.Modules.CustomContent.Patches;
 
+[HarmonyPatch]
 internal static class GBConfigLoaderPatch
 {
     [HarmonyPatch(typeof(MenuHandlerMaps), nameof(MenuHandlerMaps.GetCurrentSelectedLevels))]
@@ -22,7 +22,7 @@ internal static class GBConfigLoaderPatch
             __result.Clear();
             random = true;
 
-            var masterMenuHandlers = Object.FindObjectsOfType<MenuHandlerGamemodes>();
+            var masterMenuHandlers = Resources.FindObjectsOfTypeAll<MenuHandlerGamemodes>();
 
             foreach (var masterMenuHandler in masterMenuHandlers)
             {
@@ -31,11 +31,7 @@ internal static class GBConfigLoaderPatch
                     var sceneInfo = scene.SceneInfo;
                     var gamemode = masterMenuHandler.CurrentGamemode;
 
-                    var doesNotMatchSceneInfoCurrentGamemodeFlag =
-                        (!sceneInfo && !gamemode.HasFlag(GameModeEnum.Melee)) || sceneInfo == null ||
-                        sceneInfo.allowedGamemodes == null ||
-                        !sceneInfo.allowedGamemodes.Get().HasFlag(gamemode);
-                    if (doesNotMatchSceneInfoCurrentGamemodeFlag)
+                    if (sceneInfo.allowedGamemodes?.Get().HasFlag(gamemode) != true)
                         continue;
 
                     __result.Add(scene.SceneName);
