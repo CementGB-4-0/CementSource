@@ -1,4 +1,5 @@
 using HarmonyLib;
+using Il2CppGB.Gamemodes;
 using Il2CppGB.UI;
 using UnityEngine;
 
@@ -35,6 +36,13 @@ internal static class GBConfigLoaderPatch
                         continue;
 
                     __result.Add(scene.SceneName);
+                }
+
+                if (__result.Count == 0)
+                {
+                    __instance.mapList[__instance.currentMapIndex] =
+                        masterMenuHandler.CurrentGamemode == GameModeEnum.Football ? "Alley" : "random";
+                    __result = __instance.GetCurrentSelectedLevels(out random);
                 }
             }
         }
