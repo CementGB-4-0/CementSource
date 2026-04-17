@@ -8,6 +8,8 @@ namespace CementGB;
 /// </summary>
 public static class CementPreferences
 {
+    private const string SkipSplashesArg = "-ss";
+
     private static MelonPreferences_Category _cmtPrefCateg =
         MelonPreferences.CreateCategory("CementGBPrefs", "CementGB Preferences");
 
@@ -20,10 +22,7 @@ public static class CementPreferences
     /// </summary>
     public static bool VerboseMode => _verboseModeEntry?.Value ?? Mod.DebugArg;
 
-    public static Func<bool>? ShouldSkipSplashes { get; set; }
-    public static bool SkipSplashes => ShouldSkipSplashes?.Invoke() ?? false;
-
-    //public static string FallbackMap => _fallbackMapEntry?.Value ?? "Grind";
+    public static bool SkipSplashes { get; set; }
 
     internal static void Initialize()
     {
@@ -34,9 +33,10 @@ public static class CementPreferences
             false,
             "Verbose Mode",
             "Enables extra log messages for developers.");
-        /*_fallbackMapEntry = _cmtPrefCateg.CreateEntry("fallback_map", "Grind", "Fallback Map",
-            "CASE-SENSITIVE name of the SCENE (not map) to fall back to when a custom map fails to load.");*/
         _cmtPrefCateg?.SaveToFile();
+
+        if (Environment.GetCommandLineArgs().Contains(SkipSplashesArg))
+            SkipSplashes = true;
     }
 
     internal static void Deinitialize()
