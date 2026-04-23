@@ -22,12 +22,12 @@ public class NetBeardConfig
             false);
 
     [TomlInlineComment(
-        "Gives all clients the ability to spawn debug objects by enabling NetMemberContext.LocalHostedGame. Not recommended for public dedicated servers.")]
+        "Gives all clients the ability to spawn debug objects by enabling NetMemberContext.LocalHostedGame. Not recommended for public servers.")]
     public bool AllowDebugSpawning = false;
 
     public bool AutoJoin = true;
-    public bool Dedicated = false;
-    public bool Fwd = false;
+    public bool Dedicated;
+    public bool Fwd;
 
     public string IP = DefaultIP;
     public int Port = DefaultPort;
@@ -37,7 +37,7 @@ public class NetBeardConfig
     [TomlInlineComment("Case-insensitive. Can be any map selection name, including 'Modded' or 'Random'.")]
     public string StageName = "Random";
 
-    public bool UpnpEnabled = false;
+    public bool UpnpEnabled;
     public static NetBeardConfig Current { get; private set; } = Default;
 
     public static void DeserializeCurrent()
