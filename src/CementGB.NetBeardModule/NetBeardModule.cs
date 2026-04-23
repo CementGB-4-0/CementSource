@@ -19,10 +19,11 @@ public class NetBeardModule : InstancedCementModule
 
     internal new static MelonLogger.Instance? Logger => GetModule<NetBeardModule>()?.Logger;
 
-    protected override async void OnInitialize()
+    protected override void OnInitialize()
     {
         NetBeardConfig.DeserializeCurrent();
-        CementPreferences.ShouldSkipSplashes += () => NetBeardProps.IsServer;
+        NetBeardProps.Init();
+        CementPreferences.SkipSplashes = true;
         LobbyCommunicator.Awake();
         TCPCommunicator.Init();
         LobbyManager.add_onSetupComplete(new Action(OnBoot));
