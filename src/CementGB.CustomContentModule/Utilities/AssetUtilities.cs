@@ -6,7 +6,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Object = UnityEngine.Object;
 
-namespace CementGB.Modules.CustomContent.Utilities;
+namespace CementGB.CustomContent.Utilities;
 
 public static class AssetUtilities
 {

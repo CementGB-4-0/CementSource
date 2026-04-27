@@ -7,7 +7,7 @@ using Il2CppGB.Core;
 using Il2CppSteamworks;
 using Core = Il2CppCoatsink.Platform.Steam.Core;
 
-namespace CementGB.Modules.NetBeardModule.Patches;
+namespace CementGB.NetBeardModule.Patches;
 
 [HarmonyPatch]
 internal static class SteamMultiRunPatches

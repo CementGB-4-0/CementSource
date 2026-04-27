@@ -1,10 +1,10 @@
-using CementGB.Modules.CustomContent.Utilities;
+using CementGB.CustomContent.Utilities;
 using GBMDK;
 using Il2CppGB.Data.Loading;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.ResourceLocations;
 
-namespace CementGB.Modules.CustomContent;
+namespace CementGB.CustomContent;
 
 /// <summary>
 ///     Holds references to scene data loaded on mod init to hold onto and cache loading results.

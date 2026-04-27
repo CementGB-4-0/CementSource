@@ -1,7 +1,7 @@
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace CementGB.Modules.CustomContent.Utilities;
+namespace CementGB.CustomContent.Utilities;
 
 public static class UnityObjectUtilities
 {

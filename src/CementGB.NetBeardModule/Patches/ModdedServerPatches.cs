@@ -14,11 +14,10 @@ using Il2CppGB.Menu;
 using Il2CppGB.Networking.Components.Client;
 using Il2CppGB.Platform.Lobby;
 using Il2CppGB.UI;
-using Il2CppGB.UnityServices.Matchmaking;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine.Networking;
 
-namespace CementGB.Modules.NetBeardModule.Patches;
+namespace CementGB.NetBeardModule.Patches;
 
 [HarmonyPatch]
 internal static class ModdedServerPatches
@@ -53,12 +52,13 @@ internal static class ModdedServerPatches
         {
             return true;
         }
-
+/*
         var shouldJoinModded = TCPCommunicator.Client?.Connected ?? false;
         if (!shouldJoinModded)
         {
             return true;
         }
+        */
         // should only run for self-hosted server hosts
 
         var num2 = __instance.winsSetup.CurrentValue * 60;
@@ -82,6 +82,7 @@ internal static class ModdedServerPatches
                                                          LobbyState.State.Editable | LobbyState.State.Matching;
         LobbyManager.Instance.LobbyStates.UpdateLobbyState();
 
+        /*
         LobbyCommunicator.SendLobbyDataToServer(
             new GBGameData
             {
@@ -96,7 +97,7 @@ internal static class ModdedServerPatches
                 TotalPlayerCountExclLocal = (uint)LobbyManager.Instance.Players.GetPlayerCount(),
                 TotalPlayerCountInclLocal = (uint)LobbyManager.Instance.Players.GetBeastCount()
             });
-
+*/
         __instance.onlineCountdown.StartCountdown(
             3f,
             new Action(() =>
@@ -123,11 +124,11 @@ internal static class ModdedServerPatches
     [HarmonyPrefix]
     private static bool MatchmakingCompletePatch(LobbyState __instance, MatchmakingResult clientResult)
     {
-        if (__instance.Private && TCPCommunicator.Client?.Connected != true && NetBeardProps.IsFwd)
+        if (__instance.Private && NetBeardProps.IsP2P)
         {
-            // Private game, Fwd mode enabled and failed to pre-connect to self-hosted servers
+            // Private game, P2P mode enabled and failed to pre-connect to self-hosted servers
 
-            LobbyManager.Instance.LobbyStates.SelfState = LobbyState.Game.Wireless;
+            MonoSingleton<Global>.Instance.UNetManager.LaunchHost();
 
             var playerEnumer = LobbyManager.Instance.Players.GetPlayerEnumer();
             while (playerEnumer.MoveNext())
@@ -139,9 +140,6 @@ internal static class ModdedServerPatches
                 __instance.SendLobbyGameEvent(key, (NetBeardProps.LocalExternalIP ?? IPAddress.Loopback).ToString(),
                     clientResult.Port); // Send player message to connect to server properly
             }
-
-            LobbyManager.Instance.LocalBeasts.SetupNetMemberContext(true);
-            MonoSingleton<Global>.Instance.UNetManager.LaunchHost();
 
             return false;
         }

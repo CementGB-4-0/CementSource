@@ -2,7 +2,7 @@
 using Tomlet;
 using Tomlet.Attributes;
 
-namespace CementGB.Modules.NetBeardModule;
+namespace CementGB.NetBeardModule;
 
 public class NetBeardConfig
 {
@@ -27,9 +27,9 @@ public class NetBeardConfig
 
     public bool AutoJoin = true;
     public bool Dedicated;
-    public bool Fwd;
 
     public string IP = DefaultIP;
+    public bool P2P;
     public int Port = DefaultPort;
 
     public string ServerName = "Unnamed NetBeard Server";
@@ -52,7 +52,7 @@ public class NetBeardConfig
     private void ProcessConfigArgOverrides()
     {
         if (Environment.GetCommandLineArgs().Contains(CliFlagConstants.ServerArg)) Dedicated = true;
-        if (Environment.GetCommandLineArgs().Contains(CliFlagConstants.FwdArg)) Fwd = true;
+        if (Environment.GetCommandLineArgs().Contains(CliFlagConstants.P2PArg)) P2P = true;
         if (Environment.GetCommandLineArgs().Contains(CliFlagConstants.UpnpArg)) UpnpEnabled = true;
         if (!string.IsNullOrWhiteSpace(IpArg)) IP = IpArg;
         if (!string.IsNullOrWhiteSpace(PortArg)) Port = int.Parse(PortArg);

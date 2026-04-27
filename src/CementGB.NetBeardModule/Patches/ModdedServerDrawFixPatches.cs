@@ -4,7 +4,7 @@ using Il2CppGB.Game;
 using Il2CppGB.Networking.Objects;
 using Il2CppGB.Networking.Utils;
 
-namespace CementGB.Modules.NetBeardModule.Patches;
+namespace CementGB.NetBeardModule.Patches;
 
 [HarmonyPatch(typeof(GameMode), nameof(GameMode.InitBeast))]
 internal static class GameModeInitBeastPatch

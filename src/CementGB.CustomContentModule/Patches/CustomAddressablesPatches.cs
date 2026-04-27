@@ -7,7 +7,7 @@ using Object = Il2CppSystem.Object;
 using Resources = Il2CppGB.Core.Resources;
 using String = Il2CppSystem.String;
 
-namespace CementGB.Modules.CustomContent.Patches;
+namespace CementGB.CustomContent.Patches;
 
 [HarmonyPatch]
 internal static class CustomAddressablesPatches

@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Diagnostics;
-using CementGB.Modules.CustomContent.Utilities;
+using CementGB.CustomContent.Utilities;
 using CementGB.Utilities;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
@@ -13,7 +13,7 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace CementGB.Modules.CustomContent;
+namespace CementGB.CustomContent;
 
 public static class AddressableShaderCache
 {

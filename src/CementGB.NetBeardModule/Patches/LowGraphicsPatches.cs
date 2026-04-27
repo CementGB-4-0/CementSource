@@ -3,7 +3,7 @@ using Il2Cpp;
 using UnityEditor.PostProcessing;
 using UnityEngine;
 
-namespace CementGB.Modules.NetBeardModule.Patches;
+namespace CementGB.NetBeardModule.Patches;
 
 [HarmonyPatch(typeof(GraphicsManager), nameof(GraphicsManager.LoadSettings))]
 internal class LowGraphicsPatches

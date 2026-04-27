@@ -10,7 +10,7 @@ using NetworkManager = UnityEngine.Networking.NetworkManager;
 using Object = Il2CppSystem.Object;
 using Resources = Il2CppGB.Core.Resources;
 
-namespace CementGB.Modules.CustomContent.Patches;
+namespace CementGB.CustomContent.Patches;
 
 [HarmonyPatch(typeof(SceneLoader.NetworkLoading), nameof(SceneLoader.NetworkLoading.ActivateScene))]
 internal static class ActivateScenePatch

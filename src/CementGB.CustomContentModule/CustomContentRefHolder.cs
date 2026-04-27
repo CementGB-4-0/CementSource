@@ -1,7 +1,7 @@
 using UnityEngine.ResourceManagement.ResourceLocations;
 using Object = UnityEngine.Object;
 
-namespace CementGB.Modules.CustomContent;
+namespace CementGB.CustomContent;
 
 public abstract class CustomContentRefHolder
 {

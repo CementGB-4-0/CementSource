@@ -11,7 +11,7 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 using Resources = UnityEngine.Resources;
 
-namespace CementGB.Modules.NetBeardModule;
+namespace CementGB.NetBeardModule;
 
 public class NetBeardModule : InstancedCementModule
 {
@@ -24,8 +24,6 @@ public class NetBeardModule : InstancedCementModule
         NetBeardConfig.DeserializeCurrent();
         NetBeardProps.Init();
         CementPreferences.SkipSplashes = true;
-        LobbyCommunicator.Awake();
-        TCPCommunicator.Init();
         LobbyManager.add_onSetupComplete(new Action(OnBoot));
     }
 

@@ -1,7 +1,7 @@
 using HarmonyLib;
 using Il2Cpp;
 
-namespace CementGB.Modules.NetBeardModule.Patches;
+namespace CementGB.NetBeardModule.Patches;
 
 internal static class DevelopmentTestServerUIPatches
 {

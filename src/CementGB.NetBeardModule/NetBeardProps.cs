@@ -1,12 +1,12 @@
 using System.Net;
 
-namespace CementGB.Modules.NetBeardModule;
+namespace CementGB.NetBeardModule;
 
 public static class NetBeardProps
 {
     public static bool IsServer => NetBeardConfig.Current.Dedicated;
-    public static bool IsFwd => !IsServer && NetBeardConfig.Current.Fwd;
-    public static bool PortForward => (IsServer || IsFwd) && NetBeardConfig.Current.UpnpEnabled;
+    public static bool IsP2P => !IsServer && NetBeardConfig.Current.P2P;
+    public static bool PortForward => (IsServer || IsP2P) && NetBeardConfig.Current.UpnpEnabled;
     public static bool DontAutoStart => !NetBeardConfig.Current.AutoJoin;
     public static string IP => NetBeardConfig.Current.IP;
     public static int Port => NetBeardConfig.Current.Port;
