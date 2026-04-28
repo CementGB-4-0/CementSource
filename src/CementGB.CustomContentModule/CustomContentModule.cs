@@ -31,10 +31,10 @@ public class CustomContentModule : InstancedCementModule
         }
 
         CementPreferences.SkipSplashes = true;
-        PlatformEvents.add_OnGameSetup((PlatformEvents.PlatformVoidEventDel)OnSetupComplete);
+        PlatformEvents.add_OnGameSetup((PlatformEvents.PlatformVoidEventDel)SetupMapBoot);
     }
 
-    private void OnSetupComplete()
+    private static void SetupMapBoot()
     {
         GameManagerNew.add_OnGameManagerCreated((Handler)SetConfigOnGameManager);
         LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
