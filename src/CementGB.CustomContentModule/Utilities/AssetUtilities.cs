@@ -28,7 +28,6 @@ public static class AssetUtilities
 
         var cachedAsset = handle.Result.Cast<Object>();
         cachedAsset.MakePersistent();
-        handle.Release();
         return cachedAsset;
     }
 
