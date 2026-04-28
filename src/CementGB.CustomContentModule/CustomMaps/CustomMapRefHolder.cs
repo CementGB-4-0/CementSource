@@ -10,7 +10,7 @@ namespace CementGB.Modules.CustomContent;
 ///     Holds references to scene data loaded on mod init to hold onto and cache loading results.
 /// </summary>
 public class CustomMapRefHolder(IResourceLocation sceneDataLoc, IResourceLocation? mapInfoLoc = null)
-    : CustomContentRefHolder(sceneDataLoc, mapInfoLoc)
+    : CustomContentRefHolder
 {
     public readonly AssetReferenceT<SceneData> SceneData = new(sceneDataLoc.PrimaryKey);
 

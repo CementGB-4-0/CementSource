@@ -99,9 +99,6 @@ internal static class OnSceneListCompletePatch
 
         foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
         {
-            if (!mapRef.IsValid)
-                continue;
-
             Resources._assetList.Add(new Resources.LoadLoadedItem(mapRef.SceneData));
             sceneList._assets.Add(new AddressableDataCache.AssetData
                 { Asset = mapRef.SceneData, Key = mapRef.SceneName });

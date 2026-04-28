@@ -66,8 +66,7 @@ internal static class GameModeMapTrackerPatch
 
                 foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
                 {
-                    if (!mapRef.IsValid ||
-                        SceneNameAlreadyExists(__instance, mapRef.SceneName))
+                    if (SceneNameAlreadyExists(__instance, mapRef.SceneName))
                         continue;
 
                     ExtendedStringLoader.Register($"STAGE_{mapRef.SceneName.ToUpper()}", mapRef.SceneName);

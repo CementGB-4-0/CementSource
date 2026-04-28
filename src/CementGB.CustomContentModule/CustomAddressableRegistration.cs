@@ -259,13 +259,6 @@ public static class CustomAddressableRegistration
             var infoLoc = GetAllModdedResourceLocationsOfType<Object>()
                 .FirstOrDefault(loc => loc.PrimaryKey == $"{parsedSceneName}-Info");
             var refHolder = new CustomMapRefHolder(sceneDataLoc, infoLoc);
-            if (!refHolder.IsValid)
-            {
-                CustomContentModule.Logger?.Error(
-                    $"Custom map reference holder is not valid! | Info: {(refHolder.SceneInfo ? refHolder.SceneInfo.name : "null")} | Data: {(string.IsNullOrWhiteSpace(refHolder.SceneData.AssetGUID) ? refHolder.SceneData.AssetGUID : "null")}");
-                continue;
-            }
-
             _customMaps.Add(refHolder);
             CustomContentModule.Logger?.Msg(
                 ConsoleColor.DarkGreen,
