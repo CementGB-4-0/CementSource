@@ -67,8 +67,6 @@ public static class CustomAddressableRegistration
     /// </summary>
     public static ReadOnlyCollection<CustomMapRefHolder> CustomMaps => _customMaps.AsReadOnly();
 
-    public static bool IsInitialized { get; private set; }
-
     internal static string ResolveModdedInternalId(string bundleFile)
     {
         var bundleFileInfo = new FileInfo(bundleFile);
@@ -170,7 +168,6 @@ public static class CustomAddressableRegistration
             CacheBaseGameAddressableKeys();
             AddressableShaderCache.Initialize();
         }));
-        IsInitialized = true;
     }
 
     private static void CacheBaseGameAddressableKeys()
