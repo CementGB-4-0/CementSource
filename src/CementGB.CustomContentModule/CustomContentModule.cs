@@ -1,3 +1,4 @@
+using CementGB.Modules.CustomContent.Utilities;
 using GBMDK;
 using Il2Cpp;
 using Il2CppCoreNet.Contexts;
@@ -22,9 +23,14 @@ public class CustomContentModule : InstancedCementModule
 
     protected override void OnInitialize()
     {
+        ClassInjector.RegisterTypeInIl2Cpp<WavesDataWrapper>();
         ClassInjector.RegisterTypeInIl2Cpp<CustomMapInfo>();
 
         CustomAddressableRegistration.Initialize();
+#if DEBUG
+        PlatformEvents.add_OnGameSetup((PlatformEvents.PlatformVoidEventDel)BeastUtilities.DumpCostumeStrings);
+#endif
+
         if (string.IsNullOrWhiteSpace(Mod.MapArg))
         {
             return;
