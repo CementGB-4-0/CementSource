@@ -3,7 +3,7 @@ using Il2CppGB.Gamemodes;
 using Il2CppGB.UI;
 using UnityEngine;
 
-namespace CementGB.Modules.CustomContent.Patches;
+namespace CementGB.CustomContent.Patches;
 
 [HarmonyPatch]
 internal static class GBConfigLoaderPatch

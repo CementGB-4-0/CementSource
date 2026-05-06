@@ -2,7 +2,7 @@ using System.Reflection;
 using CementGB.Utilities;
 using MelonLoader;
 
-namespace CementGB.Modules;
+namespace CementGB;
 
 public abstract class InstancedCementModule
 {

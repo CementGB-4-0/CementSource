@@ -4,7 +4,7 @@ using Il2CppGB.Gamemodes;
 using Il2CppGB.UI;
 using ConsoleColor = System.ConsoleColor;
 
-namespace CementGB.Modules.CustomContent.Patches;
+namespace CementGB.CustomContent.Patches;
 
 internal static class GameModeMapTrackerPatch
 {

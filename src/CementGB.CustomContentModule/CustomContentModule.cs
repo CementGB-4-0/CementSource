@@ -14,7 +14,7 @@ using MelonLoader;
 using Action = System.Action;
 using Resources = UnityEngine.Resources;
 
-namespace CementGB.Modules.CustomContent;
+namespace CementGB.CustomContent;
 
 public class CustomContentModule : InstancedCementModule
 {

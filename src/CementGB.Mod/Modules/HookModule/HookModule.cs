@@ -2,7 +2,7 @@ using System.Reflection;
 using HarmonyLib;
 using MelonLoader;
 
-namespace CementGB.Modules;
+namespace CementGB;
 
 /// <summary>
 ///     This is a really simple hooking library that uses Harmony.
