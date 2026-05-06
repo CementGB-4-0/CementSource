@@ -1,43 +1,42 @@
 using HarmonyLib;
-using Il2CppGB.Gamemodes;
 using Il2CppGB.UI;
-using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 
 namespace CementGB.Modules.CustomContent.Patches;
 
+[HarmonyPatch]
 internal static class GBConfigLoaderPatch
 {
     [HarmonyPatch(typeof(MenuHandlerMaps), nameof(MenuHandlerMaps.GetCurrentSelectedLevels))]
     private static class GetCurrentSelectedLevelsPatch
     {
-        private static void Postfix(MenuHandlerMaps __instance, bool random,
+        private static void Postfix(MenuHandlerMaps __instance, ref bool random,
             ref Il2CppSystem.Collections.Generic.List<string> __result)
         {
             if (__instance.mapList[__instance.currentMapIndex].ToLower() !=
-                "random")
+                "modded")
             {
-                return; // map is not set to random; don't do patch
+                return; // map is not set to modded; don't do patch
             }
 
-            var masterMenuHandlers = Object.FindObjectsOfType<MenuHandlerGamemodes>();
+            __result.Clear();
+            random = true;
 
-            foreach (var masterMenuHandler in masterMenuHandlers)
+            var gamemodesHandler = __instance.transform.parent.GetComponentInChildren<MenuHandlerGamemodes>();
+            foreach (var scene in CustomAddressableRegistration.CustomMaps)
             {
-                foreach (var scene in CustomAddressableRegistration.CustomMaps)
-                {
-                    var result = scene.SceneInfo;
+                var sceneInfo = scene.SceneInfo;
+                var gamemode = gamemodesHandler.CurrentGamemode;
 
-                    if (scene.SceneName == null ||
-                        (!result && !masterMenuHandler.CurrentGamemode.HasFlag(GameModeEnum.Melee)) || result == null ||
-                        result.allowedGamemodes == null ||
-                        !result.allowedGamemodes.Get().HasFlag(masterMenuHandler.CurrentGamemode))
-                    {
-                        continue;
-                    }
+                if (sceneInfo.allowedGamemodes?.Get().HasFlag(gamemode) != true)
+                    continue;
 
-                    __result.Insert(Random.Range(0, __result.Count - 1), scene.SceneName);
-                }
+                __result.Add(scene.SceneName);
+            }
+
+            if (__result.Count == 0)
+            {
+                __instance.mapList[__instance.currentMapIndex] = "random";
+                __result = __instance.GetCurrentSelectedLevels(out random);
             }
         }
     }

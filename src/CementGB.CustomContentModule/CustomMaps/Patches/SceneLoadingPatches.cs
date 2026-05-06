@@ -1,28 +1,43 @@
-using CementGB.Modules.CustomContent.Utilities;
+using GBMDK;
 using HarmonyLib;
 using Il2CppAudio;
-using Il2CppCoreNet;
-using Il2CppGB.Core;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
+using Il2CppGB.Gamemodes;
 using Il2CppTMPro;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
+using UnityEngine.Audio;
 using ConsoleColor = System.ConsoleColor;
+using NetworkManager = UnityEngine.Networking.NetworkManager;
+using Object = Il2CppSystem.Object;
 using Resources = Il2CppGB.Core.Resources;
 
 namespace CementGB.Modules.CustomContent.Patches;
 
 [HarmonyPatch(typeof(SceneLoader.NetworkLoading), nameof(SceneLoader.NetworkLoading.ActivateScene))]
-internal static class SceneLoadTask_ActivateScene
+internal static class ActivateScenePatch
 {
     private static bool Prefix(SceneLoader.NetworkLoading __instance)
     {
-        if (__instance._loadingLevel._sceneInstance?.m_Operation == null)
+        if (__instance._loadingLevel?._sceneInstance?.m_Operation == null)
         {
-            Global.Instance.SceneLoader._networkLoader.CompleteLoad();
-            NetworkManager.singleton.ServerChangeScene("Grind");
-            CustomContentModule.Logger?.BigError("UNCAUGHT BUNDLE LOAD ERROR OCCURRED HERE, FALLING BACK TO GRIND");
+            __instance.CompleteLoad();
+            var bundles = UnityEngine.Resources.FindObjectsOfTypeAll<AssetBundle>()
+                .Where(b => b.name.Contains("unitybuiltinshaders")).ToArray();
+            if (bundles.Length > 1)
+            {
+                foreach (var b in bundles[1..])
+                {
+                    b.Unload(false);
+                }
+            }
+
+            /*CustomContentModule.Logger?.BigError(
+                $"UNCAUGHT BUNDLE LOAD ERROR OCCURRED HERE, FALLING BACK TO: {CementPreferences.FallbackMap}");
+            NetworkManager.singleton.ServerChangeScene(CementPreferences.FallbackMap);*/
+            CustomContentModule.Logger?.BigError(
+                $"UNCAUGHT BUNDLE LOAD ERROR OCCURRED HERE, RETRYING: {__instance._sceneLoader.CurrentKey}");
+            NetworkManager.singleton.ServerChangeScene(__instance._sceneLoader.CurrentKey);
             return false;
         }
 
@@ -30,12 +45,77 @@ internal static class SceneLoadTask_ActivateScene
     }
 }
 
-[HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneListComplete))]
-internal static class OnSceneListCompletePatch
+[HarmonyPatch(typeof(AudioMixerSnapshot), nameof(AudioMixerSnapshot.TransitionTo))]
+internal static class TransitionToPatch
+{
+    private static bool Prefix(AudioMixerSnapshot __instance)
+    {
+        if (__instance.audioMixer == null)
+        {
+            UnityEngine.Object.Destroy(__instance);
+            return false;
+        }
+
+        return __instance.audioMixer != null;
+    }
+}
+
+[HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneLoaded))]
+internal static class OnSceneLoadedPatch
 {
     private static void Postfix(SceneLoader __instance)
     {
-        var sceneList = __instance._sceneList.TryCast<AddressableDataCache>();
+        // Make sure mixers are managed properly
+        var mixers = UnityEngine.Resources.FindObjectsOfTypeAll<AudioMixer>();
+        var mixerGroups = UnityEngine.Resources.FindObjectsOfTypeAll<AudioMixerGroup>();
+        var goodMixer = mixers.First();
+        if (__instance._sceneData._audioConfig == null)
+            __instance._sceneData._audioConfig = ScriptableObject.CreateInstance<SceneAudioConfig>();
+        var prevMixer = __instance._sceneData._audioConfig.audioMixer;
+        if (prevMixer == goodMixer) return;
+        __instance._sceneData._audioConfig.audioMixer = goodMixer;
+        foreach (var mixerGroup in mixerGroups)
+        {
+            if (mixerGroup.audioMixer == prevMixer)
+            {
+                UnityEngine.Object.Destroy(mixerGroup);
+            }
+        }
+
+        UnityEngine.Object.Destroy(prevMixer);
+        __instance._sceneData._audioConfig.musicData.bSide ??= __instance._sceneData._audioConfig.musicData.aSide;
+        __instance._sceneData._audioConfig.musicData.drums ??= __instance._sceneData._audioConfig.musicData.aSide;
+
+        ConstructAndAttachWavesData(__instance);
+    }
+
+    private static void ConstructAndAttachWavesData(SceneLoader __instance)
+    {
+        // Construct WavesData at runtime if wrapper provided/gamemode is forced to Waves to lessen GBMDK workload
+        // TODO: Make more reliable way to get SceneInfo from SceneData
+
+        var mapRef =
+            CustomAddressableRegistration.CustomMaps.FirstOrDefault(x =>
+                __instance._sceneData.name.StartsWith(x.SceneName));
+
+        if (mapRef is not { SceneInfo.allowedGamemodes: not null } ||
+            (!mapRef.SceneInfo.allowedGamemodes.Get().HasFlag(GameModeEnum.Waves) && Mod.ModeArg != "waves")) return;
+        var wavesDataWrapperFld = mapRef.SceneInfo.wavesData;
+        if (wavesDataWrapperFld == null) return;
+        var wavesDataWrapper = wavesDataWrapperFld.Get() ?? new WavesDataWrapper();
+        wavesDataWrapper.createWavesData = true;
+
+        var wavesData = wavesDataWrapper.Result;
+        __instance._sceneData._wavesData ??= wavesData;
+    }
+}
+
+[HarmonyPatch(typeof(SceneLoader), nameof(SceneLoader.OnSceneListComplete))]
+internal static class OnSceneListCompletePatch
+{
+    private static void Postfix(SceneLoader __instance, Object data)
+    {
+        var sceneList = data.TryCast<AddressableDataCache>();
 
         if (!sceneList || sceneList == null)
         {
@@ -44,23 +124,9 @@ internal static class OnSceneListCompletePatch
 
         foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
         {
-            if (!mapRef.IsValid || mapRef.SceneData == null)
-                continue;
-
-            if (!mapRef.SceneData._audioConfig)
-            {
-                mapRef.SceneData._audioConfig = ScriptableObject.CreateInstance<SceneAudioConfig>();
-                mapRef.SceneData._audioConfig.MakePersistent();
-            }
-
-            mapRef.SceneData._audioConfig.audioMixer = MixerFinder.MainMixer;
-            if (Mathf.Approximately(mapRef.SceneData._audioConfig.musicData.maxVolume, 1f))
-                mapRef.SceneData._audioConfig.musicData.maxVolume = 0.15f;
-
-            var sceneDataRef = new AssetReference(mapRef.SceneData.name);
-
-            Resources._assetList.Add(new Resources.LoadLoadedItem(sceneDataRef) { Key = mapRef.SceneData.name });
-            sceneList._assets.Add(new AddressableDataCache.AssetData { Asset = sceneDataRef, Key = mapRef.SceneName });
+            Resources._assetList.Add(new Resources.LoadLoadedItem(mapRef.SceneData));
+            sceneList._assets.Add(new AddressableDataCache.AssetData
+                { Asset = mapRef.SceneData, Key = mapRef.SceneName });
 
             CustomContentModule.Logger?.Msg(
                 ConsoleColor.Green,

@@ -8,16 +8,21 @@ namespace CementGB;
 /// </summary>
 public static class CementPreferences
 {
+    private const string SkipSplashesArg = "-ss";
+
     private static MelonPreferences_Category _cmtPrefCateg =
         MelonPreferences.CreateCategory("CementGBPrefs", "CementGB Preferences");
 
     private static MelonPreferences_Entry<bool>? _verboseModeEntry;
+    //private static MelonPreferences_Entry<string>? _fallbackMapEntry;
 
     /// <summary>
     ///     Enables extra log messages for debugging.
     ///     Controlled by a MelonPreference.
     /// </summary>
     public static bool VerboseMode => _verboseModeEntry?.Value ?? Mod.DebugArg;
+
+    public static bool SkipSplashes { get; set; }
 
     internal static void Initialize()
     {
@@ -29,6 +34,9 @@ public static class CementPreferences
             "Verbose Mode",
             "Enables extra log messages for developers.");
         _cmtPrefCateg?.SaveToFile();
+
+        if (Environment.GetCommandLineArgs().Contains(SkipSplashesArg))
+            SkipSplashes = true;
     }
 
     internal static void Deinitialize()

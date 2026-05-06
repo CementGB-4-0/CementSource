@@ -7,7 +7,7 @@ some other nifty features.
 
 CementGB is powered by [MelonLoader](https://melonwiki.xyz/#/) and its dependencies. It can be downloaded on
 the [Gang Beasts Thunderstore page](https://thunderstore.io/c/gang-beasts/p/CementGB/CementGB/),
-the [official website](https://cementgb-4-0.github.io/CementGB.github.io/), or
+the [official website](https://cementgb-4-0.github.io), or
 the [Releases section](https://github.com/CementGB-4-0/CementSource/releases) of the GitHub repository.
 
 ## Installation
