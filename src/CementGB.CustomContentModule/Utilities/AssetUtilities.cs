@@ -2,7 +2,6 @@ using System.Collections;
 using CementGB.Utilities;
 using Il2CppInterop.Runtime.InteropTypes;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Object = UnityEngine.Object;
 
@@ -10,27 +9,6 @@ namespace CementGB.Modules.CustomContent.Utilities;
 
 public static class AssetUtilities
 {
-    public static Object? RetrieveAssetOfKey(string? key, Type? assetType = null)
-    {
-        if (key == null)
-        {
-            CustomContentModule.Logger?.VerboseLog(ConsoleColor.DarkRed, $"Argument {nameof(key)} is null!");
-            return null;
-        }
-
-        var handle = Addressables.LoadAssetAsync<Il2CppSystem.Object>(key);
-        if (!handle.HandleSynchronousAddressableOperation())
-        {
-            CustomContentModule.Logger?.VerboseLog(
-                $"Failed to load asset of key: {key} | {nameof(assetType)} : {assetType}");
-            return null;
-        }
-
-        var cachedAsset = handle.Result.Cast<Object>();
-        cachedAsset.MakePersistent();
-        return cachedAsset;
-    }
-
     /// <summary>
     ///     Checks if the provided AsyncOperationHandle succeeded. Checks if the handle is valid, status is
     ///     <see cref="AsyncOperationStatus.Succeeded" />, and
