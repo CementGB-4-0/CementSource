@@ -3,7 +3,7 @@ using UnityEngine.Networking;
 
 namespace CementGB.NetBeardModule.SteamForwarding.UNETSteamworks;
 
-public static class SteamNetworkManager
+public static class UNETSteamGlobals
 {
     private static HostTopology? m_hostTopology;
 

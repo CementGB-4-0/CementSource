@@ -6,20 +6,20 @@ namespace CementGB.NetBeardModule.SteamForwarding.UNETSteamworks;
 
 public class SteamNetworkConnection : NetworkConnection
 {
-    public CSteamID steamId;
+    public SteamId steamId;
 
     public SteamNetworkConnection()
     {
     }
 
-    public SteamNetworkConnection(CSteamID steamId)
+    public SteamNetworkConnection(SteamId steamId)
     {
         this.steamId = steamId;
     }
 
     public override bool TransportSend(Il2CppStructArray<byte> bytes, int numBytes, int channelId, out byte error)
     {
-        if (steamId.m_SteamID == SteamUser.GetSteamID().m_SteamID)
+        if (steamId == SteamClient.SteamId)
         {
             // sending to self. short circuit
             TransportReceive(bytes, numBytes, channelId);
@@ -27,16 +27,16 @@ public class SteamNetworkConnection : NetworkConnection
             return true;
         }
 
-        var eP2PSendType = EP2PSend.k_EP2PSendReliable;
+        var eP2PSendType = P2PSend.Reliable;
 
-        var qos = SteamNetworkManager.hostTopology.DefaultConfig.Channels[channelId].QOS;
+        var qos = UNETSteamGlobals.hostTopology.DefaultConfig.Channels[channelId].QOS;
         if (qos == QosType.Unreliable || qos == QosType.UnreliableFragmented || qos == QosType.UnreliableSequenced)
         {
-            eP2PSendType = EP2PSend.k_EP2PSendUnreliable;
+            eP2PSendType = P2PSend.Unreliable;
         }
 
         // Send packet to peer through Steam
-        if (SteamNetworking.SendP2PPacket(steamId, bytes, (uint)numBytes, eP2PSendType, channelId))
+        if (SteamNetworking.SendP2PPacket(steamId, bytes, numBytes, 0, eP2PSendType))
         {
             error = 0;
             return true;
@@ -49,6 +49,6 @@ public class SteamNetworkConnection : NetworkConnection
     public void CloseP2PSession()
     {
         SteamNetworking.CloseP2PSessionWithUser(steamId);
-        steamId = CSteamID.Nil;
+        steamId = default;
     }
 }

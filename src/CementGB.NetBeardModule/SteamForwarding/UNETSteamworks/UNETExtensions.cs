@@ -11,6 +11,6 @@ public static class UNETExtensions
     public static void ForceInitialize(this NetworkConnection conn)
     {
         var id = ++nextConnectionId;
-        conn.Initialize("localhost", id, id, SteamNetworkManager.hostTopology);
+        conn.Initialize("localhost", id, id, UNETSteamGlobals.hostTopology);
     }
 }

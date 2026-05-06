@@ -3,7 +3,7 @@ using Il2Cpp;
 
 namespace CementGB.NetBeardModule.Patches;
 
-internal static class DevelopmentTestServerUIPatches
+internal static class ServerConfigPatches
 {
     [HarmonyPatch(typeof(DevelopmentTestServerUI), nameof(DevelopmentTestServerUI.LoadConfig))]
     private static class StartPatch

@@ -25,11 +25,9 @@ public class NetBeardConfig
         "Gives all clients the ability to spawn debug objects by enabling NetMemberContext.LocalHostedGame. Not recommended for public servers.")]
     public bool AllowDebugSpawning = false;
 
-    public bool AutoJoin = true;
     public bool Dedicated;
 
     public string IP = DefaultIP;
-    public bool P2P;
     public int Port = DefaultPort;
 
     public string ServerName = "Unnamed NetBeard Server";
@@ -37,7 +35,6 @@ public class NetBeardConfig
     [TomlInlineComment("Case-insensitive. Can be any map selection name, including 'Modded' or 'Random'.")]
     public string StageName = "Random";
 
-    public bool UpnpEnabled;
     public static NetBeardConfig Current { get; private set; } = Default;
 
     public static void DeserializeCurrent()
@@ -52,8 +49,6 @@ public class NetBeardConfig
     private void ProcessConfigArgOverrides()
     {
         if (Environment.GetCommandLineArgs().Contains(CliFlagConstants.ServerArg)) Dedicated = true;
-        if (Environment.GetCommandLineArgs().Contains(CliFlagConstants.P2PArg)) P2P = true;
-        if (Environment.GetCommandLineArgs().Contains(CliFlagConstants.UpnpArg)) UpnpEnabled = true;
         if (!string.IsNullOrWhiteSpace(IpArg)) IP = IpArg;
         if (!string.IsNullOrWhiteSpace(PortArg)) Port = int.Parse(PortArg);
     }
