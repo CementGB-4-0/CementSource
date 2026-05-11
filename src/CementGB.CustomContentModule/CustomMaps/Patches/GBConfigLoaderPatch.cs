@@ -1,7 +1,5 @@
 using HarmonyLib;
-using Il2CppGB.Gamemodes;
 using Il2CppGB.UI;
-using UnityEngine;
 
 namespace CementGB.Modules.CustomContent.Patches;
 
@@ -23,27 +21,22 @@ internal static class GBConfigLoaderPatch
             __result.Clear();
             random = true;
 
-            var masterMenuHandlers = Resources.FindObjectsOfTypeAll<MenuHandlerGamemodes>();
-
-            foreach (var masterMenuHandler in masterMenuHandlers)
+            var gamemodesHandler = __instance.transform.parent.GetComponentInChildren<MenuHandlerGamemodes>();
+            foreach (var scene in CustomAddressableRegistration.CustomMaps)
             {
-                foreach (var scene in CustomAddressableRegistration.CustomMaps)
-                {
-                    var sceneInfo = scene.SceneInfo;
-                    var gamemode = masterMenuHandler.CurrentGamemode;
+                var sceneInfo = scene.SceneInfo;
+                var gamemode = gamemodesHandler.CurrentGamemode;
 
-                    if (sceneInfo.allowedGamemodes?.Get().HasFlag(gamemode) != true)
-                        continue;
+                if (sceneInfo.allowedGamemodes?.Get().HasFlag(gamemode) != true)
+                    continue;
 
-                    __result.Add(scene.SceneName);
-                }
+                __result.Add(scene.SceneName);
+            }
 
-                if (__result.Count == 0)
-                {
-                    __instance.mapList[__instance.currentMapIndex] =
-                        masterMenuHandler.CurrentGamemode == GameModeEnum.Football ? "Alley" : "random";
-                    __result = __instance.GetCurrentSelectedLevels(out random);
-                }
+            if (__result.Count == 0)
+            {
+                __instance.mapList[__instance.currentMapIndex] = "random";
+                __result = __instance.GetCurrentSelectedLevels(out random);
             }
         }
     }

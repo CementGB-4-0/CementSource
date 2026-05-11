@@ -1,3 +1,4 @@
+using CementGB.Modules.CustomContent.Utilities;
 using GBMDK;
 using Il2Cpp;
 using Il2CppCoreNet.Contexts;
@@ -22,19 +23,24 @@ public class CustomContentModule : InstancedCementModule
 
     protected override void OnInitialize()
     {
+        ClassInjector.RegisterTypeInIl2Cpp<WavesDataWrapper>();
         ClassInjector.RegisterTypeInIl2Cpp<CustomMapInfo>();
 
         CustomAddressableRegistration.Initialize();
+#if DEBUG
+        PlatformEvents.add_OnGameSetup((PlatformEvents.PlatformVoidEventDel)BeastUtilities.DumpCostumeStrings);
+#endif
+
         if (string.IsNullOrWhiteSpace(Mod.MapArg))
         {
             return;
         }
 
         CementPreferences.SkipSplashes = true;
-        PlatformEvents.add_OnGameSetup((PlatformEvents.PlatformVoidEventDel)OnSetupComplete);
+        PlatformEvents.add_OnGameSetup((PlatformEvents.PlatformVoidEventDel)SetupMapBoot);
     }
 
-    private void OnSetupComplete()
+    private static void SetupMapBoot()
     {
         GameManagerNew.add_OnGameManagerCreated((Handler)SetConfigOnGameManager);
         LobbyManager.Instance.LobbyStates.CurrentState = LobbyState.State.Ready | LobbyState.State.InGame;
