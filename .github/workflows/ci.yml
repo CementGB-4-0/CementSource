@@ -33,6 +33,7 @@ jobs:
 
             - run: |
                 cp README.md dist/README.md
+                cp CHANGELOG.md dist/CHANGELOG.md
                 dotnet build --configuration Release /p:VersionSuffix=-ci.${{ github.run_number }}
 
             - uses: actions/upload-artifact@v4

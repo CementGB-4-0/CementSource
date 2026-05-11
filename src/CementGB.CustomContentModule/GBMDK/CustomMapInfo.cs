@@ -12,6 +12,7 @@ public class CustomMapInfo : ScriptableObject
     public const GameModeEnum DefaultModes = GameModeEnum.Melee;
 
     public Il2CppValueField<GameModeEnum>? allowedGamemodes;
+    public Il2CppReferenceField<WavesDataWrapper>? wavesData;
 
     public static CustomMapInfo CreateDefault(string mapName)
     {
