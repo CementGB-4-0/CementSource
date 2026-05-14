@@ -65,6 +65,7 @@ public class CustomContentModule : InstancedCementModule
         switch (map?.ToLower())
         {
             case "random":
+            case null:
             {
                 var setupConfiguration = Resources.FindObjectsOfTypeAll<GameModeSetupConfiguration>().FirstOrDefault();
                 if (setupConfiguration == null) return;
