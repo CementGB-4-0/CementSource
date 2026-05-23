@@ -12,7 +12,7 @@
 
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <LangVersion>12</LangVersion>
-        <DefineConstants>$(DefineConstants);MELONLOADER</DefineConstants>
+        <DefineConstants>$(DefineConstants);TRACE;MELONLOADER</DefineConstants>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <Optimize>true</Optimize>
@@ -42,7 +42,7 @@
         <DebugType>embedded</DebugType>
 
         <ErrorReport>prompt</ErrorReport>
-        <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+        <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
 
         <OutputPath>bin\Debug\</OutputPath>
         <WarningLevel>4</WarningLevel>
@@ -54,7 +54,7 @@
         <DebugType>none</DebugType>
 
         <ErrorReport>prompt</ErrorReport>
-        <DefineConstants>$(DefineConstants);RELEASE;TRACE</DefineConstants>
+        <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
 
         <WarningLevel>4</WarningLevel>
         <DocumentationFile>$(ProjectDir)../../dist/Mods/CementGB.xml</DocumentationFile>
