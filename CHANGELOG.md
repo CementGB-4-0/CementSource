@@ -38,4 +38,5 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
   related to infinite loading.
 - Add newly created Cement modules to ModuleHolder earlier to prevent early logging issues
 
+[4.6.0]: https://github.com/CementGB-4-0/CementSource/compare/v4.5.0...v4.6.0
 [4.5.0]: https://github.com/CementGB-4-0/CementSource/compare/v4.4.0...v4.5.0
