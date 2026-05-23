@@ -26,13 +26,7 @@
 
         <AnalysisLevel>preview-All</AnalysisLevel>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-
-        <RestoreAdditionalProjectSources>
-            https://api.nuget.org/v3/index.json;
-            https://nuget.bepinex.dev/v3/index.json;
-            https://nuget.samboy.dev/v3/index.json
-        </RestoreAdditionalProjectSources>
-
+        
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
