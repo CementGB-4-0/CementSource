@@ -5,6 +5,18 @@ All notable changes to this project *from CementGB v4.5.0 onwards* will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project attempts to adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.0]
+
+### Added
+
+- Waves support.
+
+### Changed
+
+- Bumped recommended MelonLoader version to v0.7.3
+- Bumped recommended Il2CppInterop version to v1.5.1
+- Bumped recommended Tomlet version to v6.1.0
+
 ## [4.5.0]
 
 ### Added

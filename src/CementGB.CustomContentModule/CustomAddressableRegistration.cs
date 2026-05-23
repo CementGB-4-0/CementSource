@@ -67,8 +67,6 @@ public static class CustomAddressableRegistration
     /// </summary>
     public static ReadOnlyCollection<CustomMapRefHolder> CustomMaps => _customMaps.AsReadOnly();
 
-    public static bool IsInitialized { get; private set; }
-
     internal static string ResolveModdedInternalId(string bundleFile)
     {
         var bundleFileInfo = new FileInfo(bundleFile);
@@ -170,7 +168,6 @@ public static class CustomAddressableRegistration
             CacheBaseGameAddressableKeys();
             AddressableShaderCache.Initialize();
         }));
-        IsInitialized = true;
     }
 
     private static void CacheBaseGameAddressableKeys()
@@ -262,13 +259,6 @@ public static class CustomAddressableRegistration
             var infoLoc = GetAllModdedResourceLocationsOfType<Object>()
                 .FirstOrDefault(loc => loc.PrimaryKey == $"{parsedSceneName}-Info");
             var refHolder = new CustomMapRefHolder(sceneDataLoc, infoLoc);
-            if (!refHolder.IsValid)
-            {
-                CustomContentModule.Logger?.Error(
-                    $"Custom map reference holder is not valid! | Info: {(refHolder.SceneInfo ? refHolder.SceneInfo.name : "null")} | Data: {(string.IsNullOrWhiteSpace(refHolder.SceneData.AssetGUID) ? refHolder.SceneData.AssetGUID : "null")}");
-                continue;
-            }
-
             _customMaps.Add(refHolder);
             CustomContentModule.Logger?.Msg(
                 ConsoleColor.DarkGreen,

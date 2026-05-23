@@ -8,11 +8,11 @@
         <AssemblyName>CementGB</AssemblyName>
         <RootNamespace>CementGB</RootNamespace>
         <Author>CementGB Team</Author>
-        <Version>4.5.0</Version>
+        <Version>4.6.0</Version>
 
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <LangVersion>12</LangVersion>
-        <DefineConstants>$(DefineConstants);MELONLOADER</DefineConstants>
+        <DefineConstants>$(DefineConstants);TRACE;MELONLOADER</DefineConstants>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <Optimize>true</Optimize>
@@ -26,13 +26,7 @@
 
         <AnalysisLevel>preview-All</AnalysisLevel>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-
-        <RestoreAdditionalProjectSources>
-            https://api.nuget.org/v3/index.json;
-            https://nuget.bepinex.dev/v3/index.json;
-            https://nuget.samboy.dev/v3/index.json
-        </RestoreAdditionalProjectSources>
-
+        
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
@@ -42,7 +36,7 @@
         <DebugType>embedded</DebugType>
 
         <ErrorReport>prompt</ErrorReport>
-        <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+        <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
 
         <OutputPath>bin\Debug\</OutputPath>
         <WarningLevel>4</WarningLevel>
@@ -54,7 +48,7 @@
         <DebugType>none</DebugType>
 
         <ErrorReport>prompt</ErrorReport>
-        <DefineConstants>$(DefineConstants);RELEASE;TRACE</DefineConstants>
+        <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
 
         <WarningLevel>4</WarningLevel>
         <DocumentationFile>$(ProjectDir)../../dist/Mods/CementGB.xml</DocumentationFile>
@@ -70,18 +64,11 @@
 
         <!-- CementGB Dependencies-->
         <PackageReference Include="GangBeasts.GameLibs" Version="1.27.0"/>
-        <PackageReference Include="LavaGang.MelonLoader" Version="0.7.2"/>
-        <PackageReference Include="Il2CppInterop.Common" Version="1.4.6-ci.579"/>
-        <PackageReference Include="Il2CppInterop.Runtime" Version="1.4.6-ci.579"/>
-        <PackageReference Include="Il2CppInterop.HarmonySupport" Version="1.4.6-ci.579"/>
-        <PackageReference Include="Iced" Version="1.21.0"/>
-        <PackageReference Include="Mono.Cecil" Version="0.11.6"/>
+        <PackageReference Include="LavaGang.MelonLoader" Version="0.7.3"/>
+        <PackageReference Include="Il2CppInterop.Common" Version="1.5.1"/>
+        <PackageReference Include="Il2CppInterop.Runtime" Version="1.5.1"/>
+        <PackageReference Include="Il2CppInterop.HarmonySupport" Version="1.5.1"/>
         <PackageReference Include="HarmonyX" Version="2.10.2"/>
-        <PackageReference Include="MonoMod" Version="22.7.31.1"/>
-        <PackageReference Include="MonoMod.RuntimeDetour" Version="22.7.31.1"/>
-        <PackageReference Include="MonoMod.Utils" Version="22.7.31.1"/>
-        <PackageReference Include="Samboy063.Tomlet" Version="5.4.0"/>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
 
         <Reference Include="ref/**/*.dll"/>
     </ItemGroup>
@@ -144,7 +131,7 @@ namespace $(RootNamespace)
     "version_number": "$(MelonLoaderModVersion)",
     "description": "A general-purpose modding API for Gang Beasts.",
     "dependencies": [
-        "LavaGang-MelonLoader-0.7.1"
+        "LavaGang-MelonLoader-0.7.3"
     ]
 }
 ]]>

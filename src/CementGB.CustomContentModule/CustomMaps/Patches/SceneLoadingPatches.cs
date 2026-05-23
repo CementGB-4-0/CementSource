@@ -1,7 +1,9 @@
+using GBMDK;
 using HarmonyLib;
 using Il2CppAudio;
 using Il2CppGB.Core.Loading;
 using Il2CppGB.Data.Loading;
+using Il2CppGB.Gamemodes;
 using Il2CppTMPro;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -63,6 +65,7 @@ internal static class OnSceneLoadedPatch
 {
     private static void Postfix(SceneLoader __instance)
     {
+        // Make sure mixers are managed properly
         var mixers = UnityEngine.Resources.FindObjectsOfTypeAll<AudioMixer>();
         var mixerGroups = UnityEngine.Resources.FindObjectsOfTypeAll<AudioMixerGroup>();
         var goodMixer = mixers.First();
@@ -82,6 +85,28 @@ internal static class OnSceneLoadedPatch
         UnityEngine.Object.Destroy(prevMixer);
         __instance._sceneData._audioConfig.musicData.bSide ??= __instance._sceneData._audioConfig.musicData.aSide;
         __instance._sceneData._audioConfig.musicData.drums ??= __instance._sceneData._audioConfig.musicData.aSide;
+
+        ConstructAndAttachWavesData(__instance);
+    }
+
+    private static void ConstructAndAttachWavesData(SceneLoader __instance)
+    {
+        // Construct WavesData at runtime if wrapper provided/gamemode is forced to Waves to lessen GBMDK workload
+        // TODO: Make more reliable way to get SceneInfo from SceneData
+
+        var mapRef =
+            CustomAddressableRegistration.CustomMaps.FirstOrDefault(x =>
+                __instance._sceneData.name.StartsWith(x.SceneName));
+
+        if (mapRef is not { SceneInfo.allowedGamemodes: not null } ||
+            (!mapRef.SceneInfo.allowedGamemodes.Get().HasFlag(GameModeEnum.Waves) && Mod.ModeArg != "waves")) return;
+        var wavesDataWrapperFld = mapRef.SceneInfo.wavesData;
+        if (wavesDataWrapperFld == null) return;
+        var wavesDataWrapper = wavesDataWrapperFld.Get() ?? new WavesDataWrapper();
+        wavesDataWrapper.createWavesData = true;
+
+        var wavesData = wavesDataWrapper.Result;
+        __instance._sceneData._wavesData ??= wavesData;
     }
 }
 
@@ -99,9 +124,6 @@ internal static class OnSceneListCompletePatch
 
         foreach (var mapRef in CustomAddressableRegistration.CustomMaps)
         {
-            if (!mapRef.IsValid)
-                continue;
-
             Resources._assetList.Add(new Resources.LoadLoadedItem(mapRef.SceneData));
             sceneList._assets.Add(new AddressableDataCache.AssetData
                 { Asset = mapRef.SceneData, Key = mapRef.SceneName });
