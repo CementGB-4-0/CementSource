@@ -12,10 +12,13 @@ internal static class GBConfigLoaderPatch
         private static void Postfix(MenuHandlerMaps __instance, ref bool random,
             ref Il2CppSystem.Collections.Generic.List<string> __result)
         {
-            if (__instance.mapList[__instance.currentMapIndex].ToLower() !=
+            var mapSelectionCode = __instance.mapList[__instance.currentMapIndex].ToLower();
+            
+            if (mapSelectionCode !=
                 "modded")
             {
-                return; // map is not set to modded; don't do patch
+                __instance.mapList.Remove("modded"); // Remove modded option to avoid it being selected as a map in itself
+                return;
             }
 
             __result.Clear();
