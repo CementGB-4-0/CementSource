@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using CementGB.Modules.CustomContent.Utilities;
 using Il2CppCostumes;
 using Il2CppGB.Game.Data;

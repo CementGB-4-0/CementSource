@@ -1,3 +1,4 @@
+using System.Linq;
 using HarmonyLib;
 using Il2CppCoreNet.Objects;
 using Il2CppCostumes;
@@ -17,6 +18,7 @@ internal static class WavesFixPatches
     {
         GameMode.add_OnBeastSpawned((Il2CppSystem.Action<NetBeast, Actor>)((beast, _) =>
         {
+            if (__instance._waveInfomation == null) return;
             FixColor(beast, __instance._waveInfomation.GetRandomColour());
         }));
     }

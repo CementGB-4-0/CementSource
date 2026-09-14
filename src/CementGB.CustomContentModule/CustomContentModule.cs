@@ -1,3 +1,4 @@
+using System.Linq;
 using CementGB.Modules.CustomContent.Utilities;
 using GBMDK;
 using Il2Cpp;
@@ -80,7 +81,7 @@ public class CustomContentModule : InstancedCementModule
             case "modded":
             {
                 var selectedModdedMaps = CustomAddressableRegistration.CustomMaps
-                    .Where(x => x.SceneInfo.allowedGamemodes?.Get().HasFlag(GameModeHelpers.GamemodeIDToEnum(mode)) ==
+                    .Where(x => x.SceneInfo?.allowedGamemodes?.Get().HasFlag(GameModeHelpers.GamemodeIDToEnum(mode)) ==
                                 true).Select(x => x.SceneName).ToArray();
                 config = GBConfigLoader.CreateRotationConfig(
                     selectedModdedMaps.Length > 0 ? selectedModdedMaps : [fallbackMap]

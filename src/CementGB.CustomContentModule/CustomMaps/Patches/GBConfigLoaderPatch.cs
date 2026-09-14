@@ -30,7 +30,7 @@ internal static class GBConfigLoaderPatch
                 var sceneInfo = scene.SceneInfo;
                 var gamemode = gamemodesHandler.CurrentGamemode;
 
-                if (sceneInfo.allowedGamemodes?.Get().HasFlag(gamemode) != true)
+                if (sceneInfo?.allowedGamemodes?.Get().HasFlag(gamemode) != true)
                     continue;
 
                 __result.Add(scene.SceneName);
