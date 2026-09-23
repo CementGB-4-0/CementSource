@@ -5,6 +5,20 @@ All notable changes to this project *from CementGB v4.5.0 onwards* will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project attempts to adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.2]
+
+### Changed
+
+- `AddressableShaderCache` now reloads materials on any `Renderer`-derived component, not just `MeshRenderer`s (Sharks and other skinned meshes now get reloaded shaders, further lessening the likelihood of all-white materials)
+
+### Fixed
+
+- AI spawn points are now forced to their correct configurations (`ID = 0, TeamIndex = -1, GroupIndex = -1, SpawnFlags = AI + RespawnPoint + ...`)
+
+### Removed
+
+- `NetBeardModule`. This functionality will return in an entirely separate mod.
+
 ## [4.6.1]
 
 ### Added
@@ -13,7 +27,7 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
 
 ### Changed
 
-- Add extra null checks to SceneInfo retrievals to protect against rare circumstances where SceneInfo might be null
+- Add extra null checks to `CustomMapInfo` retrievals to protect against rare circumstances where `CustomMapInfo` might be null
 
 ### Fixed
 
@@ -53,6 +67,7 @@ and this project attempts to adhere to [Semantic Versioning](https://semver.org/
   related to infinite loading.
 - Add newly created Cement modules to ModuleHolder earlier to prevent early logging issues
 
+[4.6.2]: https://github.com/CementGB-4-0/CementSource/compare/v4.6.1...v4.6.2
 [4.6.1]: https://github.com/CementGB-4-0/CementSource/compare/v4.5.0...v4.6.1
 [4.6.0]: https://github.com/CementGB-4-0/CementSource/compare/v4.5.0...v4.6.0
 [4.5.0]: https://github.com/CementGB-4-0/CementSource/compare/v4.4.0...v4.5.0
