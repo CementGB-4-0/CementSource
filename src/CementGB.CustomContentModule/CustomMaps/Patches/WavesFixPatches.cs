@@ -36,13 +36,23 @@ internal static class WavesFixPatches
         beast.PrimaryColor = chosenColor;
         beast.CostumeColor = chosenColor;
     }
-
-    [HarmonyPatch(typeof(GBSpawnPoint), nameof(GBSpawnPoint.Use))]
+    
+    [HarmonyPatch(typeof(GBSpawnPoint), nameof(GBSpawnPoint.OnEnable))]
     [HarmonyPostfix]
     private static void SpawnPointEnablePatch(GBSpawnPoint __instance)
     {
-        __instance._teamIndex = -1;
-        __instance._groupIndex = -1;
-        __instance.Locked = false;
+        if (__instance._spawnPointType.HasFlag(GBSpawnPoint.SpawnPointTypes.AI))
+        {
+            if (!__instance._spawnPointType.HasFlag(GBSpawnPoint.SpawnPointTypes.RespawnPoint))
+            {
+                __instance._spawnPointType |= GBSpawnPoint.SpawnPointTypes.RespawnPoint;
+            }
+
+            __instance._teamIndex = -1;
+            __instance._groupIndex = -1;
+            __instance.Locked = false;
+            __instance._ID = 0;
+        }
+            
     }
 }
