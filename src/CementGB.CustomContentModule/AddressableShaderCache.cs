@@ -31,23 +31,23 @@ public static class AddressableShaderCache
         //yield return InitCacheShaders();
         if (logging)
             CustomContentModule.Logger?.VerboseLog(ConsoleColor.DarkYellow, "Reloading Addressable shaders. . .");
-        Il2CppArrayBase<MeshRenderer> renderers;
+        Il2CppArrayBase<Renderer> renderers;
         if (!parent || parent == null)
         {
-            renderers = Object.FindObjectsOfType<MeshRenderer>();
+            renderers = Object.FindObjectsOfType<Renderer>();
         }
         else
         {
-            var rendList = new List<MeshRenderer>();
-            rendList.AddRange(parent.GetComponents<MeshRenderer>());
-            rendList.AddRange(parent.GetComponentsInChildren<MeshRenderer>());
+            var rendList = new List<Renderer>();
+            rendList.AddRange(parent.GetComponents<Renderer>());
+            rendList.AddRange(parent.GetComponentsInChildren<Renderer>());
 
-            renderers = new Il2CppReferenceArray<MeshRenderer>([.. rendList]);
+            renderers = new Il2CppReferenceArray<Renderer>([.. rendList]);
         }
 
-        foreach (var meshRenderer in renderers)
+        foreach (var renderer in renderers)
         {
-            foreach (var material in meshRenderer.sharedMaterials)
+            foreach (var material in renderer.sharedMaterials)
             {
                 if (material is null) continue;
                 if (CachedShaders.TryGetValue(material.shader.name, out var shader) &&
